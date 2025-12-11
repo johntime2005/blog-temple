@@ -4,6 +4,11 @@ import {
 	WALLPAPER_NONE,
 	WALLPAPER_OVERLAY,
 } from "@constants/constants";
+import {
+	ICON_HIDE_IMAGE_OUTLINE,
+	ICON_IMAGE_OUTLINE,
+	ICON_WALLPAPER,
+} from "@constants/icon-constants";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import Icon from "@iconify/svelte";
@@ -32,15 +37,15 @@ function switchWallpaperMode(newMode: WALLPAPER_MODE) {
 	<button aria-label="Wallpaper Mode" role="menuitem" class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="wallpaper-mode-switch">
 		{#if mode === WALLPAPER_BANNER}
 			<div class="absolute">
-				<Icon icon="material-symbols:image-outline-rounded" class="text-[1.25rem]"></Icon>
+				<Icon icon={ICON_IMAGE_OUTLINE} class="text-[1.25rem]"></Icon>
 			</div>
 		{:else if mode === WALLPAPER_OVERLAY}
 			<div class="absolute">
-				<Icon icon="material-symbols:wallpaper-rounded" class="text-[1.25rem]"></Icon>
+				<Icon icon={ICON_WALLPAPER} class="text-[1.25rem]"></Icon>
 			</div>
 		{:else if mode === WALLPAPER_NONE}
 			<div class="absolute">
-				<Icon icon="material-symbols:hide-image-outline-rounded" class="text-[1.25rem]"></Icon>
+				<Icon icon={ICON_HIDE_IMAGE_OUTLINE} class="text-[1.25rem]"></Icon>
 			</div>
 		{/if}
 	</button>
@@ -51,7 +56,7 @@ function switchWallpaperMode(newMode: WALLPAPER_MODE) {
 				isLast={false}
 				onclick={() => switchWallpaperMode(WALLPAPER_BANNER)}
 			>
-				<Icon icon="material-symbols:image-outline-rounded" class="text-[1.25rem] mr-3"></Icon>
+				<Icon icon={ICON_IMAGE_OUTLINE} class="text-[1.25rem] mr-3"></Icon>
 				{i18n(I18nKey.wallpaperBannerMode)}
 			</DropdownItem>
 			<DropdownItem
@@ -59,7 +64,7 @@ function switchWallpaperMode(newMode: WALLPAPER_MODE) {
 				isLast={false}
 				onclick={() => switchWallpaperMode(WALLPAPER_OVERLAY)}
 			>
-				<Icon icon="material-symbols:wallpaper-rounded" class="text-[1.25rem] mr-3"></Icon>
+				<Icon icon={ICON_WALLPAPER} class="text-[1.25rem] mr-3"></Icon>
 				{i18n(I18nKey.wallpaperOverlayMode)}
 			</DropdownItem>
 			<DropdownItem
@@ -67,7 +72,7 @@ function switchWallpaperMode(newMode: WALLPAPER_MODE) {
 				isLast={true}
 				onclick={() => switchWallpaperMode(WALLPAPER_NONE)}
 			>
-				<Icon icon="material-symbols:hide-image-outline-rounded" class="text-[1.25rem] mr-3"></Icon>
+				<Icon icon={ICON_HIDE_IMAGE_OUTLINE} class="text-[1.25rem] mr-3"></Icon>
 				{i18n(I18nKey.wallpaperNoneMode)}
 			</DropdownItem>
 		</DropdownPanel>

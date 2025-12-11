@@ -1,5 +1,10 @@
 <script lang="ts">
 import { DARK_MODE, LIGHT_MODE, SYSTEM_MODE } from "@constants/constants.ts";
+import {
+	ICON_COMPUTER_OUTLINE,
+	ICON_DARK_MODE_OUTLINE,
+	ICON_WB_SUNNY_OUTLINE,
+} from "@constants/icon-constants";
 import Icon from "@iconify/svelte";
 import {
 	getStoredTheme,

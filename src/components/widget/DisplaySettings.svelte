@@ -4,6 +4,11 @@ import {
 	WALLPAPER_NONE,
 	WALLPAPER_OVERLAY,
 } from "@constants/constants";
+import {
+	ICON_HIDE_IMAGE_OUTLINE,
+	ICON_IMAGE_OUTLINE,
+	ICON_WALLPAPER,
+} from "@constants/icon-constants";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import Icon from "@iconify/svelte";
@@ -87,7 +92,7 @@ function switchWallpaperMode(mode: WALLPAPER_MODE) {
                 onclick={() => switchWallpaperMode(WALLPAPER_BANNER)}
                 title={i18n(I18nKey.wallpaperBannerMode)}
             >
-                <Icon icon="material-symbols:image-outline" class="text-xl"></Icon>
+                <Icon icon={ICON_IMAGE_OUTLINE} class="text-xl"></Icon>
             </button>
             <button
                 class="flex-1 btn-plain h-9 rounded-md flex items-center justify-center gap-2 transition"
@@ -96,7 +101,7 @@ function switchWallpaperMode(mode: WALLPAPER_MODE) {
                 onclick={() => switchWallpaperMode(WALLPAPER_OVERLAY)}
                 title={i18n(I18nKey.wallpaperOverlayMode)}
             >
-                <Icon icon="material-symbols:wallpaper" class="text-xl"></Icon>
+                <Icon icon={ICON_WALLPAPER} class="text-xl"></Icon>
             </button>
             <button
                 class="flex-1 btn-plain h-9 rounded-md flex items-center justify-center gap-2 transition"
@@ -105,7 +110,7 @@ function switchWallpaperMode(mode: WALLPAPER_MODE) {
                 onclick={() => switchWallpaperMode(WALLPAPER_NONE)}
                 title={i18n(I18nKey.wallpaperNoneMode)}
             >
-                <Icon icon="material-symbols:hide-image-outline" class="text-xl"></Icon>
+                <Icon icon={ICON_HIDE_IMAGE_OUTLINE} class="text-xl"></Icon>
             </button>
         </div>
     {/if}
