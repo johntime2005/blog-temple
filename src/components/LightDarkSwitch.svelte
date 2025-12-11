@@ -1,14 +1,8 @@
 <script lang="ts">
 import { DARK_MODE, LIGHT_MODE, SYSTEM_MODE } from "@constants/constants.ts";
-import {
-	ICON_COMPUTER_OUTLINE,
-	ICON_DARK_MODE_OUTLINE,
-	ICON_WB_SUNNY_OUTLINE,
-} from "@constants/icon-constants";
 import Icon from "@iconify/svelte";
 import {
 	getStoredTheme,
-	resolveTheme,
 	setTheme,
 	setupSystemThemeListener,
 } from "@utils/setting-utils.ts";
@@ -32,11 +26,9 @@ function toggleScheme() {
 	switchScheme(seq[(i + 1) % seq.length]);
 }
 
-// 添加Swup钩子监听，确保在页面切换后同步主题状态
+// Adding Swup hook logic...
 if (typeof window !== "undefined") {
-	// 监听Swup的内容替换事件
 	const handleContentReplace = () => {
-		// 使用requestAnimationFrame确保在下一帧更新状态，避免渲染冲突
 		requestAnimationFrame(() => {
 			const newMode = getStoredTheme();
 			if (mode !== newMode) {
@@ -45,7 +37,6 @@ if (typeof window !== "undefined") {
 		});
 	};
 
-	// 检查Swup是否已经加载
 	if ((window as any).swup?.hooks) {
 		(window as any).swup.hooks.on("content:replace", handleContentReplace);
 	} else {
@@ -56,15 +47,12 @@ if (typeof window !== "undefined") {
 		});
 	}
 
-	// 页面加载完成后也同步一次状态并设置系统监听器
 	document.addEventListener("DOMContentLoaded", () => {
 		requestAnimationFrame(() => {
 			const newMode = getStoredTheme();
 			if (mode !== newMode) {
 				mode = newMode;
 			}
-
-			// 如果当前是系统模式，设置系统主题监听器
 			if (newMode === SYSTEM_MODE) {
 				setupSystemThemeListener();
 			}
@@ -75,18 +63,14 @@ if (typeof window !== "undefined") {
 
 <div class="relative z-50">
     <button aria-label="Light/Dark/System Mode" class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="scheme-switch" onclick={toggleScheme}>
-        {#if mode === LIGHT_MODE}
-            <div class="absolute">
-                <Icon icon="material-symbols:wb-sunny-outline-rounded" class="text-[1.25rem]"></Icon>
-            </div>
-        {:else if mode === DARK_MODE}
-            <div class="absolute">
-                <Icon icon="material-symbols:dark-mode-outline-rounded" class="text-[1.25rem]"></Icon>
-            </div>
-        {:else if mode === SYSTEM_MODE}
-            <div class="absolute">
-                <Icon icon="material-symbols:computer-outline-rounded" class="text-[1.25rem]"></Icon>
-            </div>
-        {/if}
+        <div class="absolute" class:opacity-0={mode !== LIGHT_MODE}>
+            <Icon icon="material-symbols:wb-sunny-outline-rounded" class="text-[1.25rem]"></Icon>
+        </div>
+        <div class="absolute" class:opacity-0={mode !== DARK_MODE}>
+            <Icon icon="material-symbols:dark-mode-outline-rounded" class="text-[1.25rem]"></Icon>
+        </div>
+        <div class="absolute" class:opacity-0={mode !== SYSTEM_MODE}>
+            <Icon icon="material-symbols:brightness-auto-outline-rounded" class="text-[1.25rem]"></Icon>
+        </div>
     </button>
 </div>
