@@ -2,9 +2,15 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const targetIcons = [
+	// Upstream icons (with -rounded suffix)
 	"wb-sunny-outline-rounded",
 	"dark-mode-outline-rounded",
 	"brightness-auto-outline-rounded",
+	// User's original icons (without -rounded suffix)
+	"wb-sunny-outline",
+	"dark-mode-outline",
+	"computer-outline-rounded",
+	// Wallpaper icons
 	"image-outline",
 	"wallpaper",
 	"hide-image-outline",
@@ -36,12 +42,20 @@ try {
 			// Resolve parent
 			const parent = sourceData.aliases[cleanName].parent;
 			if (sourceData.icons[parent]) {
-				bundleData.icons[parent] = sourceData.icons[parent];
+				bundleData.icons[parent] = {
+					...sourceData.icons[parent],
+					width: 24,
+					height: 24,
+				};
 			} else {
 				console.warn(`Parent icon ${parent} for alias ${cleanName} not found.`);
 			}
 		} else if (sourceData.icons[cleanName]) {
-			bundleData.icons[cleanName] = sourceData.icons[cleanName];
+			bundleData.icons[cleanName] = {
+				...sourceData.icons[cleanName],
+				width: 24,
+				height: 24,
+			};
 		} else {
 			console.warn(`Icon ${cleanName} not found in source.`);
 		}
