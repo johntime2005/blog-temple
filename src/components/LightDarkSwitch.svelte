@@ -10,7 +10,7 @@ import {
 import type { LIGHT_DARK_MODE } from "@/types/config.ts";
 
 const seq: LIGHT_DARK_MODE[] = [LIGHT_MODE, DARK_MODE, SYSTEM_MODE];
-let mode: LIGHT_DARK_MODE = $state(getStoredTheme());
+let mode: LIGHT_DARK_MODE = $state(getStoredTheme() || LIGHT_MODE);
 
 function switchScheme(newMode: LIGHT_DARK_MODE) {
 	mode = newMode;
@@ -70,14 +70,18 @@ if (typeof window !== "undefined") {
 
 <div class="relative z-50">
     <button aria-label="Light/Dark/System Mode" class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="scheme-switch" onclick={toggleScheme}>
-        <div class="absolute" class:opacity-0={mode !== LIGHT_MODE}>
-            <Icon icon="material-symbols:wb-sunny-outline" class="text-[1.25rem]"></Icon>
-        </div>
-        <div class="absolute" class:opacity-0={mode !== DARK_MODE}>
-            <Icon icon="material-symbols:dark-mode-outline" class="text-[1.25rem]"></Icon>
-        </div>
-        <div class="absolute" class:opacity-0={mode !== SYSTEM_MODE}>
-            <Icon icon="material-symbols:computer-outline-rounded" class="text-[1.25rem]"></Icon>
-        </div>
+        {#if mode === LIGHT_MODE}
+            <div class="absolute">
+                <Icon icon="material-symbols:wb-sunny-outline-rounded" class="text-[1.25rem]"></Icon>
+            </div>
+        {:else if mode === DARK_MODE}
+            <div class="absolute">
+                <Icon icon="material-symbols:dark-mode-outline-rounded" class="text-[1.25rem]"></Icon>
+            </div>
+        {:else if mode === SYSTEM_MODE}
+            <div class="absolute">
+                <Icon icon="material-symbols:computer-outline-rounded" class="text-[1.25rem]"></Icon>
+            </div>
+        {/if}
     </button>
 </div>

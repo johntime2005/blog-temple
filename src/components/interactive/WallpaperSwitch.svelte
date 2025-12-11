@@ -18,7 +18,7 @@ let mode: WALLPAPER_MODE = $state(siteConfig.backgroundWallpaper.mode);
 
 // 在组件挂载时从localStorage读取保存的模式
 onMount(() => {
-	mode = getStoredWallpaperMode();
+	mode = getStoredWallpaperMode() || WALLPAPER_BANNER;
 });
 
 function switchWallpaperMode(newMode: WALLPAPER_MODE) {
@@ -30,15 +30,19 @@ function switchWallpaperMode(newMode: WALLPAPER_MODE) {
 <!-- z-50 make the panel higher than other float panels -->
 <div class="relative z-50" role="menu" tabindex="-1">
 	<button aria-label="Wallpaper Mode" role="menuitem" class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="wallpaper-mode-switch">
-		<div class="absolute" class:opacity-0={mode !== WALLPAPER_BANNER}>
-			<Icon icon="material-symbols:image-outline-rounded" class="text-[1.25rem]"></Icon>
-		</div>
-		<div class="absolute" class:opacity-0={mode !== WALLPAPER_OVERLAY}>
-			<Icon icon="material-symbols:wallpaper-rounded" class="text-[1.25rem]"></Icon>
-		</div>
-		<div class="absolute" class:opacity-0={mode !== WALLPAPER_NONE}>
-			<Icon icon="material-symbols:hide-image-outline-rounded" class="text-[1.25rem]"></Icon>
-		</div>
+		{#if mode === WALLPAPER_BANNER}
+			<div class="absolute">
+				<Icon icon="material-symbols:image-outline-rounded" class="text-[1.25rem]"></Icon>
+			</div>
+		{:else if mode === WALLPAPER_OVERLAY}
+			<div class="absolute">
+				<Icon icon="material-symbols:wallpaper-rounded" class="text-[1.25rem]"></Icon>
+			</div>
+		{:else if mode === WALLPAPER_NONE}
+			<div class="absolute">
+				<Icon icon="material-symbols:hide-image-outline-rounded" class="text-[1.25rem]"></Icon>
+			</div>
+		{/if}
 	</button>
 	<div id="wallpaper-mode-panel" class="absolute transition float-panel-closed top-11 -right-2 pt-5 z-50">
 		<DropdownPanel>
