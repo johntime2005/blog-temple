@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>系统状态检查 - 博客管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .status-item:last-child {
+      border-bottom: none;
+    }
+    .status-label {
+      font-weight: 500;
+      color: #555;
+    }
+    .status-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge.success {
+      background: #d4edda;
+      color: #155724;
+    }
+    .badge.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .badge.warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .badge.loading {
+      background: #e7f3ff;
+      color: #004085;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+    button, a {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      border: none;
+      display: inline-block;
+    }
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+      background: #e9ecef;
+      color: #495057;
+    }
+    .btn-secondary:hover {
+      background: #dee2e6;
+    }
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #667eea;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .detail-text {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+    }
+    .troubleshoot {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+    .troubleshoot h4 {
+      color: #856404;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .troubleshoot ol {
+      margin-left: 20px;
+      font-size: 14px;
+      color: #856404;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔍 系统状态检查</h1>
+      <p class="subtitle">检查博客管理后台的配置和运行状态</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>⚙️</span>
+        <span>OAuth 配置状态</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">GITHUB_CLIENT_ID</span>
+        <span class="status-value">
+          <span id="clientIdStatus" class="badge loading">检查中...</span>
+        </span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">GITHUB_CLIENT_SECRET</span>
+        <span class="status-value">
+          <span id="clientSecretStatus" class="badge loading">检查中...</span>
+        </span>
+      </div>
+      <div id="troubleshootOAuth" class="troubleshoot" style="display: none;">
+        <h4>⚠️ OAuth 配置问题排查</h4>
+        <ol>
+          <li>访问 Cloudflare Pages 控制台</li>
+          <li>进入项目设置 → Environment variables</li>
+          <li>确保添加了 <code>GITHUB_CLIENT_ID</code> 和 <code>GITHUB_CLIENT_SECRET</code></li>
+          <li>保存后重新部署项目</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>📝</span>
+        <span>CMS 配置状态</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">config.yml</span>
+        <span class="status-value">
+          <span id="configYmlStatus" class="badge loading">检查中...</span>
+        </span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">站点 URL</span>
+        <span class="status-value">
+          <span id="siteUrl" class="detail-text">加载中...</span>
+        </span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">后端配置</span>
+        <span class="status-value">
+          <span id="backendStatus" class="detail-text">加载中...</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>🔗</span>
+        <span>快速链接</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">管理后台</span>
+        <span class="status-value">
+          <a href="/admin" class="btn-primary" style="padding: 6px 16px; font-size: 12px;">访问 CMS</a>
+        </span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">环境变量测试</span>
+        <span class="status-value">
+          <a href="/test/env" class="btn-secondary" style="padding: 6px 16px; font-size: 12px;" target="_blank">测试端点</a>
+        </span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">详细调试</span>
+        <span class="status-value">
+          <a href="/debug/env" class="btn-secondary" style="padding: 6px 16px; font-size: 12px;" target="_blank">调试信息</a>
+        </span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" onclick="window.location.reload()">刷新状态</button>
+      <a href="/admin" class="btn-secondary">返回后台</a>
+    </div>
+  </div>
+
+  <script>
+    async function checkStatus() {
+      try {
+        // 检查 OAuth 环境变量
+        const envResponse = await fetch('/debug/env');
+        const envData = await envResponse.json();
+
+        // 更新 OAuth 状态
+        const hasClientId = envData.environment.GITHUB_CLIENT_ID !== '未设置';
+        const hasSecret = envData.environment.GITHUB_CLIENT_SECRET !== '未设置';
+
+        document.getElementById('clientIdStatus').textContent = hasClientId ? '✓ 已配置' : '✗ 未配置';
+        document.getElementById('clientIdStatus').className = 'badge ' + (hasClientId ? 'success' : 'error');
+
+        document.getElementById('clientSecretStatus').textContent = hasSecret ? '✓ 已配置' : '✗ 未配置';
+        document.getElementById('clientSecretStatus').className = 'badge ' + (hasSecret ? 'success' : 'error');
+
+        // 显示故障排查提示
+        if (!hasClientId || !hasSecret) {
+          document.getElementById('troubleshootOAuth').style.display = 'block';
+        }
+
+        // 检查 CMS 配置
+        const configResponse = await fetch('/admin/config.yml');
+        const configOk = configResponse.ok;
+
+        document.getElementById('configYmlStatus').textContent = configOk ? '✓ 正常' : '✗ 缺失';
+        document.getElementById('configYmlStatus').className = 'badge ' + (configOk ? 'success' : 'error');
+
+        if (configOk) {
+          const configText = await configResponse.text();
+
+          // 解析 YAML 配置（简单匹配）
+          const siteUrlMatch = configText.match(/site_url:\s*(.+)/);
+          const backendMatch = configText.match(/name:\s*github/);
+
+          if (siteUrlMatch) {
+            document.getElementById('siteUrl').textContent = siteUrlMatch[1].trim();
+          }
+
+          if (backendMatch) {
+            document.getElementById('backendStatus').textContent = 'GitHub Backend';
+          }
+        } else {
+          document.getElementById('siteUrl').textContent = '配置文件不存在';
+          document.getElementById('backendStatus').textContent = '配置文件不存在';
+        }
+      } catch (error) {
+        console.error('状态检查失败:', error);
+
+        document.getElementById('clientIdStatus').textContent = '✗ 检查失败';
+        document.getElementById('clientIdStatus').className = 'badge error';
+
+        document.getElementById('clientSecretStatus').textContent = '✗ 检查失败';
+        document.getElementById('clientSecretStatus').className = 'badge error';
+
+        document.getElementById('configYmlStatus').textContent = '✗ 检查失败';
+        document.getElementById('configYmlStatus').className = 'badge error';
+
+        document.getElementById('siteUrl').textContent = '无法加载';
+        document.getElementById('backendStatus').textContent = '无法加载';
+      }
+    }
+
+    // 页面加载时执行检查
+    checkStatus();
+  </script>
+</body>
+</html>

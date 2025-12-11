@@ -1,0 +1,4 @@
+# 隐私内容配置示例
+
+# 添加到 .gitignore，这些文件不会被提交到 Git
+src/content/posts/private/

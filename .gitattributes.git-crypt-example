@@ -1,0 +1,55 @@
+# Git-Crypt 配置示例文件
+# 将此文件重命名为 .gitattributes 即可使用
+
+# ========================================
+# 博客私密内容加密规则
+# ========================================
+
+# 1. 加密整个 private 目录（推荐）
+src/content/posts/private/** filter=git-crypt diff=git-crypt
+
+# 2. 加密特定标记的文件
+**/encrypted-*.md filter=git-crypt diff=git-crypt
+*.secret.md filter=git-crypt diff=git-crypt
+
+# 3. 加密环境变量文件
+.env.local filter=git-crypt diff=git-crypt
+.env.production filter=git-crypt diff=git-crypt
+
+# 4. 加密配置密钥文件（如果有）
+config/secrets.ts filter=git-crypt diff=git-crypt
+config/api-keys.ts filter=git-crypt diff=git-crypt
+
+# ========================================
+# 可选：其他需要加密的内容
+# ========================================
+
+# 草稿笔记
+notes/private/** filter=git-crypt diff=git-crypt
+
+# 客户信息
+docs/clients/** filter=git-crypt diff=git-crypt
+
+# 财务记录
+docs/finance/** filter=git-crypt diff=git-crypt
+
+# ========================================
+# 说明
+# ========================================
+#
+# 格式：<pattern> filter=git-crypt diff=git-crypt
+#
+# 常用模式：
+# - src/content/posts/private/**    # 整个目录及子目录
+# - *.secret.md                      # 所有 .secret.md 文件
+# - config/secrets.ts                # 特定文件
+# - **/private-*.md                  # 任何目录下的 private- 开头文件
+#
+# 使用步骤：
+# 1. 安装：brew install git-crypt gnupg
+# 2. 初始化：git-crypt init
+# 3. 添加密钥：git-crypt add-gpg-user your@email.com
+# 4. 将此文件重命名为 .gitattributes
+# 5. 提交：git add .gitattributes && git commit -m "Setup git-crypt"
+#
+# 验证：git-crypt status

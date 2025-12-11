@@ -1,0 +1,148 @@
+
+> firefly@3.8.0 astro /home/johntime/Desktop/blog
+> astro "check"
+
+Proxy environment variables detected. We'll use your proxy for fetch requests.
+11:55:26 [@astrojs/cloudflare] Enabling sessions with Cloudflare KV with the "SESSION" KV binding.
+11:55:26 [@astrojs/cloudflare] If you see the error "Invalid binding `SESSION`" in your build output, you need to add the binding to your wrangler config file.
+11:55:26 [WARN] [adapter] Cloudflare does not support sharp at runtime. However, you can configure `imageService: "compile"` to optimize images with sharp on prerendered pages during build time.
+11:55:26 [content] Syncing content
+11:55:26 [content] Synced content
+11:55:26 [types] Generated 609ms
+11:55:26 [check] Getting diagnostics for Astro files in /home/johntime/Desktop/blog...
+[96msrc/components/Footer.astro[0m:[93m5[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'navigateToPage' is declared but its value is never read.
+
+[7m5[0m import { navigateToPage } from "../utils/navigation-utils";
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/components/Navbar.astro[0m:[93m76[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'switchTheme' is declared but its value is never read.
+
+[7m76[0m function switchTheme() {
+[7m  [0m [93m         ~~~~~~~~~~~[0m
+
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m154[0m:[93m12[0m - [91merror[0m[90m ts(2339): [0mProperty 'key' does not exist on type 'Event'.
+
+[7m154[0m      if (e.key === 'ArrowDown') {
+[7m   [0m [91m           ~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m199[0m:[93m44[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'menu' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m199[0m  function closeDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                                           ~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m199[0m:[93m35[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'trigger' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m199[0m  function closeDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                                  ~~~~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m199[0m:[93m25[0m - [93mwarning[0m[90m ts(6133): [0m'dropdown' is declared but its value is never read.
+
+[7m199[0m  function closeDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                        ~~~~~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m199[0m:[93m25[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'dropdown' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m199[0m  function closeDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                        ~~~~~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m193[0m:[93m43[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'menu' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m193[0m  function openDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                                          ~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m193[0m:[93m34[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'trigger' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m193[0m  function openDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                                 ~~~~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m193[0m:[93m24[0m - [93mwarning[0m[90m ts(6133): [0m'dropdown' is declared but its value is never read.
+
+[7m193[0m  function openDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                       ~~~~~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m193[0m:[93m24[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'dropdown' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m193[0m  function openDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                       ~~~~~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m184[0m:[93m45[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'menu' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m184[0m  function toggleDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                                            ~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m184[0m:[93m36[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'trigger' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m184[0m  function toggleDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                                   ~~~~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m184[0m:[93m26[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'dropdown' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m184[0m  function toggleDropdown(dropdown, trigger, menu) {
+[7m   [0m [93m                         ~~~~~~~~[0m
+
+[96msrc/components/widget/DynamicSideBar.astro[0m:[93m81[0m:[93m7[0m - [91merror[0m[90m ts(2367): [0mThis comparison appears to be unintentional because the types 'WidgetComponentType' and '"toc"' have no overlap.
+
+[7m81[0m   ...(component.type === "toc" && { headings }),
+[7m  [0m [91m      ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/widget/DynamicSideBar.astro[0m:[93m73[0m:[93m39[0m - [91merror[0m[90m ts(2554): [0mExpected 3 arguments, but got 2.
+
+[7m73[0m  const componentClass = widgetManager.getComponentClass(component, index);
+[7m  [0m [91m                                      ~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/widget/DynamicSideBar.astro[0m:[93m272[0m:[93m38[0m - [91merror[0m[90m ts(2339): [0mProperty 'getBreakpoints' does not exist on type 'WidgetManager'.
+
+[7m272[0m    const breakpoints = widgetManager.getBreakpoints();
+[7m   [0m [91m                                     ~~~~~~~~~~~~~~[0m
+
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m7[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'LayoutSwitchButton' is declared but its value is never read.
+
+[7m7[0m import LayoutSwitchButton from "../LayoutSwitchButton.svelte";
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from "../../config/siteConfig";
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/components/widget/SideBar.astro[0m:[93m51[0m:[93m39[0m - [91merror[0m[90m ts(2554): [0mExpected 3 arguments, but got 2.
+
+[7m51[0m  const componentClass = widgetManager.getComponentClass(component, index);
+[7m  [0m [91m                                      ~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/widget/SideBar.astro[0m:[93m24[0m:[93m35[0m - [91merror[0m[90m ts(2339): [0mProperty 'getBreakpoints' does not exist on type 'WidgetManager'.
+
+[7m24[0m const breakpoints = widgetManager.getBreakpoints();
+[7m  [0m [91m                                  ~~~~~~~~~~~~~~[0m
+[96msrc/components/widget/SideBar.astro[0m:[93m128[0m:[93m9[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m128[0m <script define:vars={{ sidebarConfig }}>
+[7m   [0m [93m        ~~~~~~~~~~~[0m
+
+[96msrc/components/widget/SkillCard.astro[0m:[93m164[0m:[93m76[0m - [91merror[0m[90m ts(2551): [0mProperty 'skillsExperience' does not exist on type 'typeof I18nKey'. Did you mean 'skillExperience'?
+
+[7m164[0m               <span class="text-black/60 dark:text-white/60">{i18n(I18nKey.skillsExperience)}</span>
+[7m   [0m [91m                                                                           ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/config/siteConfig.ts[0m:[93m91[0m:[93m3[0m - [91merror[0m[90m ts(2353): [0mObject literal may only specify known properties, and 'enable' does not exist in type 'BackgroundWallpaperConfig'.
+
+[7m91[0m   enable: true,
+[7m  [0m [91m  ~~~~~~[0m
+
+[96msrc/pages/anime.astro[0m:[93m2[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'ImageWrapper' is declared but its value is never read.
+
+[7m2[0m import ImageWrapper from "@/components/misc/ImageWrapper.astro";
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/anime.astro[0m:[93m785[0m:[93m15[0m - [93mwarning[0m[90m ts(6133): [0m'message' is declared but its value is never read.
+
+[7m785[0m     showError(message) {
+[7m   [0m [93m              ~~~~~~~[0m
+[96msrc/pages/anime.astro[0m:[93m240[0m:[93m3[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m240[0m   define:vars={{
+[7m   [0m [93m  ~~~~~~~~~~~[0m
+
+[96msrc/pages/projects.astro[0m:[93m2[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'getCollection' is declared but its value is never read.
+
+[7m2[0m import { getCollection } from "astro:content";
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+Result (171 files): 
+- 8 errors
+- 0 warnings
+- 20 hints
+
+ ELIFECYCLE  Command failed with exit code 1.

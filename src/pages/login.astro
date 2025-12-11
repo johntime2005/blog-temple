@@ -1,0 +1,14 @@
+---
+import LoginForm from "@components/auth/LoginForm.svelte";
+import Layout from "@layouts/Layout.astro";
+
+// 获取重定向URL（如果有）
+const redirectUrl = Astro.url.searchParams.get("redirect") || "/";
+---
+
+<Layout
+	title="用户登录"
+	description="登录以访问受保护的内容"
+>
+	<LoginForm client:load redirectUrl={redirectUrl} />
+</Layout>

@@ -1,0 +1,97 @@
+
+> firefly@3.8.0 astro /home/johntime/Desktop/blog
+> astro "check"
+
+Proxy environment variables detected. We'll use your proxy for fetch requests.
+12:00:15 [@astrojs/cloudflare] Enabling sessions with Cloudflare KV with the "SESSION" KV binding.
+12:00:15 [@astrojs/cloudflare] If you see the error "Invalid binding `SESSION`" in your build output, you need to add the binding to your wrangler config file.
+12:00:15 [WARN] [adapter] Cloudflare does not support sharp at runtime. However, you can configure `imageService: "compile"` to optimize images with sharp on prerendered pages during build time.
+12:00:16 [content] Syncing content
+12:00:16 [content] Synced content
+12:00:16 [types] Generated 731ms
+12:00:16 [check] Getting diagnostics for Astro files in /home/johntime/Desktop/blog...
+[96msrc/components/Footer.astro[0m:[93m5[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'navigateToPage' is declared but its value is never read.
+
+[7m5[0m import { navigateToPage } from "../utils/navigation-utils";
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/components/Navbar.astro[0m:[93m76[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'switchTheme' is declared but its value is never read.
+
+[7m76[0m function switchTheme() {
+[7m  [0m [93m         ~~~~~~~~~~~[0m
+
+[96msrc/components/layout/LeftSideBar.astro[0m:[93m59[0m:[93m3[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string' is not assignable to parameter of type 'number'.
+
+[7m59[0m   "left",
+[7m  [0m [91m  ~~~~~~[0m
+
+[96msrc/components/layout/RightSideBar.astro[0m:[93m73[0m:[93m3[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string' is not assignable to parameter of type 'number'.
+
+[7m73[0m   "right",
+[7m  [0m [91m  ~~~~~~~[0m
+
+[96msrc/components/layout/SideBar.astro[0m:[93m105[0m:[93m3[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string' is not assignable to parameter of type 'number'.
+
+[7m105[0m   sidebar,
+[7m   [0m [91m  ~~~~~~~[0m
+
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m199[0m:[93m25[0m - [93mwarning[0m[90m ts(6133): [0m'dropdown' is declared but its value is never read.
+
+[7m199[0m  function closeDropdown(dropdown: Element, trigger: Element, menu: Element) {
+[7m   [0m [93m                        ~~~~~~~~[0m
+[96msrc/components/widget/DropdownMenu.astro[0m:[93m193[0m:[93m24[0m - [93mwarning[0m[90m ts(6133): [0m'dropdown' is declared but its value is never read.
+
+[7m193[0m  function openDropdown(dropdown: Element, trigger: Element, menu: Element) {
+[7m   [0m [93m                       ~~~~~~~~[0m
+
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m67[0m:[93m62[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'url'.
+
+[7m67[0m                 <a href={link.external === true ? link.url : url(link.url)} class="group flex justify-between items-center py-2 pl-3 pr-1 rounded-lg gap-8
+[7m  [0m [91m                                                             ~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m48[0m:[93m63[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'url'.
+
+[7m48[0m                                 <a href={c.external ? c.url : url(c.url)}
+[7m  [0m [91m                                                              ~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m46[0m:[93m48[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'NavBarLink'.
+
+[7m46[0m                             const c = child as NavBarLink;
+[7m  [0m [91m                                               ~~~~~~~~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m16[0m:[93m13[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'LinkPresets'.
+
+[7m16[0m      return LinkPresets[child];
+[7m  [0m [91m            ~~~~~~~~~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m14[0m:[93m38[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'NavBarLink'.
+
+[7m14[0m    (child: NavBarLink | LinkPreset): NavBarLink => {
+[7m  [0m [91m                                     ~~~~~~~~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m14[0m:[93m25[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'LinkPreset'.
+
+[7m14[0m    (child: NavBarLink | LinkPreset): NavBarLink => {
+[7m  [0m [91m                        ~~~~~~~~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m14[0m:[93m12[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'NavBarLink'.
+
+[7m14[0m    (child: NavBarLink | LinkPreset): NavBarLink => {
+[7m  [0m [91m           ~~~~~~~~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m11[0m:[93m22[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'NavBarLink'.
+
+[7m11[0m  (link: NavBarLink): NavBarLink => ({
+[7m  [0m [91m                     ~~~~~~~~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m11[0m:[93m9[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'NavBarLink'.
+
+[7m11[0m  (link: NavBarLink): NavBarLink => ({
+[7m  [0m [91m        ~~~~~~~~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m6[0m:[93m9[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'NavBarLink'.
+
+[7m6[0m  links: NavBarLink[];
+[7m [0m [91m        ~~~~~~~~~~[0m
+[96msrc/components/widget/NavMenuPanel.astro[0m:[93m45[0m:[93m45[0m - [93mwarning[0m[90m ts(7044): [0mParameter 'child' implicitly has an 'any' type, but a better type may be inferred from usage.
+
+[7m45[0m                         {link.children.map((child) => {
+[7m  [0m [93m                                            ~~~~~[0m
+
+Result (171 files): 
+- 13 errors
+- 0 warnings
+- 5 hints
+
+ ELIFECYCLE  Command failed with exit code 1.

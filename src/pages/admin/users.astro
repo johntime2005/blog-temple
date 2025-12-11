@@ -1,0 +1,146 @@
+---
+import UserManagement from "@components/auth/UserManagement.svelte";
+import Layout from "@layouts/Layout.astro";
+---
+
+<Layout
+	title="用户管理后台"
+	description="管理用户账户"
+>
+	<div class="admin-container">
+		<div class="admin-content">
+			<div class="header">
+				<h1>用户管理</h1>
+				<p>创建和管理博客用户账户</p>
+			</div>
+
+			<UserManagement client:load adminToken="" />
+
+			<div class="instructions">
+				<h3>📝 使用说明</h3>
+				<ul>
+					<li>只有管理员可以创建新用户</li>
+					<li>用户名只能包含字母、数字和下划线，长度3-20个字符</li>
+					<li>密码长度至少为6个字符</li>
+					<li>可以使用"生成随机密码"功能创建安全的随机密码</li>
+					<li>创建的用户可以登录访问受保护的内容（如日记）</li>
+				</ul>
+
+				<h3>⚙️ 配置步骤</h3>
+				<ol>
+					<li>先访问 <a href="/admin/encryption">/admin/encryption</a> 登录管理后台获取 admin token</li>
+					<li>在浏览器控制台中运行 <code>localStorage.getItem('admin-token')</code> 获取 token</li>
+					<li>修改本页面代码，将 adminToken 设置为获取到的 token 值</li>
+					<li>或者修改 UserManagement 组件，从 localStorage 自动读取 token</li>
+				</ol>
+
+				<h3>🔐 权限说明</h3>
+				<p>文章的 <code>accessLevel</code> 字段控制访问权限：</p>
+				<ul>
+					<li><code>public</code> - 所有人可访问（默认）</li>
+					<li><code>members-only</code> - 仅登录用户可访问</li>
+					<li><code>restricted</code> - 仅特定用户可访问（未来扩展）</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	.admin-container {
+		min-height: 100vh;
+		background: var(--page-bg);
+		padding: 2rem 1rem;
+	}
+
+	.admin-content {
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+
+	.header {
+		margin-bottom: 2rem;
+		text-align: center;
+	}
+
+	.header h1 {
+		font-size: 2rem;
+		margin-bottom: 0.5rem;
+		color: var(--text-color);
+	}
+
+	.header p {
+		color: var(--text-secondary);
+		font-size: 1rem;
+	}
+
+	.instructions {
+		background: var(--card-bg);
+		border-radius: 12px;
+		padding: 2rem;
+		margin-top: 2rem;
+		box-shadow: var(--shadow-md);
+	}
+
+	.instructions h3 {
+		margin-top: 0;
+		margin-bottom: 1rem;
+		color: var(--text-color);
+		font-size: 1.125rem;
+	}
+
+	.instructions h3:not(:first-child) {
+		margin-top: 2rem;
+	}
+
+	.instructions ul,
+	.instructions ol {
+		margin: 0.5rem 0;
+		padding-left: 1.5rem;
+	}
+
+	.instructions li {
+		margin: 0.5rem 0;
+		color: var(--text-secondary);
+		line-height: 1.6;
+	}
+
+	.instructions p {
+		margin: 0.5rem 0;
+		color: var(--text-secondary);
+		line-height: 1.6;
+	}
+
+	.instructions code {
+		background: var(--page-bg);
+		padding: 0.125rem 0.375rem;
+		border-radius: 4px;
+		font-family: 'Courier New', monospace;
+		font-size: 0.875rem;
+		color: var(--primary);
+	}
+
+	.instructions a {
+		color: var(--primary);
+		text-decoration: none;
+		transition: opacity 0.2s ease;
+	}
+
+	.instructions a:hover {
+		opacity: 0.8;
+		text-decoration: underline;
+	}
+</style>
+
+<script>
+	// 自动从 localStorage 读取 admin token 并设置
+	const adminToken = localStorage.getItem('admin-token');
+	if (adminToken) {
+		// 找到 UserManagement 组件并设置 token
+		const userMgmt = document.querySelector('[data-user-management]');
+		if (userMgmt) {
+			// Svelte 组件会在客户端加载后接收这个值
+			(userMgmt as any).__adminToken = adminToken;
+		}
+	}
+</script>

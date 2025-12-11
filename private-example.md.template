@@ -1,0 +1,111 @@
+---
+title: 这是一篇真正私密的文章
+published: 2025-11-17
+description: 这个文件不会被提交到 Git
+tags: [私密]
+category: 私密日记
+---
+
+# 私密内容示例
+
+这个文件位于 `src/content/posts/private/` 目录下，由于该目录已添加到 `.gitignore`，所以：
+
+✅ **不会被提交到 Git**
+✅ **不会出现在 GitHub 上**
+✅ **完全私密**
+✅ **本地可以正常预览**
+
+## 如何设置
+
+1. 在项目根目录的 `.gitignore` 文件中添加：
+   ```
+   src/content/posts/private/
+   ```
+
+2. 创建私密目录：
+   ```bash
+   mkdir -p src/content/posts/private
+   ```
+
+3. 在该目录下创建文章
+
+4. 验证是否生效：
+   ```bash
+   git status
+   # 应该看不到 private 目录下的文件
+   ```
+
+## 注意事项
+
+⚠️ **如果你之前已经提交过这些文件**：
+
+即使现在添加到 `.gitignore`，Git 历史中仍然存在！需要：
+
+```bash
+# 从 Git 中删除但保留本地文件
+git rm --cached -r src/content/posts/private/
+
+# 提交删除
+git commit -m "Remove private posts from Git history"
+
+# （可选）清理 Git 历史
+git filter-branch --force --index-filter \
+  "git rm --cached --ignore-unmatch -r src/content/posts/private/" \
+  --prune-empty --tag-name-filter cat -- --all
+
+# 强制推送
+git push origin --force --all
+```
+
+⚠️ **重要**：清理 Git 历史是危险操作，建议先备份仓库！
+
+## 替代方案
+
+如果你需要云端备份但保持隐私：
+
+### 方案 1：使用私有仓库
+
+将整个 GitHub 仓库设为私有（Settings → Danger Zone → Change visibility）
+
+### 方案 2：单独的私有仓库
+
+```bash
+# 为私密内容创建单独的私有仓库
+cd src/content/posts/private
+git init
+git remote add origin git@github.com:your-username/private-blog-posts.git
+
+# 在 .gitignore 中排除
+# 但可以单独管理这个子仓库
+```
+
+### 方案 3：加密后提交
+
+使用 GPG、git-crypt 或其他加密工具。
+
+## 示例：Git-Crypt（推荐用于团队）
+
+```bash
+# 安装 git-crypt
+# macOS: brew install git-crypt
+# Ubuntu: sudo apt install git-crypt
+
+# 在仓库中启用
+git-crypt init
+
+# 添加规则（.gitattributes）
+echo "src/content/posts/private/** filter=git-crypt diff=git-crypt" >> .gitattributes
+
+# 添加 GPG 密钥
+git-crypt add-gpg-user your@email.com
+
+# 之后所有匹配规则的文件会自动加密
+```
+
+## 总结
+
+对于真正的隐私内容：
+1. ✅ 最简单：`.gitignore` + 私有仓库备份
+2. ✅ 最安全：本地存储 + 物理备份
+3. ⚠️ 需要云端：Git-Crypt 或单独的私有仓库
+4. ❌ 不推荐：依赖 `draft` 或 `visibility`（源文件仍暴露）

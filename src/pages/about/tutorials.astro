@@ -1,0 +1,220 @@
+---
+import { getCollection } from "astro:content";
+import PostCard from "@components/PostCard.astro";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+
+// 获取所有tutorials目录下的教程文章
+const allPosts = await getCollection("posts", ({ data }) => {
+	return !data.draft;
+});
+
+// 过滤出 tutorials 目录下的文章
+const allTutorials = allPosts.filter((post) => {
+	return post.id.startsWith("tutorials/");
+});
+
+// 按发布日期排序
+const sortedTutorials = allTutorials.sort((a, b) => {
+	const dateA = new Date(a.data.published);
+	const dateB = new Date(b.data.published);
+	return dateB.getTime() - dateA.getTime();
+});
+
+// 按分类分组
+const tutorialsByCategory = sortedTutorials.reduce(
+	(acc, post) => {
+		const category = post.data.category || "其他";
+		if (!acc[category]) {
+			acc[category] = [];
+		}
+		acc[category].push(post);
+		return acc;
+	},
+	{} as Record<string, typeof sortedTutorials>,
+);
+
+const pageTitle = "📚 Firefly 使用教程";
+const pageDescription = "学习如何使用和配置 Firefly 博客主题";
+---
+
+<MainGridLayout title={pageTitle} description={pageDescription}>
+	<div class="card-base px-8 py-8">
+		<!-- 页面标题 -->
+		<h1
+			class="text-4xl font-bold mb-4 text-neutral-900 dark:text-neutral-100"
+		>
+			📚 Firefly 使用教程
+		</h1>
+		<p class="text-neutral-700 dark:text-neutral-300 mb-8">
+			欢迎来到 Firefly 使用教程！这里收录了所有关于 Firefly
+			博客主题的使用指南和示例文章。
+		</p>
+
+		<!-- GitHub 项目卡片 -->
+		<div
+			class="mb-12 p-6 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800"
+		>
+			<div class="flex items-start gap-4">
+				<div class="flex-shrink-0">
+					<svg
+						class="w-12 h-12 text-blue-600 dark:text-blue-400"
+						fill="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+						></path>
+					</svg>
+				</div>
+				<div class="flex-1">
+					<h2
+						class="text-2xl font-bold mb-2 text-neutral-900 dark:text-neutral-100"
+					>
+						🌟 Firefly - Astro 博客主题
+					</h2>
+					<p class="text-neutral-700 dark:text-neutral-300 mb-4">
+						一款清新美观且现代化的个人博客主题，专为技术爱好者和内容创作者设计。
+					</p>
+					<div class="flex flex-wrap gap-3">
+						<a
+							href="https://github.com/CuteLeaf/Firefly"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+						>
+							<svg
+								class="w-5 h-5"
+								fill="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+								></path>
+							</svg>
+							查看源码
+						</a>
+						<a
+							href="https://docs-firefly.cuteleaf.cn"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+						>
+							<svg
+								class="w-5 h-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+								></path>
+							</svg>
+							在线文档
+						</a>
+						<a
+							href="https://demo-firefly.netlify.app/"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+						>
+							<svg
+								class="w-5 h-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+								></path>
+							</svg>
+							在线预览
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 教程列表 -->
+		<div class="space-y-8">
+			{
+				Object.entries(tutorialsByCategory).map(([category, posts]) => (
+					<div>
+						<h2 class="text-2xl font-bold mb-4 text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+							<span class="text-blue-600 dark:text-blue-400">
+								📖
+							</span>
+							{category}
+						</h2>
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+							{posts.map((post) => (
+								<PostCard
+									entry={post}
+									title={post.data.title}
+									url={`/posts/${post.id}/`}
+									published={post.data.published}
+									tags={post.data.tags}
+									category={post.data.category}
+									description={post.data.description}
+									image={post.data.image}
+									draft={post.data.draft}
+									pinned={post.data.pinned}
+								/>
+							))}
+						</div>
+					</div>
+				))
+			}
+		</div>
+
+		<!-- 底部提示 -->
+		<div
+			class="mt-12 p-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+		>
+			<div class="flex items-start gap-3">
+				<svg
+					class="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<div>
+					<h3
+						class="font-bold text-neutral-900 dark:text-neutral-100 mb-1"
+					>
+						💡 提示
+					</h3>
+					<p class="text-neutral-700 dark:text-neutral-300 text-sm">
+						这些教程文章仅在此页面显示，不会出现在博客主页中。如有问题，欢迎访问
+						<a
+							href="https://github.com/CuteLeaf/Firefly/issues"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="text-blue-600 dark:text-blue-400 hover:underline"
+						>
+							GitHub Issues
+						</a>
+						反馈。
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>

@@ -1,0 +1,121 @@
+---
+import type { GetStaticPaths } from "astro";
+import PostCard from "@/components/PostCard.astro";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { getColumnConfig, getPostsByColumn } from "@/utils/column-utils";
+
+export const getStaticPaths = (async () => {
+	const columns = await getColumnConfig();
+
+	return Object.values(columns).map((column) => ({
+		params: { slug: column.slug },
+		props: { column },
+	}));
+}) satisfies GetStaticPaths;
+
+const { column } = Astro.props;
+
+// 获取该栏目的所有文章
+const columnPosts = await getPostsByColumn(column.id);
+
+const title = column.name;
+const subtitle = column.description || `${column.name}相关文章`;
+---
+
+<MainGridLayout title={title} description={subtitle}>
+	<div
+		class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32"
+	>
+		<div class="card-base z-10 px-9 py-6 relative w-full">
+			<!-- 栏目标题 -->
+			<div class="flex items-start gap-4 mb-8">
+				{
+					column.icon && (
+						<span
+							class="iconify text-5xl flex-shrink-0"
+							data-icon={column.icon}
+							style={column.color ? `color: ${column.color}` : ""}
+						/>
+					)
+				}
+				<div class="flex-1">
+					<h1
+						class="text-4xl font-bold text-black/90 dark:text-white/90 mb-2"
+					>
+						{title}
+					</h1>
+					{
+						subtitle && (
+							<p class="text-lg text-black/60 dark:text-white/60">
+								{subtitle}
+							</p>
+						)
+					}
+					<div class="mt-4 text-sm text-black/50 dark:text-white/50">
+						共 {columnPosts.length} 篇文章
+					</div>
+				</div>
+			</div>
+
+			<!-- 文章列表 -->
+			<div class="space-y-6">
+				{
+					columnPosts.map((post) => {
+						// 检查是否有栏目特定的自定义标题
+						const displayTitle =
+							post.data.columnConfig?.[column.id]?.customTitle ||
+							post.data.title;
+
+						return (
+							<div class="onload-animation">
+								<PostCard
+									entry={post}
+									title={displayTitle}
+									url={`/posts/${post.id}`}
+									published={post.data.published}
+									updated={post.data.updated}
+									tags={post.data.tags}
+									category={post.data.category}
+									image={post.data.image}
+									description={post.data.description}
+									draft={post.data.draft}
+									pinned={post.data.pinned}
+									featured={
+										post.data.columnConfig?.[column.id]
+											?.featured
+									}
+								/>
+							</div>
+						);
+					})
+				}
+			</div>
+
+			<!-- 如果没有文章 -->
+			{
+				columnPosts.length === 0 && (
+					<div class="text-center py-12 text-black/60 dark:text-white/60">
+						<p class="text-lg">该栏目暂无文章</p>
+					</div>
+				)
+			}
+		</div>
+	</div>
+</MainGridLayout>
+
+<style>
+	.onload-animation {
+		animation: fade-in-up 0.5s ease-out;
+	}
+
+	@keyframes fade-in-up {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+</style>

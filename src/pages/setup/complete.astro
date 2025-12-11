@@ -1,0 +1,298 @@
+---
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout
+	title="配置完成 - Firefly 博客"
+	description="初始化配置已完成"
+>
+	<meta name="robots" content="noindex,nofollow" slot="head" />
+
+	<div class="complete-page min-h-screen py-12 px-4">
+		<div class="max-w-4xl mx-auto">
+			<!-- 成功图标 -->
+			<div class="text-center mb-8">
+				<div class="success-icon text-8xl mb-4">✅</div>
+				<h1 class="text-4xl font-bold mb-2">配置文件已生成！</h1>
+				<p class="text-neutral-400 text-lg">
+					配置文件已自动下载，请按照以下步骤完成部署
+				</p>
+			</div>
+
+			<!-- 步骤说明 -->
+			<div class="steps-container space-y-6 mb-8">
+				<!-- 步骤 1 -->
+				<div class="step-card p-6 rounded-xl border-2">
+					<div class="flex items-start">
+						<div class="step-number flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mr-4">
+							1
+						</div>
+						<div class="flex-1">
+							<h3 class="text-xl font-bold mb-2">解压配置文件</h3>
+							<p class="text-neutral-400 mb-3">
+								找到刚才下载的 <code class="code-inline">firefly-config.zip</code> 文件并解压。
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- 步骤 2 -->
+				<div class="step-card p-6 rounded-xl border-2">
+					<div class="flex items-start">
+						<div class="step-number flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mr-4">
+							2
+						</div>
+						<div class="flex-1">
+							<h3 class="text-xl font-bold mb-2">克隆你的仓库</h3>
+							<p class="text-neutral-400 mb-3">
+								在本地克隆你的 GitHub 仓库（如果还没有的话）：
+							</p>
+							<div class="code-block">
+								<pre><code>git clone https://github.com/你的用户名/你的仓库.git
+cd 你的仓库</code></pre>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 步骤 3 -->
+				<div class="step-card p-6 rounded-xl border-2">
+					<div class="flex items-start">
+						<div class="step-number flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mr-4">
+							3
+						</div>
+						<div class="flex-1">
+							<h3 class="text-xl font-bold mb-2">复制配置文件</h3>
+							<p class="text-neutral-400 mb-3">
+								将解压后的配置文件复制到对应位置：
+							</p>
+							<div class="code-block">
+								<pre><code># 复制网站配置
+cp firefly-config/src/config/siteConfig.ts src/config/
+
+# 复制个人资料配置
+cp firefly-config/src/config/profileConfig.ts src/config/
+
+# 复制 Astro 配置
+cp firefly-config/astro.config.mjs .
+
+# 复制 robots.txt
+cp firefly-config/public/robots.txt public/</code></pre>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 步骤 4 -->
+				<div class="step-card p-6 rounded-xl border-2">
+					<div class="flex items-start">
+						<div class="step-number flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mr-4">
+							4
+						</div>
+						<div class="flex-1">
+							<h3 class="text-xl font-bold mb-2">提交到 GitHub</h3>
+							<p class="text-neutral-400 mb-3">
+								将配置文件提交到你的 GitHub 仓库：
+							</p>
+							<div class="code-block">
+								<pre><code>git add .
+git commit -m "chore: 完成初始化配置"
+git push</code></pre>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 步骤 5 -->
+				<div class="step-card p-6 rounded-xl border-2">
+					<div class="flex items-start">
+						<div class="step-number flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mr-4">
+							5
+						</div>
+						<div class="flex-1">
+							<h3 class="text-xl font-bold mb-2">等待自动部署</h3>
+							<p class="text-neutral-400 mb-3">
+								Cloudflare Pages 会自动检测到你的提交并重新部署网站。
+								大约 2-5 分钟后，你的个性化博客就上线了！
+							</p>
+							<div class="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+								<p class="text-blue-400 font-medium">
+									💡 提示：你可以在 Cloudflare Pages 的 Dashboard 中查看构建进度
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 下一步建议 -->
+			<div class="next-steps p-6 rounded-xl border-2 mb-8">
+				<h2 class="text-2xl font-bold mb-4">🎨 下一步可以做什么？</h2>
+				<ul class="space-y-3 text-neutral-300">
+					<li class="flex items-start">
+						<span class="text-primary mr-3">→</span>
+						<div>
+							<strong>替换图片资源：</strong>
+							在 <code class="code-inline">public/assets/images/</code> 目录下替换头像、Logo 和背景图
+						</div>
+					</li>
+					<li class="flex items-start">
+						<span class="text-primary mr-3">→</span>
+						<div>
+							<strong>创建你的第一篇文章：</strong>
+							使用 <code class="code-inline">pnpm new-post 文章标题</code> 命令创建新文章
+						</div>
+					</li>
+					<li class="flex items-start">
+						<span class="text-primary mr-3">→</span>
+						<div>
+							<strong>自定义更多配置：</strong>
+							查看 <code class="code-inline">src/config/</code> 目录下的其他配置文件（导航栏、评论系统、看板娘等）
+						</div>
+					</li>
+					<li class="flex items-start">
+						<span class="text-primary mr-3">→</span>
+						<div>
+							<strong>阅读项目文档：</strong>
+							查看 <code class="code-inline">CLAUDE.md</code> 了解项目架构和完整功能
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<!-- 常见问题 -->
+			<div class="faq p-6 rounded-xl border-2 mb-8">
+				<h2 class="text-2xl font-bold mb-4">❓ 常见问题</h2>
+				<div class="space-y-4">
+					<details class="faq-item">
+						<summary class="cursor-pointer font-medium text-lg">配置文件没有自动下载怎么办？</summary>
+						<p class="mt-2 text-neutral-400 pl-4">
+							请检查浏览器的下载设置，确保允许下载文件。你也可以返回上一步重新生成配置文件。
+						</p>
+					</details>
+
+					<details class="faq-item">
+						<summary class="cursor-pointer font-medium text-lg">提交后网站没有更新怎么办？</summary>
+						<p class="mt-2 text-neutral-400 pl-4">
+							请等待 2-5 分钟让 Cloudflare Pages 完成构建。你可以在 Cloudflare Dashboard 的
+							"Deployments" 标签页查看构建状态。如果构建失败，请检查错误日志。
+						</p>
+					</details>
+
+					<details class="faq-item">
+						<summary class="cursor-pointer font-medium text-lg">可以重新运行初始化向导吗？</summary>
+						<p class="mt-2 text-neutral-400 pl-4">
+							可以！只需将 <code class="code-inline">src/config/siteConfig.ts</code> 中的
+							<code class="code-inline">initialized</code> 改为 <code class="code-inline">false</code>，
+							然后重新访问网站即可。
+						</p>
+					</details>
+
+					<details class="faq-item">
+						<summary class="cursor-pointer font-medium text-lg">如何获取更多帮助？</summary>
+						<p class="mt-2 text-neutral-400 pl-4">
+							可以查看项目的 <a href="https://github.com/johntime2005/blog/issues" class="text-primary hover:underline" target="_blank">GitHub Issues</a>
+							或参考 <code class="code-inline">CLAUDE.md</code> 文档。
+						</p>
+					</details>
+				</div>
+			</div>
+
+			<!-- 操作按钮 -->
+			<div class="text-center">
+				<a
+					href="/"
+					class="btn-primary inline-block px-8 py-4 rounded-lg font-medium text-lg transition-all"
+				>
+					← 返回首页
+				</a>
+			</div>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	.complete-page {
+		background: var(--page-bg);
+	}
+
+	.success-icon {
+		animation: bounce 1s ease-in-out;
+	}
+
+	@keyframes bounce {
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(-20px); }
+	}
+
+	.step-card {
+		background: var(--card-bg);
+		border-color: var(--line-divider);
+		transition: all 0.3s;
+	}
+
+	.step-card:hover {
+		border-color: var(--primary);
+		transform: translateX(5px);
+	}
+
+	.step-number {
+		background: var(--primary);
+		color: white;
+	}
+
+	.code-block {
+		background: var(--codeblock-bg);
+		border: 1px solid var(--line-divider);
+		border-radius: 0.5rem;
+		padding: 1rem;
+		overflow-x: auto;
+	}
+
+	.code-block code {
+		color: var(--text-primary);
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 0.875rem;
+		line-height: 1.5;
+	}
+
+	.code-inline {
+		background: var(--codeblock-bg);
+		color: var(--primary);
+		padding: 0.125rem 0.375rem;
+		border-radius: 0.25rem;
+		font-family: 'JetBrains Mono', monospace;
+		font-size: 0.875em;
+	}
+
+	.next-steps, .faq {
+		background: var(--card-bg);
+		border-color: var(--line-divider);
+	}
+
+	.faq-item {
+		padding: 1rem;
+		border-radius: 0.5rem;
+		transition: all 0.3s;
+	}
+
+	.faq-item:hover {
+		background: var(--hover-bg);
+	}
+
+	.faq-item summary::marker {
+		color: var(--primary);
+	}
+
+	.btn-primary {
+		background: var(--primary);
+		color: white;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+
+	.btn-primary:hover {
+		opacity: 0.9;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+	}
+</style>

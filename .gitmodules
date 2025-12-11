@@ -1,0 +1,3 @@
+[submodule "src/content/posts/diary"]
+	path = src/content/posts/diary
+	url = git@github.com:johntime2005/blog-diary-private.git

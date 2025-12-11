@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>欢迎使用博客管理后台</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 40px 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .header {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      .hero-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      h1 {
+        color: #333;
+        font-size: 32px;
+        margin-bottom: 12px;
+      }
+      .subtitle {
+        color: #666;
+        font-size: 16px;
+        line-height: 1.6;
+      }
+      .card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+      .card-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .feature-item {
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        transition: all 0.3s;
+      }
+      .feature-item:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .feature-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      .feature-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+        font-size: 14px;
+      }
+      .feature-desc {
+        font-size: 12px;
+        color: #666;
+        line-height: 1.5;
+      }
+      .steps {
+        counter-reset: step;
+      }
+      .step-item {
+        padding: 20px;
+        margin-bottom: 12px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        position: relative;
+        padding-left: 60px;
+      }
+      .step-item::before {
+        counter-increment: step;
+        content: counter(step);
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .step-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+      }
+      .step-desc {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.5;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 14px 28px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 15px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+      }
+      .btn-secondary {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+      }
+      .btn-secondary:hover {
+        background: #f0f2ff;
+      }
+      .tip-box {
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        border-left: 4px solid #667eea;
+        padding: 16px;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+      .tip-title {
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .tip-content {
+        font-size: 14px;
+        color: #555;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="hero-icon">🎨</div>
+        <h1>欢迎使用博客管理后台</h1>
+        <p class="subtitle">
+          强大的内容管理系统，让您轻松管理博客文章、页面和内容<br />
+          基于 Decap CMS + GitHub，完全免费，安全可靠
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>✨</span>
+          <span>核心功能</span>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-item">
+            <div class="feature-icon">📝</div>
+            <div class="feature-title">文章管理</div>
+            <div class="feature-desc">
+              创建、编辑、发布博客文章，支持 Markdown 格式
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🔄</div>
+            <div class="feature-title">工作流</div>
+            <div class="feature-desc">草稿 → 审核 → 发布的完整编辑流程</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🖼️</div>
+            <div class="feature-title">媒体库</div>
+            <div class="feature-desc">上传和管理图片、视频等媒体文件</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🔐</div>
+            <div class="feature-title">GitHub 集成</div>
+            <div class="feature-desc">
+              所有内容在 GitHub 版本控制，安全可追溯
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🤝</div>
+            <div class="feature-title">友链管理</div>
+            <div class="feature-desc">轻松管理友情链接页面内容</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">👤</div>
+            <div class="feature-title">关于页面</div>
+            <div class="feature-desc">编辑和更新关于页面的个人信息</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>🚀</span>
+          <span>快速开始</span>
+        </div>
+        <div class="steps">
+          <div class="step-item">
+            <div class="step-title">访问管理后台</div>
+            <div class="step-desc">
+              点击下方"进入后台"按钮，首次访问需要 GitHub 授权
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-title">GitHub 授权</div>
+            <div class="step-desc">
+              使用您的 GitHub 账号登录，确保您有仓库的访问权限
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-title">开始创作</div>
+            <div class="step-desc">
+              创建新文章，上传图片，编辑页面内容，一切都很简单
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-title">发布内容</div>
+            <div class="step-desc">
+              完成编辑后发布，自动推送到 GitHub 并触发网站部署
+            </div>
+          </div>
+        </div>
+
+        <div class="tip-box">
+          <div class="tip-title">
+            <span>💡</span>
+            <span>小提示</span>
+          </div>
+          <div class="tip-content">
+            • 建议在桌面浏览器上使用，获得最佳编辑体验<br />
+            • 所有修改都会保存到 GitHub，可以随时查看历史记录<br />
+            • 如遇到登录问题，请检查浏览器是否阻止了弹窗<br />
+            • 如需帮助，可访问
+            <a
+              href="/admin/status.html"
+              style="color: #667eea; font-weight: 600"
+              >系统状态检查</a
+            >
+            页面
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>🔗</span>
+          <span>快捷链接</span>
+        </div>
+        <div class="actions" style="justify-content: flex-start">
+          <a href="/admin" class="btn btn-primary">
+            <span>🚀</span>
+            <span>进入后台</span>
+          </a>
+          <a href="/admin/dashboard.html" class="btn btn-secondary">
+            <span>📊</span>
+            <span>管理仪表板</span>
+          </a>
+          <a href="/admin/status.html" class="btn btn-secondary">
+            <span>🔍</span>
+            <span>系统状态</span>
+          </a>
+          <a href="/" class="btn btn-secondary">
+            <span>🏠</span>
+            <span>返回首页</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

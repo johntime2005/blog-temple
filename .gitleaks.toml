@@ -1,0 +1,76 @@
+# Gitleaks 配置文件
+title = "Gitleaks 密钥扫描配置"
+
+[extend]
+# 使用默认规则集
+useDefault = true
+
+# 自定义规则
+[[rules]]
+id = "google-api-key"
+description = "Google API Key"
+regex = '''AIza[0-9A-Za-z\\-_]{35}'''
+tags = ["key", "Google"]
+
+[[rules]]
+id = "github-token"
+description = "GitHub Personal Access Token"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+tags = ["key", "GitHub"]
+
+[[rules]]
+id = "github-oauth"
+description = "GitHub OAuth Access Token"
+regex = '''gho_[0-9a-zA-Z]{36}'''
+tags = ["key", "GitHub"]
+
+[[rules]]
+id = "github-app-token"
+description = "GitHub App Token"
+regex = '''(ghu|ghs)_[0-9a-zA-Z]{36}'''
+tags = ["key", "GitHub"]
+
+[[rules]]
+id = "slack-token"
+description = "Slack Token"
+regex = '''xox[baprs]-([0-9a-zA-Z]{10,48})'''
+tags = ["key", "Slack"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["key", "AWS"]
+
+[[rules]]
+id = "cloudflare-api-token"
+description = "Cloudflare API Token"
+regex = '''[a-zA-Z0-9_-]{40}'''
+tags = ["key", "Cloudflare"]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey|access[_-]?key)\s*[=:]\s*['"]?[a-zA-Z0-9_\-]{20,}'''
+tags = ["key", "generic"]
+
+# 允许列表 (排除误报)
+[allowlist]
+description = "全局允许列表"
+regexes = [
+    '''EXAMPLE_API_KEY''',
+    '''your_api_key_here''',
+    '''<YOUR_API_KEY>''',
+    '''process\.env\.[A-Z_]+''',
+    '''import\.meta\.env\.[A-Z_]+''',
+    '''managing-your-repositorys-settings-and-f''',
+    '''ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn''',
+]
+
+paths = [
+    '''\.gitleaks\.toml''',
+    '''SECURITY_GUIDE\.md''',
+    '''\.env\.example''',
+    '''package-lock\.json''',
+    '''pnpm-lock\.yaml''',
+]

@@ -1,0 +1,64 @@
+name: Sync to Public Repository
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Private Repo
+        uses: actions/checkout@v4
+        with:
+          path: private-repo
+
+      - name: Checkout Public Repo
+        uses: actions/checkout@v4
+        with:
+          repository: johntime2005/blog-temple # Replace with actual public repo name if different
+          token: ${{ secrets.PAT_TOKEN }} # Needs a PAT with repo scope
+          path: public-repo
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.14.4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: private-repo/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: private-repo
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Sync Script
+        env:
+          SYNC_OUTPUT_DIR: ${{ github.workspace }}/public-repo
+        run: |
+          cd private-repo
+          node scripts/sync-public.js
+
+      - name: Commit and Push to Public Repo
+        run: |
+          cd public-repo
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add .
+          
+          # Check for changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Sync content from private repository [skip ci]"
+            git push
+          fi

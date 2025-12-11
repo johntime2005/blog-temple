@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>博客管理后台 - Content Manager</title>
+  <style>
+    /* 弹窗提示样式 */
+    .popup-notice {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      max-width: 90%;
+      text-align: center;
+    }
+    .popup-notice.show {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+    @keyframes slideDown {
+      from {
+        transform: translateX(-50%) translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+    .popup-notice button {
+      margin-top: 10px;
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .popup-notice button:hover {
+      background: #f0f0f0;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <!-- 弹窗阻止提示 -->
+  <div id="popupNotice" class="popup-notice">
+    ⚠️ 浏览器阻止了登录弹窗！<br>
+    请在地址栏右侧点击弹窗图标，允许弹窗后重试<br>
+    或者<br>
+    <button onclick="window.location.href='/auth'">直接跳转登录</button>
+  </div>
+
+  <!-- Decap CMS 核心脚本 -->
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+  <script>
+    // 弹窗阻止检测
+    (function() {
+      const originalOpen = window.open;
+      window.open = function() {
+        const popup = originalOpen.apply(this, arguments);
+
+        // 检查弹窗是否被阻止
+        if (!popup || popup.closed || typeof popup.closed == 'undefined') {
+          const notice = document.getElementById('popupNotice');
+          if (notice) {
+            notice.classList.add('show');
+            setTimeout(() => notice.classList.remove('show'), 10000);
+          }
+        }
+
+        return popup;
+      };
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "generatedAt": "2025-11-12T16:41:02+08:00",
+    "projectName": "Firefly Blog",
+    "projectType": "astro-blog",
+    "description": "基于 Astro 的个人博客系统，集成 Firefly 主题"
+  },
+  "repository": {
+    "rootPath": "/home/johntime/Desktop/blog",
+    "gitBranch": "main",
+    "remoteUrl": "https://github.com/johntime2005/blog"
+  },
+  "statistics": {
+    "totalFiles": 450,
+    "scannedFiles": 180,
+    "coveragePercent": 40,
+    "estimatedFilesByType": {
+      "typescript": 52,
+      "javascript": 15,
+      "astro": 45,
+      "svelte": 12,
+      "markdown": 35,
+      "json": 8,
+      "css": 15,
+      "other": 268
+    },
+    "ignoredPatterns": [
+      "node_modules/**",
+      "dist/**",
+      ".astro/**",
+      ".wrangler/**",
+      "*.lock",
+      "*.log",
+      "*.sql",
+      "*.db",
+      "*.sqlite",
+      "*.min.js",
+      "*.min.css"
+    ],
+    "largeFilesSkipped": [
+      "public/pio/static/spine-player.min.js",
+      "public/pio/static/live2d.min.js",
+      "public/assets/js/*.min.js"
+    ]
+  },
+  "modules": [
+    {
+      "id": "pages",
+      "name": "页面模块",
+      "path": "src/pages",
+      "type": "routing",
+      "description": "Astro 页面路由，定义站点所有可访问路径",
+      "entryPoints": [
+        "src/pages/[...page].astro",
+        "src/pages/posts/[...slug].astro",
+        "src/pages/archive.astro",
+        "src/pages/friends.astro"
+      ],
+      "interfaces": [
+        {
+          "type": "route",
+          "pattern": "/",
+          "description": "首页与分页列表"
+        },
+        {
+          "type": "route",
+          "pattern": "/posts/:slug",
+          "description": "文章详情页（动态路由）"
+        },
+        {
+          "type": "route",
+          "pattern": "/archive",
+          "description": "归档页"
+        },
+        {
+          "type": "route",
+          "pattern": "/projects",
+          "description": "项目展示页"
+        },
+        {
+          "type": "route",
+          "pattern": "/skills",
+          "description": "技能展示页"
+        },
+        {
+          "type": "route",
+          "pattern": "/timeline",
+          "description": "时间线页"
+        }
+      ],
+      "dependencies": [
+        "@astrojs/cloudflare",
+        "astro:content"
+      ],
+      "tests": {
+        "hasTests": false,
+        "testFiles": []
+      },
+      "coverage": {
+        "scanned": true,
+        "completePercent": 85,
+        "missingInfo": [
+          "auth/ 目录的功能需进一步确认"
+        ]
+      }
+    },
+    {
+      "id": "components",
+      "name": "组件模块",
+      "path": "src/components",
+      "type": "ui-library",
+      "description": "可复用 UI 组件库（Astro + Svelte）",
+      "entryPoints": [
+        "src/components/Navbar.astro",
+        "src/components/Footer.astro",
+        "src/components/Search.svelte"
+      ],
+      "submodules": [
+        {
+          "name": "widget",
+          "description": "侧边栏与卡片组件",
+          "keyFiles": [
+            "TOC.astro",
+            "Profile.astro",
+            "Categories.astro",
+            "Tags.astro"
+          ]
+        },
+        {
+          "name": "comment",
+          "description": "评论系统（Twikoo）",
+          "keyFiles": [
+            "Twikoo.astro",
+            "index.astro"
+          ]
+        },
+        {
+          "name": "control",
+          "description": "通用控件",
+          "keyFiles": [
+            "ButtonLink.astro",
+            "Pagination.astro",
+            "BackToTop.astro"
+          ]
+        }
+      ],
+      "dependencies": [
+        "@iconify/svelte",
+        "@fancyapps/ui",
+        "photoswipe"
+      ],
+      "tests": {
+        "hasTests": false,
+        "testFiles": []
+      },
+      "coverage": {
+        "scanned": true,
+        "completePercent": 90,
+        "missingInfo": []
+      }
+    },
+    {
+      "id": "config",
+      "name": "配置模块",
+      "path": "src/config",
+      "type": "configuration",
+      "description": "集中管理站点配置，支持模块化导入",
+      "entryPoints": [
+        "src/config/index.ts"
+      ],
+      "interfaces": [
+        {
+          "type": "export",
+          "name": "siteConfig",
+          "description": "站点基础配置（标题、主题色、页面开关）"
+        },
+        {
+          "type": "export",
+          "name": "profileConfig",
+          "description": "用户资料配置"
+        },
+        {
+          "type": "export",
+          "name": "navBarConfig",
+          "description": "导航栏配置"
+        },
+        {
+          "type": "export",
+          "name": "commentConfig",
+          "description": "评论系统配置"
+        }
+      ],
+      "configFiles": [
+        "siteConfig.ts",
+        "profileConfig.ts",
+        "navBarConfig.ts",
+        "commentConfig.ts",
+        "fontConfig.ts",
+        "sakuraConfig.ts",
+        "pioConfig.ts",
+        "musicConfig.ts",
+        "friendsConfig.ts",
+        "licenseConfig.ts",
+        "footerConfig.ts",
+        "announcementConfig.ts",
+        "adConfig.ts",
+        "sidebarConfig.ts",
+        "expressiveCodeConfig.ts"
+      ],
+      "dependencies": [],
+      "tests": {
+        "hasTests": false,
+        "testFiles": []
+      },
+      "coverage": {
+        "scanned": true,
+        "completePercent": 100,
+        "missingInfo": []
+      }
+    },
+    {
+      "id": "content",
+      "name": "内容模块",
+      "path": "src/content",
+      "type": "data",
+      "description": "Markdown 内容管理（基于 Astro Content Collections）",
+      "entryPoints": [
+        "src/content/config.ts"
+      ],
+      "collections": [
+        {
+          "name": "posts",
+          "description": "博客文章",
+          "schema": "postsCollection",
+          "count": 17
+        },
+        {
+          "name": "spec",
+          "description": "特殊页面（about、friends）",
+          "schema": "specCollection",
+          "count": 2
+        }
+      ],
+      "dependencies": [
+        "astro:content",
+        "reading-time"
+      ],
+      "tests": {
+        "hasTests": false,
+        "testFiles": []
+      },
+      "coverage": {
+        "scanned": true,
+        "completePercent": 100,
+        "missingInfo": []
+      }
+    },
+    {
+      "id": "plugins",
+      "name": "插件模块",
+      "path": "src/plugins",
+      "type": "build-extensions",
+      "description": "Remark/Rehype 插件，扩展 Markdown 处理能力",
+      "entryPoints": [
+        "src/plugins/remark-reading-time.mjs",
+        "src/plugins/rehype-mermaid.mjs"
+      ],
+      "plugins": [
+        {
+          "name": "remark-reading-time",
+          "type": "remark",
+          "description": "计算文章阅读时间"
+        },
+        {
+          "name": "remark-excerpt",
+          "type": "remark",
+          "description": "提取文章摘要"
+        },
+        {
+          "name": "remark-mermaid",
+          "type": "remark",
+          "description": "预处理 Mermaid 图表"
+        },
+        {
+          "name": "remark-directive-rehype",
+          "type": "remark",
+          "description": "处理自定义指令"
+        },
+        {
+          "name": "rehype-mermaid",
+          "type": "rehype",
+          "description": "渲染 Mermaid 图表为 SVG"
+        },
+        {
+          "name": "rehype-component-admonition",
+          "type": "rehype",
+          "description": "渲染提示框组件"
+        },
+        {
+          "name": "rehype-component-github-card",
+          "type": "rehype",
+          "description": "渲染 GitHub 卡片"
+        }
+      ],
+      "dependencies": [
+        "unified",
+        "mdast-util-to-string",
+        "unist-util-visit"
+      ],
+      "tests": {
+        "hasTests": false,
+        "testFiles": []
+      },
+      "coverage": {
+        "scanned": true,
+        "completePercent": 75,
+        "missingInfo": [
+          "插件逻辑细节需深度分析"
+        ]
+      }
+    },
+    {
+      "id": "utils",
+      "name": "工具模块",
+      "path": "src/utils",
+      "type": "utilities",
+      "description": "通用工具函数",
+      "entryPoints": [
+        "src/utils/url-utils.ts",
+        "src/utils/content-utils.ts"
+      ],
+      "utilityFiles": [
+        "url-utils.ts",
+        "date-utils.ts",
+        "content-utils.ts",
+        "setting-utils.ts",
+        "navigation-utils.ts",
+        "icon-loader.ts",
+        "widget-manager.ts",
+        "sakura-manager.ts",
+        "language-utils.ts"
+      ],
+      "dependencies": [
+        "dayjs"
+      ],
+      "tests": {
+        "hasTests": false,
+        "testFiles": []
+      },
+      "coverage": {
+        "scanned": true,
+        "completePercent": 80,
+        "missingInfo": [
+          "部分工具函数的边界条件需补充文档"
+        ]
+      }
+    },
+    {
+      "id": "layouts",
+      "name": "布局模块",
+      "path": "src/layouts",
+      "type": "templates",
+      "description": "页面布局模板",
+      "entryPoints": [
+        "src/layouts/Layout.astro",
+        "src/layouts/MainGridLayout.astro"
+      ],
+      "dependencies": [
+        "@swup/astro",
+        "katex"
+      ],
+      "tests": {
+        "hasTests": false,
+        "testFiles": []
+      },
+      "coverage": {
+        "scanned": true,
+        "completePercent": 100,
+        "missingInfo": []
+      }
+    },
+    {
+      "id": "scripts",
+      "name": "脚本模块",
+      "path": "scripts",
+      "type": "build-tools",
+      "description": "辅助开发与构建的脚本",
+      "entryPoints": [
+        "scripts/new-post.js",
+        "scripts/fix-routes.js",
+        "scripts/wordpress-to-markdown.js"
+      ],
+      "scripts": [
+        {
+          "name": "new-post.js",
+          "description": "快速创建新文章模板"
+        },
+        {
+          "name": "fix-routes.js",
+          "description": "修复 Cloudflare Pages 路由配置"
+        },
+        {
+          "name": "wordpress-to-markdown.js",
+          "description": "WordPress 内容迁移脚本"
+        }
+      ],
+      "dependencies": [
+        "fs",
+        "path"
+      ],
+      "tests": {
+        "hasTests": false,
+        "testFiles": []
+      },
+      "coverage": {
+        "scanned": true,
+        "completePercent": 100,
+        "missingInfo": []
+      }
+    },
+    {
+      "id": "public",
+      "name": "静态资源模块",
+      "path": "public",
+      "type": "static-assets",
+      "description": "静态文件（图片、字体、第三方库）",
+      "submodules": [
+        {
+          "name": "assets",
+          "description": "图片、CSS、JS 资源"
+        },
+        {
+          "name": "pio",
+          "description": "看板娘资源（Spine/Live2D 模型）"
+        }
+      ],
+      "dependencies": [],
+      "tests": {
+        "hasTests": false,
+        "testFiles": []
+      },
+      "coverage": {
+        "scanned": false,
+        "completePercent": 0,
+        "missingInfo": [
+          "静态资源未详细扫描"
+        ]
+      }
+    }
+  ],
+  "keyTechnologies": [
+    {
+      "name": "Astro",
+      "version": "5.14.7",
+      "role": "SSG 框架"
+    },
+    {
+      "name": "Svelte",
+      "version": "5.41.1",
+      "role": "交互组件框架"
+    },
+    {
+      "name": "TailwindCSS",
+      "version": "3.4.17",
+      "role": "样式框架"
+    },
+    {
+      "name": "TypeScript",
+      "version": "5.9.2",
+      "role": "类型检查"
+    },
+    {
+      "name": "Biome",
+      "version": "2.2.6",
+      "role": "代码格式化与 Lint"
+    },
+    {
+      "name": "pnpm",
+      "version": "9.14.4",
+      "role": "包管理器"
+    },
+    {
+      "name": "Cloudflare Pages",
+      "version": "N/A",
+      "role": "部署平台"
+    }
+  ],
+  "gaps": [
+    {
+      "module": "pages",
+      "description": "auth/ 目录的功能需进一步确认（可能是未使用的 OAuth 实验代码）"
+    },
+    {
+      "module": "plugins",
+      "description": "插件内部逻辑细节需深度分析"
+    },
+    {
+      "module": "utils",
+      "description": "部分工具函数的边界条件需补充文档"
+    },
+    {
+      "module": "public",
+      "description": "静态资源未详细扫描（主要为二进制文件和第三方库）"
+    },
+    {
+      "module": "tests",
+      "description": "项目缺少单元测试和 E2E 测试"
+    }
+  ],
+  "nextSteps": [
+    "建议深挖路径：src/pages/auth/ 目录（确认是否需要清理）",
+    "建议深挖路径：src/plugins/ 各插件的内部实现细节",
+    "建议添加测试：为 src/utils 和 src/plugins 添加单元测试",
+    "建议启用类型检查：修复类型错误，启用 tsconfig 严格模式",
+    "建议完善文档：为所有配置选项添加中文注释"
+  ],
+  "truncated": false,
+  "reasonForStop": "完成核心模块扫描，覆盖率达到 40%，足以支撑 AI 辅助开发"
+}

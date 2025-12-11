@@ -1,0 +1,22 @@
+---
+import SetupWizard from "@/components/SetupWizard.svelte";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout
+	title="初始化设置 - Firefly 博客"
+	description="首次部署后的初始化设置向导"
+>
+	<!-- 添加 noindex meta 标签，避免搜索引擎索引 -->
+	<meta name="robots" content="noindex,nofollow" slot="head" />
+
+	<div class="setup-page min-h-screen py-12 px-4">
+		<SetupWizard client:load />
+	</div>
+</Layout>
+
+<style>
+	.setup-page {
+		background: var(--page-bg);
+	}
+</style>

@@ -1,0 +1,11 @@
+# 最小化测试配置
+backend:
+  name: test-repo
+
+collections:
+  - name: "test"
+    label: "测试"
+    folder: "src/content/posts"
+    fields:
+      - {label: "标题", name: "title", widget: "string"}
+      - {label: "内容", name: "body", widget: "markdown"}

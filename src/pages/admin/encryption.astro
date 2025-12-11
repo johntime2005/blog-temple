@@ -1,0 +1,41 @@
+---
+import AdminPanel from "@components/admin/AdminPanel.svelte";
+import Layout from "@layouts/Layout.astro";
+import { getSortedPosts } from "@utils/content-utils";
+
+// 获取所有文章
+const posts = await getSortedPosts();
+
+// 转换为简单对象（Svelte 可序列化）
+const postsData = posts.map((post) => ({
+	slug: post.id,
+	title: post.data.title,
+	published: post.data.published.toISOString(),
+	encrypted: post.data.encrypted || false,
+	encryptionId: post.data.encryptionId || "",
+	category: post.data.category || "",
+	tags: post.data.tags || [],
+}));
+---
+
+<Layout
+	title="加密管理后台"
+	description="管理文章加密和密码"
+>
+	<div class="admin-container">
+		<AdminPanel client:load posts={postsData} />
+	</div>
+</Layout>
+
+<style>
+	.admin-container {
+		min-height: 100vh;
+		background: var(--page-bg);
+		padding: 2rem 1rem;
+	}
+
+	:global(.admin-panel) {
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+</style>
