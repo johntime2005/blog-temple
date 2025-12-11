@@ -9,7 +9,6 @@ import { i18n } from "@i18n/translation";
 import Icon from "@iconify/svelte";
 import { getStoredWallpaperMode, setWallpaperMode } from "@utils/setting-utils";
 import { onMount } from "svelte";
-
 import DropdownItem from "@/components/common/base/DropdownItem.svelte";
 import DropdownPanel from "@/components/common/base/DropdownPanel.svelte";
 import { siteConfig } from "@/config";
@@ -19,7 +18,7 @@ let mode: WALLPAPER_MODE = $state(siteConfig.backgroundWallpaper.mode);
 
 // 在组件挂载时从localStorage读取保存的模式
 onMount(() => {
-	mode = getStoredWallpaperMode() || WALLPAPER_BANNER;
+	mode = getStoredWallpaperMode();
 });
 
 function switchWallpaperMode(newMode: WALLPAPER_MODE) {
