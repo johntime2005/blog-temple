@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Icon } from "astro-icon/components";
+import Icon from "@iconify/svelte";
 import { onMount, type Snippet } from "svelte";
 import { decryptContent } from "@/utils/security";
 
@@ -18,9 +18,28 @@ let errorMessage = $state("");
 let isUnlocked = $state(false);
 let token = $state("");
 let decryptedHtml = $state("");
+let debugInfo = $state<any>(null);
 
 // 检查本地存储中是否已有有效令牌（即解密密钥）
 onMount(async () => {
+	// Debug Fetch
+	const userToken = localStorage.getItem("user-token");
+	if (userToken) {
+		try {
+			const res = await fetch("/api/debug-auth/", {
+				// Added trailing slash
+				method: "POST",
+				headers: { Authorization: `Bearer ${userToken}` },
+			});
+			debugInfo = await res.json();
+		} catch (e) {
+			console.error("Debug fetch failed", e);
+			debugInfo = { status: "Debug Fetch Failed", error: String(e) };
+		}
+	} else {
+		debugInfo = { status: "No Token Found locally" };
+	}
+
 	// 尝试获取本地存储的密钥 或 临时Token
 	const storedToken = localStorage.getItem(`post-token:${postSlug}`);
 	const storedKey = localStorage.getItem(`post-key:${postSlug}`);
@@ -31,6 +50,11 @@ onMount(async () => {
 	} else if (storedKey && encryptedContent) {
 		// Legacy: 直接存储的 Key
 		tryDecrypt(storedKey);
+	} else if (userToken) {
+		// [NEW] 如果已登录，尝试自动解锁！
+		// 因为 /api/auth/key 也会验证 Owner 身份
+		console.log("Attempting auto-unlock with User Token...");
+		await fetchAndDecrypt(userToken, true);
 	}
 });
 
@@ -53,45 +77,59 @@ function tryDecrypt(key: string) {
 async function fetchAndDecrypt(authToken: string, _isSession: boolean) {
 	try {
 		// 使用 Auth Token 获取真实密钥
-		const res = await fetch("/api/auth/key", {
+		const res = await fetch("/api/auth/key/", {
 			method: "POST",
 			body: JSON.stringify({ token: authToken, slug: postSlug }),
 		});
-		const data = await res.json();
-		if (data.valid && data.key) {
-			if (!encryptedContent) {
-				// No content to decrypt, just unlock (unlikely for this component?)
-				token = data.key;
-				isUnlocked = true;
-				return;
-			}
 
-			const content = decryptContent(encryptedContent, data.key);
-			if (content) {
-				decryptedHtml = content;
-				token = authToken; // Store the AUTH token as our state token
-				isUnlocked = true;
-				// Persist AUTH token, not key
-				localStorage.setItem(`post-token:${postSlug}`, authToken);
+		if (res.ok) {
+			const data = await res.json();
+			if (data.valid && data.key) {
+				if (!encryptedContent) {
+					// No content to decrypt, just unlock (unlikely for this component?)
+					token = data.key;
+					isUnlocked = true;
+					return;
+				}
+
+				const decrypted = decryptContent(encryptedContent, data.key);
+				if (decrypted) {
+					decryptedHtml = decrypted;
+					isUnlocked = true;
+					token = authToken; // Store the AUTH token as our state token
+					localStorage.setItem(`post-token:${postSlug}`, authToken);
+				} else {
+					errorMessage = "解密失败，密钥可能不正确";
+					localStorage.removeItem(`post-token:${postSlug}`);
+				}
 			} else {
-				throw new Error("Decryption failed");
+				errorMessage = data.message || "无法获取解密密钥";
+				localStorage.removeItem(`post-token:${postSlug}`);
 			}
 		} else {
-			// Invalid token (e.g. expired)
-			throw new Error(data.message || "Invalid token");
+			try {
+				const err = await res.json();
+				errorMessage = `验证失败 (${res.status}): ${err.message || res.statusText}`;
+			} catch (e) {
+				errorMessage = `验证失败 (${res.status}): ${res.statusText}`;
+			}
+			localStorage.removeItem(`post-token:${postSlug}`);
 		}
 	} catch (e) {
-		console.error("Session verification failed:", e);
+		console.error("Decryption failed", e);
+		errorMessage = `解密出错: ${e instanceof Error ? e.message : String(e)}`;
 		localStorage.removeItem(`post-token:${postSlug}`);
-		errorMessage = "会话已过期，请重新验证";
 	}
 }
 
 function handleLogin() {
 	// 重定向到 GitHub 登录
-	const currentPath = window.location.pathname;
-	document.cookie = `auth_redirect=${currentPath}; path=/; max-age=3600`;
-	window.location.href = "/auth";
+	let currentPath = window.location.pathname;
+	if (currentPath !== "/" && !currentPath.endsWith("/")) {
+		currentPath += "/";
+	}
+	// Ensure trailing slash for consistent routing / redirection handling
+	window.location.href = `/login/?redirect=${encodeURIComponent(currentPath)}`;
 }
 
 async function handleSubmit(e: Event) {
@@ -149,12 +187,16 @@ async function handleSubmit(e: Event) {
     {/if}
 {/if}
 
-{#if !isUnlocked}
 
+
+
+
+
+{#if !isUnlocked}
 	<div class="encryption-overlay">
 		<div class="encryption-container card-base">
 			<div class="encryption-icon">
-				<Icon name="material-symbols:lock-outline" class="text-6xl" />
+				<Icon icon="material-symbols:lock-outline" class="text-6xl" />
 			</div>
 
 			<h2 class="encryption-title">此文章已加密</h2>
@@ -162,7 +204,7 @@ async function handleSubmit(e: Event) {
 
 			<form onsubmit={handleSubmit} class="encryption-form">
 				<div class="input-wrapper">
-					<Icon name="material-symbols:vpn-key-outline" class="input-icon" />
+					<Icon icon="material-symbols:vpn-key-outline" class="input-icon" />
 					<input
 						type="password"
 						bind:value={password}
@@ -175,24 +217,24 @@ async function handleSubmit(e: Event) {
 
 				{#if errorMessage}
 					<div class="error-message">
-						<Icon name="material-symbols:error-outline" class="error-icon" />
+						<Icon icon="material-symbols:error-outline" class="error-icon" />
 						<span>{errorMessage}</span>
 					</div>
 				{/if}
 
 				<button type="submit" disabled={isVerifying || !password} class="submit-button">
 					{#if isVerifying}
-						<Icon name="svg-spinners:180-ring" class="spinner" />
+						<Icon icon="svg-spinners:180-ring" class="spinner" />
 						<span>验证中...</span>
 					{:else}
-						<Icon name="material-symbols:lock-open-outline" />
+						<Icon icon="material-symbols:lock-open-outline" />
 						<span>解锁文章</span>
 					{/if}
 				</button>
 			</form>
 
 			<div class="encryption-hint">
-				<Icon name="material-symbols:info-outline" class="hint-icon" />
+				<Icon icon="material-symbols:info-outline" class="hint-icon" />
 				<span>如果忘记密码，请联系站长</span>
 			</div>
 
@@ -201,7 +243,7 @@ async function handleSubmit(e: Event) {
             </div>
 
             <button onclick={handleLogin} class="login-button">
-                <Icon name="mdi:github" class="login-icon" />
+                <Icon icon="mdi:github" class="login-icon" />
                 <span>我是站长 (GitHub 登录)</span>
             </button>
 		</div>

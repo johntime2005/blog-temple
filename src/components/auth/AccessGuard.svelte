@@ -19,6 +19,7 @@ let isAuthenticated = $state(false);
 let username = $state("");
 let showLoginPrompt = $state(false);
 let decryptedHtml = $state("");
+let debugInfo = $state<any>(null);
 
 onMount(async () => {
 	// 如果是public，直接显示内容
@@ -30,6 +31,22 @@ onMount(async () => {
 
 	// 检查用户登录状态
 	const token = localStorage.getItem("user-token");
+
+	// Debug Logic
+	if (token) {
+		try {
+			const res = await fetch("/api/debug-auth", {
+				method: "POST",
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			debugInfo = await res.json();
+		} catch (e) {
+			console.error("Debug fetch failed", e);
+		}
+	} else {
+		debugInfo = { status: "No Token" };
+	}
+
 	if (!token) {
 		// 未登录
 		isChecking = false;
@@ -40,7 +57,7 @@ onMount(async () => {
 	// 如果有加密内容，尝试获取密钥并解密
 	if (encryptedContent) {
 		try {
-			const response = await fetch("/api/auth/key", {
+			const response = await fetch("/api/auth/key/", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ token, slug: postSlug }),
@@ -62,10 +79,10 @@ onMount(async () => {
 				} else {
 					console.error("Decryption failed");
 					showLoginPrompt = true;
-					localStorage.removeItem("user-token");
+					// localStorage.removeItem("user-token"); // DEBUG: Keep token to see why
 				}
 			} else {
-				localStorage.removeItem("user-token");
+				// localStorage.removeItem("user-token"); // DEBUG: Keep token to see why
 				showLoginPrompt = true;
 			}
 		} catch (error) {
@@ -77,7 +94,7 @@ onMount(async () => {
 	} else {
 		// Legacy flow (no encryption, just gating)
 		try {
-			const response = await fetch("/api/auth/verify", {
+			const response = await fetch("/api/auth/verify/", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ token }),
@@ -89,7 +106,7 @@ onMount(async () => {
 				isAuthenticated = true;
 				username = data.username;
 			} else {
-				localStorage.removeItem("user-token");
+				// localStorage.removeItem("user-token"); // DEBUG: Keep token
 				showLoginPrompt = true;
 			}
 		} catch (error) {
@@ -103,8 +120,11 @@ onMount(async () => {
 
 // 跳转到登录页面
 function goToLogin() {
-	const currentPath = window.location.pathname;
-	window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+	let currentPath = window.location.pathname;
+	if (currentPath !== "/" && !currentPath.endsWith("/")) {
+		currentPath += "/";
+	}
+	window.location.href = `/login/?redirect=${encodeURIComponent(currentPath)}`;
 }
 
 // 登出
@@ -112,7 +132,7 @@ async function logout() {
 	const token = localStorage.getItem("user-token");
 	if (token) {
 		try {
-			await fetch("/api/auth/logout", {
+			await fetch("/api/auth/logout/", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ token }),
@@ -131,6 +151,13 @@ async function logout() {
 	<div class="access-guard checking">
 		<Icon icon="mdi:loading" class="spinning" />
 		<p>正在验证访问权限...</p>
+        {#if debugInfo}
+            <div class="mt-4 p-4 border rounded bg-gray-100 text-xs text-left">
+                <p>Status: {debugInfo.status}</p>
+                <p>Login: {debugInfo.youAre}</p>
+                <p>Owner: {debugInfo.systemOwnerIs}</p>
+            </div>
+        {/if}
 	</div>
 {:else if showLoginPrompt}
 	<!-- 需要登录 -->
@@ -139,6 +166,16 @@ async function logout() {
 			<Icon icon="mdi:lock" class="lock-icon" />
 			<h2>需要登录</h2>
 			<p>这篇文章需要登录后才能查看</p>
+
+            {#if debugInfo}
+                <div class="mb-4 p-2 bg-red-50 text-red-600 text-xs rounded border border-red-200">
+                    <p class="font-bold">DEBUG:</p>
+                    <p>Login: {debugInfo.youAre || 'None'}</p>
+                    <p>Owner: {debugInfo.systemOwnerIs}</p>
+                    <p>Match: {debugInfo.match ? 'YES' : 'NO'}</p>
+                </div>
+            {/if}
+
 			<div class="actions">
 				<button class="login-btn" onclick={goToLogin}>
 					<Icon icon="mdi:login" />
@@ -164,10 +201,16 @@ async function logout() {
 		</button>
 	</div>
     {#if decryptedHtml}
+        <div class="mb-4 p-2 bg-green-50 text-green-600 text-xs rounded border border-green-200">
+            ✅ CONTENT UNLOCKED
+        </div>
         <div class="markdown-content onload-animation mb-6">
             {@html decryptedHtml}
         </div>
     {:else if children}
+        <div class="mb-4 p-2 bg-green-50 text-green-600 text-xs rounded border border-green-200">
+            ✅ CONTENT UNLOCKED
+        </div>
         {@render children()}
     {/if}
 {/if}

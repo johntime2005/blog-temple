@@ -17,9 +17,16 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		}
 
 		const runtime = (locals as any).runtime as any;
-		const SITE_SECRET =
-			runtime?.env?.SITE_SECRET || runtime?.env?.GITHUB_CLIENT_SECRET;
-		const ownerUsername = runtime?.env?.GITHUB_OWNER_USERNAME;
+		
+		// Fallback for local dev (Node) where runtime.env might be missing
+		const getEnv = (key: string) => {
+			return runtime?.env?.[key] || import.meta.env[key] || process.env[key];
+		};
+
+		const SITE_SECRET = getEnv("SITE_SECRET") || getEnv("GITHUB_CLIENT_SECRET");
+		const ownerUsername = getEnv("GITHUB_OWNER_USERNAME");
+
+		console.log(`[KeyAPI] Check: Owner=${ownerUsername}, HasSecret=${!!SITE_SECRET}`);
 
 		if (!SITE_SECRET) {
 			console.error("SITE_SECRET not configured");

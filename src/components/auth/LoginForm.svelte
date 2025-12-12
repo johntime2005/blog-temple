@@ -52,7 +52,7 @@ async function verifyExistingToken(token: string) {
 		</div>
 
 		<div class="login-actions">
-            <a href="/auth?redirect={encodeURIComponent(redirectUrl)}" class="github-login-button">
+            <a href="/auth/?redirect={encodeURIComponent(redirectUrl)}" class="github-login-button">
                 <Icon icon="fa6-brands:github" />
                 <span>使用 GitHub 登录</span>
             </a>

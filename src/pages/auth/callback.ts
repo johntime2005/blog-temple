@@ -322,7 +322,12 @@ export async function GET({ request, locals, cookies }) {
 			provider: "github",
 		};
 
-		const redirectUrl = cookies.get("auth_redirect")?.value || "/";
+		let redirectUrl = cookies.get("auth_redirect")?.value || "/";
+		// Ensure redirectUrl has a trailing slash if it's not root, to avoid Astro redirects
+		const [redirectPath, redirectSearch] = redirectUrl.split("?");
+		if (redirectPath !== "/" && !redirectPath.endsWith("/")) {
+			redirectUrl = `${redirectPath}/${redirectSearch ? `?${redirectSearch}` : ""}`;
+		}
 
 		// 返回成功页面
 		return new Response(buildSuccessPage(postMsgContent, redirectUrl), {
@@ -633,7 +638,7 @@ function buildErrorPage(
 				: ""
 		}
     <div class="actions">
-      <a href="/auth" class="primary">重新授权</a>
+      <a href="/auth/" class="primary">重新授权</a>
       <a href="/admin" class="secondary">返回后台</a>
     </div>
   </div>

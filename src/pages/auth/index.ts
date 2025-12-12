@@ -62,7 +62,7 @@ export async function GET({ request, redirect, locals, cookies }) {
 			cookies.set("auth_redirect", redirectParam, getSecureCookieOptions(600));
 		}
 
-		const redirectUri = `${url.origin}/auth/callback`;
+		const redirectUri = `${url.origin}/auth/callback/`;
 		console.log(`[OAuth] Using redirect_uri: ${redirectUri}`);
 
 		authUrl.searchParams.set("client_id", clientId);

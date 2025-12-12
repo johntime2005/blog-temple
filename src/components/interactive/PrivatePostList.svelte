@@ -30,6 +30,8 @@ function formatDate(dateStr: string) {
 	return `${year}-${month}-${day}`;
 }
 
+let debugInfo: any = null;
+
 onMount(async () => {
 	const token = localStorage.getItem("user-token");
 	if (!token) {
@@ -63,6 +65,8 @@ onMount(async () => {
 	}
 });
 </script>
+
+
 
 
 {#if hasToken}
@@ -109,7 +113,7 @@ onMount(async () => {
               </div>
 
               <a
-                href={`/posts/${post.slug}`}
+                href={`/posts/${post.slug}/`}
                 class="text-2xl font-bold text-[var(--text-main)] hover:text-[var(--primary)] transition max-w-[90%]"
               >
                 {post.data.title}
