@@ -1,3 +1,4 @@
+import { getEntry } from "astro:content";
 import { hmacSha256 } from "@utils/security";
 import type { APIRoute } from "astro";
 
@@ -18,6 +19,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		const runtime = (locals as any).runtime as any;
 		const SITE_SECRET =
 			runtime?.env?.SITE_SECRET || runtime?.env?.GITHUB_CLIENT_SECRET;
+		const ownerUsername = runtime?.env?.GITHUB_OWNER_USERNAME;
 
 		if (!SITE_SECRET) {
 			console.error("SITE_SECRET not configured");
@@ -42,11 +44,50 @@ export const POST: APIRoute = async ({ request, locals }) => {
 			);
 		}
 
-		// If authorized (valid GitHub user)
-		// Check if user has access? content is 'members-only', implying any logged in user?
-		// Or restricted to specific users?
-		// Deployment docs say: "accessLevel: members-only", need to login.
-		// Assuming any valid GitHub login is sufficient for now (matches AccessGuard logic).
+		const user = await response.json();
+		const isOwner =
+			ownerUsername &&
+			user.login &&
+			ownerUsername.toLowerCase() === user.login.toLowerCase();
+
+		// Fetch the post to check visibility
+		const post = await getEntry("posts", slug);
+		if (!post) {
+			return new Response(
+				JSON.stringify({ valid: false, message: "Post not found" }),
+				{ status: 404 },
+			);
+		}
+
+		const visibility = post.data.visibility; // private, unlisted, public
+		const accessLevel = post.data.accessLevel; // members-only, restricted, public
+
+		// STRICT CHECK: Private posts are OWNER ONLY
+		if (visibility === "private" && !isOwner) {
+			return new Response(
+				JSON.stringify({ valid: false, message: "Forbidden: Owner only" }),
+				{ status: 403 },
+			);
+		}
+
+		// Restricted access level -> Owner only
+		if (accessLevel === "restricted" && !isOwner) {
+			return new Response(
+				JSON.stringify({ valid: false, message: "Forbidden: Restricted access" }),
+				{ status: 403 },
+			);
+		}
+
+		// Members-only -> Owner only (User Request: "only my github login")
+		if (accessLevel === "members-only" && !isOwner) {
+			return new Response(
+				JSON.stringify({
+					valid: false,
+					message: "Forbidden: Only owner can view members-only content",
+				}),
+				{ status: 403 },
+			);
+		}
 
 		// Derive Key
 		const decryptionKey = await hmacSha256(SITE_SECRET, slug);

@@ -39,7 +39,7 @@ onMount(async () => {
 	hasToken = true;
 
 	try {
-		const res = await fetch("/api/posts", {
+		const res = await fetch("/api/posts/", {
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},

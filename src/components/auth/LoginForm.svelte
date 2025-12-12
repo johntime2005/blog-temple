@@ -22,7 +22,7 @@ onMount(() => {
 // 验证已存储的token
 async function verifyExistingToken(token: string) {
 	try {
-		const response = await fetch("/api/auth/verify", {
+		const response = await fetch("/api/auth/verify/", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ token }),

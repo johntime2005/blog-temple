@@ -2,7 +2,7 @@ import { getSortedPosts } from "@/utils/content-utils";
 
 export const prerender = false;
 
-export async function GET({ request }) {
+export async function GET({ request, locals }) {
 	const authHeader = request.headers.get("Authorization");
 	const token = authHeader?.replace("Bearer ", "");
 
@@ -27,13 +27,33 @@ export async function GET({ request }) {
 		});
 	}
 
+	const user = await ghResponse.json();
+	const runtime = (locals as any).runtime as any;
+	const ownerUsername = runtime?.env?.GITHUB_OWNER_USERNAME;
+	const isOwner =
+		ownerUsername &&
+		user.login &&
+		ownerUsername.toLowerCase() === user.login.toLowerCase();
+
 	// Token is valid, fetch private posts
 	const allPosts = await getSortedPosts();
 	const privatePosts = allPosts.filter((post) => {
-		const isPrivate =
-			post.data.visibility === "private" ||
-			post.data.accessLevel === "members-only";
-		return isPrivate;
+		// Strict check for "private" visibility
+		if (post.data.visibility === "private") {
+			return isOwner; // Only owner sees private posts
+		}
+
+		// Members-only posts -> Owner only (User Request)
+		if (post.data.accessLevel === "members-only") {
+			return isOwner;
+		}
+
+		// Restricted - owner only
+		if (post.data.accessLevel === "restricted") {
+			return isOwner;
+		}
+
+		return false;
 	});
 
 	// Map to simple structure
