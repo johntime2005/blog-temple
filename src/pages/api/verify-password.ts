@@ -43,7 +43,31 @@ export const POST: APIRoute = async ({ request, locals }) => {
 			);
 		}
 
-		// 1. Verify Password
+		// 1. Try as Share Password (Dynamic)
+		const shareKey = `share:${password}`;
+		const shareDataStr = await POST_ENCRYPTION.get(shareKey);
+
+		if (shareDataStr) {
+			const shareData = JSON.parse(shareDataStr);
+			// Validate match (slug)
+			// client sent 'encryptionId' (slug).
+			// We check if this password is for this slug.
+			if (shareData.slug === encryptionId) {
+				// Valid Share Password!
+				// Return the TOKEN (password itself acts as token), not the key.
+				return new Response(
+					JSON.stringify({
+						success: true,
+						token: `share:${password}`, // Prefix to identify it in api/auth/key
+						isSession: true,
+					}),
+					{ status: 200 },
+				);
+			}
+			// If slug mismatch, fall through to static check (unlikely collision but possible)
+		}
+
+		// 2. Verify Static Password
 		const passwordHash = await sha256(password); // Client sends raw, we hash it? Or client sends hash?
 		// manage-password.mjs uses createHash('sha256').update(password).digest('hex') (Node crypto)
 		// Our security.ts sha256 function returns hex string.
@@ -82,7 +106,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 			);
 		}
 
-		// 2. Generate Decryption Key
+		// 3. Generate Decryption Key (Static)
 		// key = HMAC(SITE_SECRET, encryptionId)
 		// encryptionId is the slug/id of the post
 		const decryptionKey = await hmacSha256(SITE_SECRET, encryptionId);
@@ -91,6 +115,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 			JSON.stringify({
 				success: true,
 				token: decryptionKey, // We return the key as the "token"
+				isSession: false,
 			}),
 			{ status: 200 },
 		);

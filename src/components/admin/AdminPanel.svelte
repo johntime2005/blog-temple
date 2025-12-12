@@ -40,6 +40,7 @@ let showPasswordFor = $state<string | null>(null);
 let isProcessing = $state(false);
 let successMessage = $state("");
 let errorMessage = $state("");
+let shareResult = $state<{ password: string; expiresAt: number } | null>(null);
 
 // 检查本地存储中的 token
 onMount(() => {
@@ -273,6 +274,51 @@ async function copyPassword(password: string) {
 	}
 }
 
+// 创建临时分享链接
+async function createShareLink(slug: string) {
+	const minutes = prompt("请输入有效期（分钟），默认60分钟：", "60, 10");
+	if (minutes === null) return;
+
+	const expiresInMinutes = Number.parseInt(minutes) || 60;
+
+	isProcessing = true;
+	errorMessage = "";
+	successMessage = "";
+	shareResult = null;
+
+	try {
+		const response = await fetch("/api/share/create", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				token: adminToken,
+				slug,
+				expiresInMinutes,
+			}),
+		});
+
+		const data = await response.json();
+
+		if (data.success) {
+			shareResult = {
+				password: data.password,
+				expiresAt: data.expiresAt,
+			};
+			successMessage = `临时密码生成成功！有效期至 ${new Date(data.expiresAt).toLocaleString()}`;
+			alert(
+				`🔗 临时密码：${data.password}\n\n⏱️ 有效期：${expiresInMinutes}分钟\n\n过期后所有使用此密码的访问将立即失效。`,
+			);
+		} else {
+			errorMessage = data.message || "生成失败";
+		}
+	} catch (error) {
+		console.error("Share creation failed:", error);
+		errorMessage = "生成失败，请稍后重试";
+	} finally {
+		isProcessing = false;
+	}
+}
+
 // 过滤后的文章列表
 const filteredPosts = $derived(() => {
 	let result = posts;
@@ -468,6 +514,16 @@ const filteredPosts = $derived(() => {
 								<span>启用加密</span>
 							</button>
 						{/if}
+
+						<button
+							onclick={() => createShareLink(post.slug)}
+							class="action-button share-button"
+							disabled={isProcessing}
+							title="生成临时访问密码"
+						>
+							<Icon name="material-symbols:share" />
+							<span>临时分享</span>
+						</button>
 					</div>
 				</div>
 			{/each}

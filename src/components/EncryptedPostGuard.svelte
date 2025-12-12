@@ -21,24 +21,71 @@ let decryptedHtml = $state("");
 
 // 检查本地存储中是否已有有效令牌（即解密密钥）
 onMount(async () => {
-	// 尝试获取本地存储的密钥
-	const storedKey = localStorage.getItem(`post-key:${postSlug}`); // Use postSlug as key suffix
-	if (storedKey && encryptedContent) {
-		try {
-			// 尝试解密
-			const content = decryptContent(encryptedContent, storedKey);
-			if (content) {
-				decryptedHtml = content;
-				token = storedKey;
+	// 尝试获取本地存储的密钥 或 临时Token
+	const storedToken = localStorage.getItem(`post-token:${postSlug}`);
+	const storedKey = localStorage.getItem(`post-key:${postSlug}`);
+
+	if (storedToken) {
+		// 如果有临时 Token，验证并获取密钥
+		await fetchAndDecrypt(storedToken, true);
+	} else if (storedKey && encryptedContent) {
+		// Legacy: 直接存储的 Key
+		tryDecrypt(storedKey);
+	}
+});
+
+function tryDecrypt(key: string) {
+	if (!encryptedContent) return;
+	try {
+		const content = decryptContent(encryptedContent, key);
+		if (content) {
+			decryptedHtml = content;
+			token = key;
+			isUnlocked = true;
+		} else {
+			throw new Error("Decryption failed");
+		}
+	} catch (e) {
+		localStorage.removeItem(`post-key:${postSlug}`);
+	}
+}
+
+async function fetchAndDecrypt(authToken: string, _isSession: boolean) {
+	try {
+		// 使用 Auth Token 获取真实密钥
+		const res = await fetch("/api/auth/key", {
+			method: "POST",
+			body: JSON.stringify({ token: authToken, slug: postSlug }),
+		});
+		const data = await res.json();
+		if (data.valid && data.key) {
+			if (!encryptedContent) {
+				// No content to decrypt, just unlock (unlikely for this component?)
+				token = data.key;
 				isUnlocked = true;
 				return;
 			}
-		} catch (e) {
-			console.error("Decryption failed with stored key");
-			localStorage.removeItem(`post-key:${postSlug}`);
+
+			const content = decryptContent(encryptedContent, data.key);
+			if (content) {
+				decryptedHtml = content;
+				token = authToken; // Store the AUTH token as our state token
+				isUnlocked = true;
+				// Persist AUTH token, not key
+				localStorage.setItem(`post-token:${postSlug}`, authToken);
+			} else {
+				throw new Error("Decryption failed");
+			}
+		} else {
+			// Invalid token (e.g. expired)
+			throw new Error(data.message || "Invalid token");
 		}
+	} catch (e) {
+		console.error("Session verification failed:", e);
+		localStorage.removeItem(`post-token:${postSlug}`);
+		errorMessage = "会话已过期，请重新验证";
 	}
-});
+}
 
 function handleLogin() {
 	// 重定向到 GitHub 登录
@@ -66,31 +113,17 @@ async function handleSubmit(e: Event) {
 		const data = await response.json();
 
 		if (data.success && data.token) {
-			// data.token 是解密密钥
-			const key = data.token;
-
-			// 尝试解密以验证
-			if (encryptedContent) {
-				try {
-					const content = decryptContent(encryptedContent, key);
-					if (content) {
-						decryptedHtml = content;
-						token = key;
-						isUnlocked = true;
-						localStorage.setItem(`post-key:${postSlug}`, key);
-						// 不需要 reload，直接显示
-					} else {
-						errorMessage = "解密失败，密钥可能无效";
-					}
-				} catch (e) {
-					errorMessage = "解密错误";
-				}
+			// Check if it's a session token or direct key
+			if (data.isSession) {
+				// It's a session token (share token). We must fetch the key.
+				await fetchAndDecrypt(data.token, true);
 			} else {
-				// 如果没有 content (children case?)
-				token = key;
-				isUnlocked = true;
-				localStorage.setItem(`post-key:${postSlug}`, key);
-				window.location.reload();
+				// Legacy/Static: It IS the key
+				tryDecrypt(data.token);
+				// Store it (Legacy behavior)
+				if (isUnlocked) {
+					localStorage.setItem(`post-key:${postSlug}`, data.token);
+				}
 			}
 		} else {
 			errorMessage = data.message || "密码错误，请重试";

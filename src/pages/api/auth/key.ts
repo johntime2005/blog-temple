@@ -29,6 +29,62 @@ export const POST: APIRoute = async ({ request, locals }) => {
 			);
 		}
 
+		// Check for Share Token (starts with share:)
+		if (token.startsWith("share:")) {
+			// Validate Share Token
+			const password = token.replace("share:", "");
+			const POST_ENCRYPTION = runtime?.env?.POST_ENCRYPTION;
+
+			if (!POST_ENCRYPTION) {
+				return new Response(
+					JSON.stringify({
+						valid: false,
+						message: "Server config error (KV)",
+					}),
+					{ status: 500 },
+				);
+			}
+
+			const shareDataStr = await POST_ENCRYPTION.get(`share:${password}`);
+			if (!shareDataStr) {
+				return new Response(
+					JSON.stringify({
+						valid: false,
+						message: "Session expired or invalid",
+					}),
+					{ status: 403 },
+				);
+			}
+
+			const shareData = JSON.parse(shareDataStr);
+			if (shareData.expiresAt && Date.now() > shareData.expiresAt) {
+				// Expired - Cleanup manually (if KV TTL didn't catch it yet)
+				await POST_ENCRYPTION.delete(`share:${password}`);
+				return new Response(
+					JSON.stringify({ valid: false, message: "Session expired" }),
+					{ status: 403 },
+				);
+			}
+
+			// Valid share token! Check slug match
+			if (shareData.slug !== slug) {
+				return new Response(
+					JSON.stringify({ valid: false, message: "Invalid token for this post" }),
+					{ status: 403 },
+				);
+			}
+
+			// Valid! Return key
+			const decryptionKey = await hmacSha256(SITE_SECRET, slug);
+			return new Response(
+				JSON.stringify({
+					valid: true,
+					key: decryptionKey,
+				}),
+				{ status: 200 },
+			);
+		}
+
 		// Verify with GitHub
 		const response = await fetch("https://api.github.com/user", {
 			headers: {
