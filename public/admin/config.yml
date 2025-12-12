@@ -161,4 +161,3 @@ collections:
       - { label: "图标", name: "icon", widget: "string", required: false, hint: "Iconify 图标名称 (e.g. material-symbols:folder)" }
       - { label: "自定义链接", name: "customLink", widget: "string", required: false, hint: "如果填写，导航栏将跳转到此链接而不是默认分类页 (e.g. /tutorials/)" }
 
-```
