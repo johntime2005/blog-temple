@@ -146,17 +146,42 @@ collections:
     label_singular: "类别"
     folder: "src/content/categories"
     create: true
+    delete: true
     slug: "{{slug}}"
     extension: "md"
     format: "frontmatter"
+    summary: "{{title}} - {{description}}"
+    sortable_fields: ["order", "title"]
     fields:
-      - { label: "类别名称", name: "title", widget: "string", required: true }
-      - { label: "描述", name: "description", widget: "string", required: true }
-      - { label: "是否在主页显示", name: "showInHome", widget: "boolean", default: true }
-      - { label: "是否在导航栏显示", name: "showInNavbar", widget: "boolean", default: false }
-      - { label: "是否同步到公共仓库", name: "syncToPublic", widget: "boolean", default: false }
-      - { label: "排序权重", name: "order", widget: "number", default: 99, value_type: "int" }
-      - { label: "颜色", name: "color", widget: "color", required: false }
-      - { label: "图标", name: "icon", widget: "string", required: false, hint: "Iconify 图标名称 (e.g. material-symbols:folder)" }
-      - { label: "自定义链接", name: "customLink", widget: "string", required: false, hint: "如果填写，导航栏将跳转到此链接而不是默认分类页 (e.g. /tutorials/)" }
+      - { label: "类别名称", name: "title", widget: "string", required: true,
+          hint: "分类的显示名称，如：技术分享、生活随笔" }
+
+      - { label: "类别标识", name: "slug", widget: "string", required: false,
+          hint: "URL友好的标识，如：tech-sharing（留空则自动生成）" }
+
+      - { label: "描述", name: "description", widget: "string", required: true,
+          hint: "简短描述该分类包含什么内容" }
+
+      - { label: "排序权重", name: "order", widget: "number", default: 99, value_type: "int",
+          hint: "数字越小排序越靠前，推荐使用 1-100" }
+
+      - { label: "图标", name: "icon", widget: "string", required: false,
+          default: "material-symbols:folder",
+          hint: "Iconify 图标名称，浏览图标: https://icon-sets.iconify.design/" }
+
+      - { label: "颜色", name: "color", widget: "color", required: false,
+          default: "#3b82f6",
+          hint: "分类的主题色，用于标签和图标着色" }
+
+      - { label: "在主页显示", name: "showInHome", widget: "boolean", default: true,
+          hint: "关闭后该分类文章不会在主页文章列表显示" }
+
+      - { label: "在导航栏显示", name: "showInNavbar", widget: "boolean", default: false,
+          hint: "开启后在顶部导航栏添加该分类入口" }
+
+      - { label: "同步到公共仓库", name: "syncToPublic", widget: "boolean", default: false,
+          hint: "开启后该分类文章可被同步到公共展示仓库" }
+
+      - { label: "自定义链接", name: "customLink", widget: "string", required: false,
+          hint: "自定义导航链接 (如 /tutorials/)，留空则使用默认分类页" }
 

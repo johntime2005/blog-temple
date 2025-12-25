@@ -1,6 +1,11 @@
 import { coverImageConfig } from "@/config/coverImageConfig";
 
-const { randomCoverImage } = coverImageConfig;
+// 直接使用 coverImageConfig，因为 enable、apis 等在顶层
+const randomCoverImage = {
+	enable: coverImageConfig.enable ?? false,
+	apis: coverImageConfig.apis ?? [],
+	fallback: coverImageConfig.fallback ?? "",
+};
 
 /**
  * 处理文章封面图

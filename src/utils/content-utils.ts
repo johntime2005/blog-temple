@@ -265,3 +265,109 @@ export async function getCategoryList(): Promise<Category[]> {
 	}
 	return ret;
 }
+
+/**
+ * 增强的分类信息类型，包含配置和统计
+ */
+export type CategoryWithConfig = {
+	name: string;
+	count: number;
+	url: string;
+	slug: string;
+	icon: string;
+	description: string;
+	showInHome: boolean;
+	showInNavbar: boolean;
+	syncToPublic: boolean;
+	order: number;
+	color: string;
+	customLink?: string;
+};
+
+/**
+ * 获取分类列表（包含配置信息和文章统计）
+ */
+export async function getCategoriesWithConfig(): Promise<CategoryWithConfig[]> {
+	const allBlogPosts = await getCollection<"posts">("posts", ({ data }) => {
+		return import.meta.env.PROD ? data.draft !== true : true;
+	});
+
+	const categoryEntries = await getCollection("categories");
+
+	// 统计文章数量
+	const count: { [key: string]: number } = {};
+	allBlogPosts.forEach((post) => {
+		if (!post.data.category) {
+			const ucKey = i18n(I18nKey.uncategorized);
+			count[ucKey] = count[ucKey] ? count[ucKey] + 1 : 1;
+			return;
+		}
+		const categoryName =
+			typeof post.data.category === "string"
+				? post.data.category.trim()
+				: String(post.data.category).trim();
+		count[categoryName] = count[categoryName] ? count[categoryName] + 1 : 1;
+	});
+
+	// 构建配置映射
+	const configMap = new Map<string, CollectionEntry<"categories">["data"] & { slug: string }>();
+	for (const entry of categoryEntries) {
+		configMap.set(entry.data.title, {
+			...entry.data,
+			slug: entry.data.slug || entry.id.replace(/\.md$/, ''),
+		});
+	}
+
+	// 合并配置和统计
+	const result: CategoryWithConfig[] = [];
+
+	// 先处理有配置的分类
+	for (const [name, config] of configMap) {
+		result.push({
+			name,
+			count: count[name] || 0,
+			url: config.customLink || getCategoryUrl(name),
+			slug: config.slug,
+			icon: config.icon || "material-symbols:folder",
+			description: config.description || "",
+			showInHome: config.showInHome ?? true,
+			showInNavbar: config.showInNavbar ?? false,
+			syncToPublic: config.syncToPublic ?? false,
+			order: config.order ?? 99,
+			color: config.color || "#3b82f6",
+			customLink: config.customLink,
+		});
+	}
+
+	// 处理没有配置但有文章的分类
+	for (const categoryName of Object.keys(count)) {
+		if (!configMap.has(categoryName)) {
+			result.push({
+				name: categoryName,
+				count: count[categoryName],
+				url: getCategoryUrl(categoryName),
+				slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
+				icon: "material-symbols:folder",
+				description: "",
+				showInHome: true,
+				showInNavbar: false,
+				syncToPublic: false,
+				order: 999,
+				color: "#6b7280",
+				customLink: undefined,
+			});
+		}
+	}
+
+	// 按 order 排序
+	return result.sort((a, b) => a.order - b.order);
+}
+
+/**
+ * 获取导航栏显示的分类
+ */
+export async function getNavbarCategories(): Promise<CategoryWithConfig[]> {
+	const categories = await getCategoriesWithConfig();
+	return categories.filter(c => c.showInNavbar);
+}
+

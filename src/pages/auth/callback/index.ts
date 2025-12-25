@@ -3,7 +3,7 @@ import {
 	hmacSha256,
 	securityHeaders,
 	timingSafeEqual,
-} from "../../utils/security";
+} from "@/utils/security";
 
 export const prerender = false;
 

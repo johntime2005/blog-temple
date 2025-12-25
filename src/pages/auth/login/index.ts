@@ -4,7 +4,7 @@ import {
 	getSecureCookieOptions,
 	hmacSha256,
 	securityHeaders,
-} from "../../utils/security";
+} from "@/utils/security";
 
 export const prerender = false;
 

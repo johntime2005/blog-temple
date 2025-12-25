@@ -10,8 +10,6 @@ export let categories: string[] = [];
 export let sortedPosts: Post[] = [];
 
 // Initialize from URL params
-let tags: string[] = [];
-let categories: string[] = [];
 let uncategorized = false;
 let privatePosts: Post[] = [];
 

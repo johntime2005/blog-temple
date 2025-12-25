@@ -78,13 +78,14 @@ const categoriesCollection = defineCollection({
 	loader: glob({ pattern: "**/*.md", base: "./src/content/categories" }),
 	schema: z.object({
 		title: z.string(), // Category name
+		slug: z.string().optional(), // Optional custom slug
 		description: z.string(),
 		showInHome: z.boolean().default(true),
 		showInNavbar: z.boolean().default(false),
 		syncToPublic: z.boolean().default(false),
 		order: z.number().default(99),
-		color: z.string().optional(),
-		icon: z.string().optional(),
+		color: z.string().optional().default("#3b82f6"),
+		icon: z.string().optional().default("material-symbols:folder"),
 		customLink: z.string().optional(), // Optional custom link override
 	}),
 });

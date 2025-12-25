@@ -1,0 +1,51 @@
+---
+import { getCollection } from "astro:content";
+import CategoryManager from "@components/admin/CategoryManager.svelte";
+import Layout from "@layouts/Layout.astro";
+import { getCategoryConfigFromContent } from "@/config/categoryConfig";
+
+// 获取分类配置
+const categoryConfig = await getCategoryConfigFromContent();
+
+// 获取所有文章统计
+const allPosts = await getCollection("posts", ({ data }) => {
+    return import.meta.env.PROD ? data.draft !== true : true;
+});
+
+// 统计每个分类的文章数量
+const postCountMap: Record<string, number> = {};
+for (const post of allPosts) {
+    const category = post.data.category?.trim() || "未分类";
+    postCountMap[category] = (postCountMap[category] || 0) + 1;
+}
+
+// 合并分类配置和文章统计
+const categoriesWithStats = Object.values(categoryConfig).map((cat) => ({
+    id: cat.id,
+    name: cat.name,
+    slug: cat.slug,
+    icon: cat.icon,
+    description: cat.description,
+    showInHome: cat.showInHome,
+    showInNavbar: cat.showInNavbar || false,
+    syncToPublic: cat.syncToPublic || false,
+    order: cat.order,
+    color: cat.color,
+    customLink: cat.customLink,
+    postCount: postCountMap[cat.name] || 0,
+}));
+---
+
+<Layout title="分类管理后台" description="管理博客文章分类">
+    <div class="admin-container">
+        <CategoryManager client:load categories={categoriesWithStats} />
+    </div>
+</Layout>
+
+<style>
+    .admin-container {
+        min-height: 100vh;
+        background: var(--page-bg);
+        padding: 2rem 1rem;
+    }
+</style>

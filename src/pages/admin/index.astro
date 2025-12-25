@@ -74,11 +74,158 @@
             <button onclick="window.location.href='/auth'">直接跳转登录</button>
         </div>
 
+        <!-- React & ReactDOM (Decap CMS 需要 React 环境来渲染自定义预览) -->
+        <script
+            is:inline
+            crossorigin
+            src="https://unpkg.com/react@18/umd/react.production.min.js"
+        ></script>
+        <script
+            is:inline
+            crossorigin
+            src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+        ></script>
+
+        <!-- Tailwind CSS (用于预览样式) -->
+        <script is:inline src="https://cdn.tailwindcss.com?plugins=typography"
+        ></script>
+
         <!-- Decap CMS 核心脚本 -->
         <script
             is:inline
             src="https://cdn.jsdelivr.net/npm/decap-cms@^3.0.0/dist/decap-cms.js"
         ></script>
+
+        <!-- 自定义预览模板和样式注册 -->
+        <script is:inline>
+            // 等待 CMS 对象加载
+            const interval = setInterval(() => {
+                if (window.CMS) {
+                    clearInterval(interval);
+                    initCMS();
+                }
+            }, 100);
+
+            function initCMS() {
+                const CMS = window.CMS;
+                const h = window.React.createElement;
+                const { useState, useEffect } = window.React;
+
+                // 定义文章预览组件
+                const PostPreview = (props) => {
+                    const entry = props.entry;
+                    const title = entry.getIn(["data", "title"]);
+                    const date = entry.getIn(["data", "published"]);
+                    const body = entry.getIn(["data", "body"]);
+                    const image = entry.getIn(["data", "image"]);
+                    const description = entry.getIn(["data", "description"]);
+                    const tags = entry.getIn(["data", "tags"]) || [];
+
+                    // 在预览组件挂载时注入 Tailwind CSS
+                    useEffect(() => {
+                        // 检查是否已经在当前 Document (iframe) 中加载了 Tailwind
+                        if (
+                            !document.getElementById("tailwind-preview-script")
+                        ) {
+                            const script = document.createElement("script");
+                            script.id = "tailwind-preview-script";
+                            script.src =
+                                "https://cdn.tailwindcss.com?plugins=typography";
+                            document.head.appendChild(script);
+                        }
+                    }, []);
+
+                    // 格式化日期
+                    const dateStr = date
+                        ? new Date(date).toLocaleDateString("zh-CN", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                          })
+                        : "";
+
+                    return h(
+                        "div",
+                        {
+                            className:
+                                "bg-white dark:bg-gray-900 min-h-screen p-8",
+                        },
+                        h(
+                            "div",
+                            { className: "max-w-3xl mx-auto" },
+                            // 封面图
+                            image &&
+                                h("img", {
+                                    src: props.getAsset(image).toString(),
+                                    className:
+                                        "w-full h-64 md:h-96 object-cover rounded-xl shadow-lg mb-8",
+                                }),
+                            // 标题
+                            h(
+                                "h1",
+                                {
+                                    className:
+                                        "text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4",
+                                },
+                                title,
+                            ),
+                            // 元信息
+                            h(
+                                "div",
+                                {
+                                    className:
+                                        "flex flex-wrap gap-4 text-gray-500 dark:text-gray-400 text-sm mb-8",
+                                },
+                                h("span", {}, dateStr),
+                                h(
+                                    "div",
+                                    { className: "flex gap-2" },
+                                    tags.map &&
+                                        tags.map((tag) =>
+                                            h(
+                                                "span",
+                                                {
+                                                    key: tag,
+                                                    className:
+                                                        "px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full",
+                                                },
+                                                tag,
+                                            ),
+                                        ),
+                                ),
+                            ),
+                            // 简介
+                            description &&
+                                h(
+                                    "div",
+                                    {
+                                        className:
+                                            "text-xl text-gray-600 dark:text-gray-300 italic mb-8 pl-4 border-l-4 border-blue-500",
+                                    },
+                                    description,
+                                ),
+                            // 正文 (使用 widgetFor 渲染 Markdown)
+                            h(
+                                "div",
+                                {
+                                    className:
+                                        "prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-blue-500 hover:prose-a:text-blue-600 prose-img:rounded-lg",
+                                },
+                                props.widgetFor("body"),
+                            ),
+                        ),
+                    );
+                };
+
+                // 注册预览模板到各个集合
+                CMS.registerPreviewTemplate("posts", PostPreview);
+                CMS.registerPreviewTemplate("tutorials", PostPreview);
+                CMS.registerPreviewTemplate("wordpress-posts", PostPreview);
+                // 暂时不为 categories 注册预览 (Frontmatter only)
+
+                console.log("CMS Preview Templates Registered");
+            }
+        </script>
 
         <script is:inline>
             // 弹窗阻止检测
