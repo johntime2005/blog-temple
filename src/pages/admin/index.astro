@@ -86,10 +86,6 @@
             src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
         ></script>
 
-        <!-- Tailwind CSS (用于预览样式) -->
-        <script is:inline src="https://cdn.tailwindcss.com?plugins=typography"
-        ></script>
-
         <!-- Decap CMS 核心脚本 -->
         <script
             is:inline
@@ -98,51 +94,115 @@
 
         <!-- 自定义预览模板和样式注册 -->
         <script is:inline>
-            // 等待 CMS 对象加载
+            // 等待 CMS 和 React 对象加载
             const interval = setInterval(() => {
-                if (window.CMS) {
+                // 确保 CMS、React 和 ReactDOM 都已加载
+                if (window.CMS && window.React && window.ReactDOM) {
                     clearInterval(interval);
-                    initCMS();
+                    // 稍微延迟一下确保一切就绪
+                    setTimeout(() => {
+                        try {
+                            initCMS();
+                        } catch (e) {
+                            console.error(
+                                "Failed to initialize CMS custom previews:",
+                                e,
+                            );
+                        }
+                    }, 100);
                 }
             }, 100);
 
             function initCMS() {
                 const CMS = window.CMS;
-                const h = window.React.createElement;
-                const { useState, useEffect } = window.React;
+                const React = window.React;
+                const h = React.createElement;
+                const { useState, useEffect } = React;
+
+                console.log("Initializing CMS preview templates...");
 
                 // 定义文章预览组件
                 const PostPreview = (props) => {
+                    // 防御性编程：确保 entry 存在
+                    if (!props.entry) return null;
+
                     const entry = props.entry;
-                    const title = entry.getIn(["data", "title"]);
+                    const title = entry.getIn(["data", "title"]) || "";
                     const date = entry.getIn(["data", "published"]);
-                    const body = entry.getIn(["data", "body"]);
+                    const body = entry.getIn(["data", "body"]) || "";
                     const image = entry.getIn(["data", "image"]);
                     const description = entry.getIn(["data", "description"]);
-                    const tags = entry.getIn(["data", "tags"]) || [];
+                    const tags = entry.getIn(["data", "tags"]);
+
+                    // 安全地处理 tags 映射
+                    const renderTags = () => {
+                        if (!tags) return null;
+
+                        // 尝试转换为数组 (Immutable.js -> Array)
+                        // Decap CMS 使用 Immutable.js Map/List
+                        const tagsArray =
+                            tags && typeof tags.toJS === "function"
+                                ? tags.toJS()
+                                : tags;
+
+                        if (Array.isArray(tagsArray)) {
+                            return tagsArray.map((tag) =>
+                                h(
+                                    "span",
+                                    {
+                                        key: tag,
+                                        className:
+                                            "px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full",
+                                    },
+                                    tag,
+                                ),
+                            );
+                        }
+                        return null;
+                    };
 
                     // 在预览组件挂载时注入 Tailwind CSS
                     useEffect(() => {
-                        // 检查是否已经在当前 Document (iframe) 中加载了 Tailwind
-                        if (
-                            !document.getElementById("tailwind-preview-script")
-                        ) {
-                            const script = document.createElement("script");
-                            script.id = "tailwind-preview-script";
-                            script.src =
-                                "https://cdn.tailwindcss.com?plugins=typography";
-                            document.head.appendChild(script);
+                        try {
+                            // 尝试获取预览 iframe 的 document
+                            const iframe =
+                                document.querySelector("#nc-root iframe");
+                            const doc = iframe
+                                ? iframe.contentDocument ||
+                                  iframe.contentWindow.document
+                                : document;
+
+                            if (
+                                doc &&
+                                !doc.getElementById("tailwind-preview-script")
+                            ) {
+                                const script = doc.createElement("script");
+                                script.id = "tailwind-preview-script";
+                                script.src =
+                                    "https://cdn.tailwindcss.com?plugins=typography";
+                                doc.head.appendChild(script);
+                            }
+                        } catch (e) {
+                            console.warn(
+                                "Failed to inject Tailwind into preview",
+                                e,
+                            );
                         }
                     }, []);
 
                     // 格式化日期
-                    const dateStr = date
-                        ? new Date(date).toLocaleDateString("zh-CN", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                          })
-                        : "";
+                    let dateStr = "";
+                    try {
+                        dateStr = date
+                            ? new Date(date).toLocaleDateString("zh-CN", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                              })
+                            : "";
+                    } catch (e) {
+                        console.warn("Date formatting error", e);
+                    }
 
                     return h(
                         "div",
@@ -180,18 +240,7 @@
                                 h(
                                     "div",
                                     { className: "flex gap-2" },
-                                    tags.map &&
-                                        tags.map((tag) =>
-                                            h(
-                                                "span",
-                                                {
-                                                    key: tag,
-                                                    className:
-                                                        "px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full",
-                                                },
-                                                tag,
-                                            ),
-                                        ),
+                                    renderTags(),
                                 ),
                             ),
                             // 简介
@@ -221,9 +270,8 @@
                 CMS.registerPreviewTemplate("posts", PostPreview);
                 CMS.registerPreviewTemplate("tutorials", PostPreview);
                 CMS.registerPreviewTemplate("wordpress-posts", PostPreview);
-                // 暂时不为 categories 注册预览 (Frontmatter only)
 
-                console.log("CMS Preview Templates Registered");
+                console.log("CMS Preview Templates Registered Successfully");
             }
         </script>
 
