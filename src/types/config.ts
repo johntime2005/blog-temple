@@ -50,6 +50,7 @@ export type SiteConfig = {
 	navbarTitle?: string; // 导航栏标题，如果不设置则使用 title
 	navbarWidthFull?: boolean; // 导航栏是否占满屏幕宽度
 	showLastModified: boolean; // 控制"上次编辑"卡片显示的开关
+	outdatedThreshold?: number; // 文章过期阈值（天数），超过此天数才显示"上次编辑"卡片
 
 	// 页面开关配置
 	pages: {
@@ -71,12 +72,30 @@ export type SiteConfig = {
 	postListLayout: {
 		defaultMode: "list" | "grid"; // 默认布局模式：list=列表模式，grid=网格模式
 		allowSwitch: boolean; // 是否允许用户切换布局
+		grid: {
+			// 网格布局配置，仅在 defaultMode 为 "grid" 或允许切换布局时生效
+			// 是否开启瀑布流布局
+			masonry: boolean;
+		};
 	};
 
 	// 分页配置
 	pagination: {
 		postsPerPage: number; // 每页显示的文章数量
 	};
+
+	/*
+	 * 友链配置
+	 * */
+	friends?: string;
+	/**
+	 * 赞助配置
+	 * */
+	sponsor?: string;
+	/**
+	 * 文章封面图配置
+	 * */
+	coverImage?: string;
 };
 
 export type Favicon = {
@@ -200,7 +219,6 @@ export type CommentConfig = {
 		reactionsEnabled: string;
 		emitMetadata: string;
 		inputPosition: string;
-		theme: string;
 		lang: string;
 		loading: string;
 	};
@@ -293,6 +311,7 @@ export type FooterConfig = {
 };
 
 export type CoverImageConfig = {
+	enableInPost: boolean; // 是否在文章详情页显示封面图
 	enable: boolean; // 是否启用随机图功能
 	useAsDefault?: boolean; // 当文章未设置 image 字段时，是否默认使用随机封面图
 	apis: string[]; // 随机图API列表，支持 {seed} 占位符，会替换为文章slug或时间戳
@@ -313,8 +332,8 @@ export type CoverImageConfig = {
 			| "bottom-left"
 			| "bottom-right"
 			| "center"; // 水印位置
-		opacity?: number; // 水印透明度 0-1，默认0.6
-		fontSize?: string; // 字体大小，默认"0.75rem"
+		opacity?: number; // 水印透明度 0-1, 默认0.6
+		fontSize?: string; // 字体大小, 默认"0.75rem"
 		color?: string; // 文字颜色，默认为白色
 		backgroundColor?: string; // 背景颜色，默认为半透明黑色
 	};

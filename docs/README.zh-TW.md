@@ -1,5 +1,5 @@
 
-<img src="./images/1131.png" width = "405" height = "511" alt="NapCat" align=right />
+<img src="./images/1131.png" width = "405" height = "511" alt="Firefly" align=right />
 
 <div align="center">
 
@@ -8,7 +8,16 @@
 > 
 > ![Node.js >= 20](https://img.shields.io/badge/node.js-%3E%3D20-brightgreen) 
 ![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9-blue)
-![Astro](https://img.shields.io/badge/Astro-5.16.3-orange)
+![Astro](https://img.shields.io/badge/Astro-5.16.6-orange)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)
+>
+> [![Stars](https://img.shields.io/github/stars/CuteLeaf/Firefly?style=social)](https://github.com/CuteLeaf/Firefly/stargazers)
+[![Forks](https://img.shields.io/github/forks/CuteLeaf/Firefly?style=social)](https://github.com/CuteLeaf/Firefly/network/members)
+[![Issues](https://img.shields.io/github/issues/CuteLeaf/Firefly)](https://github.com/CuteLeaf/Firefly/issues)
+> 
+> ![GitHub License](https://img.shields.io/github/license/CuteLeaf/Firefly)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/CuteLeaf/Firefly)
+[![愛發電贊助](https://img.shields.io/badge/愛發電-贊助作者-ff69b4.svg)](https://afdian.com/a/cuteleaf)
 </div>
 
 
@@ -66,6 +75,7 @@
 - [x] **站點統計** - 顯示文章、分類、標籤數目、文章總字數、執行時長、最後更新時間
 - [x] **站點日曆** - 顯示當月日曆，以及當月的發布文章
 - [x] **贊助頁面** - 多種支付方式、收款碼展示、贊助者列表、文章內贊助按鈕
+- [x] **分享海報** - 支援生成精美的文章分享海報，包含文章摘要、二維碼等資訊
 - [x] **櫻花特效** - 支援櫻花特效，全螢幕櫻花效果
 - [x] **友情連結** - 精美的友鏈展示卡片
 - [x] **廣告元件** - 支援自訂側邊欄廣告內容
@@ -93,7 +103,6 @@
 ## 📝計畫中...
 
 - [ ] **重構 Live2D 看板娘**
-- [ ] **優化網格版面配置的文章封面**
 - [ ] **持續優化動畫流暢度**
 - [ ] 更多功能持續完善中...
 
@@ -235,7 +244,13 @@ lang: zh-CN      # 僅當文章語言與 `siteConfig.ts` 中的網站語言不�
 - 使用了 [MetingJS](https://github.com/metowolf/MetingJS) 和 [APlayer](https://github.com/MoePlayer/APlayer) 音樂播放器
 - 使用了b站up [公公的日常](https://space.bilibili.com/3546750017080050) 提供的Q版 `流螢` 看板娘切片資料模型
 - 圖示來自 [Iconify](https://iconify.design/)
-- 流螢部分相關圖片素材版權歸遊戲 [《崩壞：星穹鐵道》](https://sr.mihoyo.com/) 開發商 [米哈遊](https://www.mihoyo.com/) 所有。
+- 流螢部分相關圖片素材版權歸遊戲 [《崩壞：星穹鐵道》](https://sr.mihoyo.com/) 開發商 [米哈遊](https://www.mihoyo.com/) 所有
+
+## 📝 許可協議
+
+本項目遵循 [MIT license](https://mit-license.org/) 開源協議，詳細查看 [LICENSE](./LICENSE) 文件，
+
+最初 Fork 自 [saicaca/fuwari](https://github.com/saicaca/fuwari)，感謝原作者的貢獻，原項目採用 [MIT license](https://mit-license.org/)。
 
 ## 🍀 貢獻者
 

@@ -5,6 +5,8 @@ import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import { getPostUrlBySlug } from "@/utils/url-utils";
 
+export let tags: string[] = [];
+export let categories: string[] = [];
 export let sortedPosts: Post[] = [];
 
 // Initialize from URL params
@@ -18,8 +20,8 @@ interface Post {
 	data: {
 		title: string;
 		tags: string[];
-		category?: string;
-		published: Date | string; // Handled simplified date type
+		category?: string | null;
+		published: Date | string;
 	};
 }
 

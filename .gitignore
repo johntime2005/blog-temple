@@ -40,3 +40,4 @@ package/
 # temporary diary processing
 diary-temp/
 *_ExportBlock-*/
+.obsidian/

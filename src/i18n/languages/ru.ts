@@ -158,11 +158,29 @@ export const ru: Translation = {
 	[Key.bangumiFilterWish]: "Хочу",
 	[Key.bangumiFilterOnHold]: "Отложено",
 	[Key.bangumiFilterDropped]: "Брошено",
+	[Key.bangumiFilterGamePlayed]: "Пройдено",
+	[Key.bangumiFilterGamePlaying]: "Играю",
+	[Key.bangumiFilterGameWish]: "Хочу сыграть",
+	[Key.bangumiFilterBookRead]: "Прочитано",
+	[Key.bangumiFilterBookReading]: "Читаю",
+	[Key.bangumiFilterBookWish]: "Хочу прочитать",
+	[Key.bangumiFilterMusicListened]: "Прослушано",
+	[Key.bangumiFilterMusicListening]: "Слушаю",
+	[Key.bangumiFilterMusicWish]: "Хочу послушать",
 	[Key.bangumiStatusWish]: "Хочу",
 	[Key.bangumiStatusWatched]: "Просмотрено",
 	[Key.bangumiStatusWatching]: "Смотрю",
 	[Key.bangumiStatusOnHold]: "Отложено",
 	[Key.bangumiStatusDropped]: "Брошено",
+	[Key.bangumiStatusGameWish]: "Хочу сыграть",
+	[Key.bangumiStatusGamePlayed]: "Пройдено",
+	[Key.bangumiStatusGamePlaying]: "Играю",
+	[Key.bangumiStatusBookWish]: "Хочу прочитать",
+	[Key.bangumiStatusBookRead]: "Прочитано",
+	[Key.bangumiStatusBookReading]: "Читаю",
+	[Key.bangumiStatusMusicWish]: "Хочу послушать",
+	[Key.bangumiStatusMusicListened]: "Прослушано",
+	[Key.bangumiStatusMusicListening]: "Слушаю",
 	[Key.bangumiStatusUnknown]: "Неизвестно",
 	[Key.bangumiNoData]: "Нет данных",
 	[Key.bangumiNoDataDescription]: "В этой категории нет элементов",
@@ -253,7 +271,7 @@ export const ru: Translation = {
 	// Режим обоев
 	[Key.wallpaperMode]: "Режим обоев",
 	[Key.wallpaperBannerMode]: "Баннер обои",
-	[Key.wallpaperOverlayMode]: "Обои на весь экран",
+	[Key.wallpaperOverlayMode]: "Прозрачный",
 	[Key.wallpaperNoneMode]: "Однотонный фон",
 
 	// Страница спонсоров
@@ -270,9 +288,13 @@ export const ru: Translation = {
 	[Key.sponsorAnonymous]: "Анонимно",
 	[Key.scanToSponsor]: "Сканировать для поддержки",
 	[Key.sponsorGoTo]: "Перейти к спонсору",
-	[Key.sponsorButton]: "Поддержка",
+	[Key.sponsorButton]: "Поддержка и Поделиться",
 	[Key.sponsorButtonText]:
-		"Если эта статья вам помогла, добро пожаловать поддержать!",
+		"Если эта статья помогла вам, пожалуйста, поделитесь или поддержите!",
+
+	[Key.shareOnSocial]: "Поделиться",
+	[Key.shareOnSocialDescription]:
+		"Если эта статья помогла вам, пожалуйста, поделитесь ею с другими!",
 
 	// Статистика сайта
 	[Key.siteStats]: "Статистика сайта",
@@ -305,4 +327,11 @@ export const ru: Translation = {
 	[Key.calendarOctober]: "Окт",
 	[Key.calendarNovember]: "Ноя",
 	[Key.calendarDecember]: "Дек",
+
+	[Key.shareArticle]: "Поделиться",
+	[Key.generatingPoster]: "Создание постера...",
+	[Key.copied]: "Скопировано",
+	[Key.copyLink]: "Копировать ссылку",
+	[Key.savePoster]: "Сохранить постер",
+	[Key.scanToRead]: "Сканируйте, чтобы прочитать",
 };

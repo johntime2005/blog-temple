@@ -1,16 +1,18 @@
-
-<img src="./docs/images/1131.png" width = "405" height = "511" alt="NapCat" align=right />
+<img src="./docs/images/1131.png" width = "405" height = "511" alt="Firefly" align=right />
 
 <div align="center">
 
 # johntime 的个人博客
 
 > 基于 [Firefly](https://github.com/CuteLeaf/Firefly) 主题的个性化博客
+>
+> ![Node.js >= 20](https://img.shields.io/badge/node.js-%3E%3D20-brightgreen) 
+![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9-blue)
+![Astro](https://img.shields.io/badge/Astro-5.16.6-orange)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)
 
 **✨ 主题来源**: [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly) - 一款清新美观的 Astro 博客主题模板
-
 </div>
-
 ---
 
 [**🌐 我的博客**](https://blog.johntime.top) &emsp;
@@ -134,7 +136,9 @@ src/
 │   ├── musicConfig.ts        # 音乐播放器配置
 │   ├── pioConfig.ts          # 看板娘配置
 │   ├── adConfig.ts           # 广告配置
-│   └── friendsConfig.ts      # 友链配置
+│   ├── friendsConfig.ts      # 友链配置
+│   ├── sponsorConfig.ts      # 赞助配置(upstream)
+│   └── coverImageConfig.ts   # 文章封面图配置(upstream)
 ```
 
 
@@ -176,6 +180,20 @@ lang: jp      # 仅当文章语言与 `config.ts` 中的网站语言不同时需
 ## 🙏 致谢
 
 ### 主题来源
+- 非常感谢 [saicaca](https://github.com/saicaca) 开发的 [Fuwari](https://github.com/saicaca/fuwari) 模板，Firefly 就是基于这个模板二次开发
+- 参考了博主 [霞葉](https://kasuha.com) 分享的 [Bangumi 收藏展示](https://kasuha.com/posts/fuwari-enhance-ep2/) 和 [邮箱保护/图片标题](https://kasuha.com/posts/fuwari-enhance-ep1/) 方案
+- 参考了 [Mizuki](https://github.com/matsuzaka-yuki/Mizuki) 的横幅标题/多级菜单导航栏/樱花特效/KaTeX/Fancybox方案
+- 使用了 [Astro](https://astro.build) 和 [Tailwind CSS](https://tailwindcss.com) 构建
+- 使用了 [MetingJS](https://github.com/metowolf/MetingJS) 和 [APlayer](https://github.com/MoePlayer/APlayer) 音乐播放器
+- 使用了b站up [公公的日常](https://space.bilibili.com/3546750017080050) 提供的Q版 `流萤` 看板娘切片数据模型
+- 图标来自 [Iconify](https://iconify.design/)
+- 流萤部分相关图片素材版权归游戏 [《崩坏：星穹铁道》](https://sr.mihoyo.com/) 开发商 [米哈游](https://www.mihoyo.com/) 所有
+
+## 📝 许可协议
+
+本项目遵循 [MIT license](https://mit-license.org/) 开源协议，详细查看 [LICENSE](./LICENSE) 文件，
+
+最初 Fork 自 [saicaca/fuwari](https://github.com/saicaca/fuwari)，感谢原作者的贡献，原项目采用 [MIT license](https://mit-license.org/)。
 
 本博客基于以下优秀的开源项目构建：
 

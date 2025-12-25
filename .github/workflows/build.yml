@@ -65,3 +65,33 @@ jobs:
 
       - name: Run Astro Build
         run: pnpm astro build
+
+  backup-posts:
+    runs-on: ubuntu-latest
+    name: Backup Posts to Cloudflare KV
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version: 22
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        with:
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Backup posts to KV
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_BACKUP_KV_NAMESPACE_ID: ${{ secrets.CLOUDFLARE_BACKUP_KV_NAMESPACE_ID }}
+          CLOUDFLARE_BACKUP_PREFIX: ${{ secrets.CLOUDFLARE_BACKUP_PREFIX }}
+        run: pnpm backup-posts

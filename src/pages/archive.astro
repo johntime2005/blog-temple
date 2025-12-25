@@ -19,5 +19,5 @@ const minimalPostsList = sortedPostsList.map((post) => ({
 ---
 
 <MainGridLayout title={i18n(I18nKey.archive)}>
-	<ArchivePanel sortedPosts={minimalPostsList} client:only="svelte" />
+	<ArchivePanel sortedPosts={minimalPostsList} client:load />
 </MainGridLayout>

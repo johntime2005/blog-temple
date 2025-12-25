@@ -5,12 +5,11 @@ backend:
   name: github
   repo: johntime2005/blog  # 您的GitHub仓库
   branch: main  # 要使用的分支
-  base_url: https://blog.johntime.top  # OAuth 认证基础URL
-  auth_endpoint: auth  # OAuth 认证端点
+  base_url: https://blog.johntime.top  # OAuth 认证基础URL (生产环境)
+  auth_endpoint: auth/  # OAuth 认证端点
 
-# 本地开发模式（可选）
-# 运行 npx decap-server 后取消下面注释
-# local_backend: true
+# 本地开发模式 - 启用此选项后，运行 npx decap-server 即可本地编辑
+local_backend: true
 
 # 媒体文件配置
 media_folder: "public/assets/images"  # 媒体文件存储位置
@@ -22,7 +21,7 @@ publish_mode: editorial_workflow
 # 站点配置
 site_url: https://blog.johntime.top
 display_url: https://blog.johntime.top
-logo_url: /favicon/favicon-96x96.png
+logo_url: /favicon/favicon-light-128.png
 
 # 内容集合定义
 collections:

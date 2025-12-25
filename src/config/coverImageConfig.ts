@@ -1,13 +1,14 @@
 import type { CoverImageConfig } from "../types/config";
 
 /**
- * 文章随机封面图配置
+ * 文章封面图配置
  *
- * 使用说明：
- * 1. 当 useAsDefault 为 true 时，所有没有设置 image 字段的文章都会自动使用随机封面图
- * 2. 如果想禁用某篇文章的随机封面，在 Frontmatter 中明确设置 image: ""
- * 3. 系统会依次尝试所有配置的 API，全部失败后使用备用图片
- * 4. 如果 enable 为 false，则全局禁用随机图功能
+ * enableInPost - 是否在文章详情页显示封面图
+ *
+ * 随机封面图使用说明：
+ * 1. 在文章的 Frontmatter 中添加 image: "api" 即可使用随机图功能
+ * 2. 系统会依次尝试所有配置的 API，全部失败后使用备用图片
+ * 3. 如果 enable 为 false，则直接不显示封面图（也不会显示备用图）
  *
  * // 文章 Frontmatter 示例：
  * ---
@@ -16,16 +17,22 @@ import type { CoverImageConfig } from "../types/config";
  * ---
  */
 export const coverImageConfig: CoverImageConfig = {
+	// 是否在文章详情页显示封面图
+	enableInPost: true,
+
 	// 随机封面图功能开关
 	enable: true,
+
 	// 当文章未设置 image 字段时，是否默认使用随机封面图
 	useAsDefault: true,
+
 	// 封面图API列表
 	apis: [
 		"https://t.alcy.cc/pc",
 		"https://www.dmoe.cc/random.php",
 		"https://uapis.cn/api/v1/random/image?category=acg&type=pc",
 	],
+
 	// 备用图片路径
 	fallback: "/assets/images/cover.webp",
 
@@ -43,33 +50,20 @@ export const coverImageConfig: CoverImageConfig = {
 		backgroundColor: "#fefefe",
 	},
 
-	/**
-	 * 水印配置
-	 * - 仅在随机图API成功加载时显示水印
-	 * - 当使用备用图片时，水印文字会自动更新为 "Image API Error"
-	 * - 移动端会自动调整位置（bottom位置会显示在top，避免被裁剪）
-	 */
 	watermark: {
-		// 水印开关
+		// 是否显示水印
 		enable: true,
 		// 水印文本
-		text: "Random Cover",
-		/**
-		 * 水印位置
-		 * - "top-left": 左上角
-		 * - "top-right": 右上角
-		 * - "bottom-left": 左下角（移动端显示在左上角，桌面端显示在左下角）
-		 * - "bottom-right": 右下角（移动端显示在右上角，桌面端显示在右下角）
-		 * - "center": 居中
-		 */
+		text: "Firefly Theme",
+		// 水印位置
 		position: "bottom-right",
 		// 水印透明度
 		opacity: 0.6,
 		// 字体大小
 		fontSize: "0.75rem",
-		// 字体颜色
+		// 文字颜色
 		color: "#ffffff",
 		// 背景颜色
-		backgroundColor: "rgba(0, 0, 0, 0.5)",
+		backgroundColor: "rgba(0, 0, 0, 0.3)",
 	},
 };

@@ -39,6 +39,12 @@ export function shouldShowPost(
 		return false; // private 完全不显示
 	}
 
+	// [NEW] Encrypted posts should NOT be shown in public lists (Home, Archive, Search, Widget)
+	// They will be loaded client-side for authorized users only.
+	if (data.encrypted && context !== "detail") {
+		return false;
+	}
+
 	if (data.visibility === "unlisted" && context !== "detail") {
 		return false; // unlisted 只在详情页显示
 	}

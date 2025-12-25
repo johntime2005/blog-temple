@@ -55,6 +55,9 @@ export const siteConfig: SiteConfig = {
 	// 文章页底部的"上次编辑时间"卡片开关
 	showLastModified: true,
 
+	// 文章过期阈值（天数），超过此天数才显示"上次编辑"卡片
+	outdatedThreshold: 30,
+
 	// OpenGraph图片功能,注意开启后要渲染很长时间，不建议本地调试的时候开启
 	generateOgImages: false,
 
@@ -78,18 +81,22 @@ export const siteConfig: SiteConfig = {
 		defaultMode: "list",
 		// 是否允许用户切换布局
 		allowSwitch: true,
+
+		// 网格布局配置，仅在 defaultMode 为 "grid" 或允许切换布局时生效
+		grid: {
+			// 是否开启瀑布流布局，同时有封面图和无封面图的混合文章推荐开启
+			masonry: true,
+		},
 	},
 
 	// 分页配置
 	pagination: {
 		// 每页显示的文章数量
-		postsPerPage: 8,
+		postsPerPage: 10,
 	},
 
 	backgroundWallpaper: {
-		// 是否启用背景壁纸功能
-
-		// 壁纸模式："banner" Banner壁纸模式，"overlay" 全屏透明覆盖模式
+		// 壁纸模式："banner" 横幅壁纸，"overlay" 全屏透明，"none" 纯色背景无壁纸
 		mode: "banner",
 
 		// 背景图片配置

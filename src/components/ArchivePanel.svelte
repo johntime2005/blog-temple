@@ -9,7 +9,10 @@ export let tags: string[];
 export let categories: string[];
 export let sortedPosts: Post[] = [];
 
-const params = new URLSearchParams(window.location.search);
+const params =
+	typeof window !== "undefined"
+		? new URLSearchParams(window.location.search)
+		: new URLSearchParams();
 tags = params.has("tag") ? params.getAll("tag") : [];
 categories = params.has("category") ? params.getAll("category") : [];
 const uncategorized = params.get("uncategorized");
@@ -41,48 +44,46 @@ function formatTag(tagList: string[]) {
 	return tagList.map((t) => `#${t}`).join(" ");
 }
 
-onMount(async () => {
-	let filteredPosts: Post[] = sortedPosts;
+let filteredPosts: Post[] = sortedPosts;
 
-	if (tags.length > 0) {
-		filteredPosts = filteredPosts.filter(
-			(post) =>
-				Array.isArray(post.data.tags) &&
-				post.data.tags.some((tag) => tags.includes(tag)),
-		);
-	}
-
-	if (categories.length > 0) {
-		filteredPosts = filteredPosts.filter(
-			(post) => post.data.category && categories.includes(post.data.category),
-		);
-	}
-
-	if (uncategorized) {
-		filteredPosts = filteredPosts.filter((post) => !post.data.category);
-	}
-
-	const grouped = filteredPosts.reduce(
-		(acc, post) => {
-			const year = post.data.published.getFullYear();
-			if (!acc[year]) {
-				acc[year] = [];
-			}
-			acc[year].push(post);
-			return acc;
-		},
-		{} as Record<number, Post[]>,
+if (tags.length > 0) {
+	filteredPosts = filteredPosts.filter(
+		(post) =>
+			Array.isArray(post.data.tags) &&
+			post.data.tags.some((tag) => tags.includes(tag)),
 	);
+}
 
-	const groupedPostsArray = Object.keys(grouped).map((yearStr) => ({
-		year: Number.parseInt(yearStr, 10),
-		posts: grouped[Number.parseInt(yearStr, 10)],
-	}));
+if (categories.length > 0) {
+	filteredPosts = filteredPosts.filter(
+		(post) => post.data.category && categories.includes(post.data.category),
+	);
+}
 
-	groupedPostsArray.sort((a, b) => b.year - a.year);
+if (uncategorized) {
+	filteredPosts = filteredPosts.filter((post) => !post.data.category);
+}
 
-	groups = groupedPostsArray;
-});
+const grouped = filteredPosts.reduce(
+	(acc, post) => {
+		const year = post.data.published.getFullYear();
+		if (!acc[year]) {
+			acc[year] = [];
+		}
+		acc[year].push(post);
+		return acc;
+	},
+	{} as Record<number, Post[]>,
+);
+
+const groupedPostsArray = Object.keys(grouped).map((yearStr) => ({
+	year: Number.parseInt(yearStr, 10),
+	posts: grouped[Number.parseInt(yearStr, 10)],
+}));
+
+groupedPostsArray.sort((a, b) => b.year - a.year);
+
+groups = groupedPostsArray;
 </script>
 
 <div class="card-base px-8 py-6">

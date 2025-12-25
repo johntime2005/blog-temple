@@ -1,5 +1,5 @@
 
-<img src="./images/1131.png" width = "405" height = "511" alt="NapCat" align=right />
+<img src="./images/1131.png" width = "405" height = "511" alt="Firefly" align=right />
 
 <div align="center">
 
@@ -8,7 +8,16 @@
 > 
 > ![Node.js >= 20](https://img.shields.io/badge/node.js-%3E%3D20-brightgreen) 
 ![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9-blue)
-![Astro](https://img.shields.io/badge/Astro-5.16.3-orange)
+![Astro](https://img.shields.io/badge/Astro-5.16.6-orange)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)
+>
+> [![Stars](https://img.shields.io/github/stars/CuteLeaf/Firefly?style=social)](https://github.com/CuteLeaf/Firefly/stargazers)
+[![Forks](https://img.shields.io/github/forks/CuteLeaf/Firefly?style=social)](https://github.com/CuteLeaf/Firefly/network/members)
+[![Issues](https://img.shields.io/github/issues/CuteLeaf/Firefly)](https://github.com/CuteLeaf/Firefly/issues)
+> 
+> ![GitHub License](https://img.shields.io/github/license/CuteLeaf/Firefly)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/CuteLeaf/Firefly)
+[![Afdian Sponsor](https://img.shields.io/badge/Afdian-作者を支援-ff69b4.svg)](https://afdian.com/a/cuteleaf)
 </div>
 
 
@@ -32,7 +41,7 @@
 <img alt="firefly" src="./images/1.webp" />
 
 >[!TIP]
->重要なレイアウトでは、Fireflyは革新的に左右のデュアルサイドバー、記事グリッド（2列）レイアウトを追加し、
+>重要なレイアウトでは、Fireflyは革新的に左右のデュアルサイドバー、記事グリッド（2列）レイアウト、メーソンリーレイアウトを追加し、
 >
 >サイト統計、カレンダーコンポーネント、記事目次などの小さなウィジェットを追加してサイドバーをより豊かにし、
 >
@@ -52,7 +61,7 @@
 
 ### パーソナライゼーション
 - [x] **サイドバー** - シングルサイドバー、デュアルサイドバー設定をサポート、フロントエンドで自由に切り替え可能
-- [x] **記事レイアウト** - リスト（単列）、グリッド（2列）レイアウトをサポート、フロントエンドで自由に切り替え可能
+- [x] **記事レイアウト** - リスト（単列）、グリッド（2列/メーソンリー）レイアウトをサポート、フロントエンドで自由に切り替え可能
 - [x] **フォント管理** - カスタムフォントをサポート、豊富なフォントセレクター
 - [x] **フッター設定** - HTMLコンテンツ注入、完全カスタマイズ可能
 - [x] **ナビゲーションバーのカスタマイズ** - ロゴ、タイトル、リンクを完全カスタマイズ
@@ -66,6 +75,7 @@
 - [x] **サイト統計** - 記事、カテゴリ、タグ数、総文字数、稼働時間、最終更新時刻を表示
 - [x] **サイトカレンダー** - 今月のカレンダーと今月公開された記事を表示
 - [x] **スポンサーページ** - 複数の支払い方法、支払いQRコード、スポンサーリスト、記事内スポンサーボタン
+- [x] **シェアポスター** - 記事の要約やQRコードなどを含む美しい記事シェアポスターの生成をサポート
 - [x] **桜エフェクト** - 桜エフェクトをサポート、フルスクリーン桜アニメーション
 - [x] **友人リンク** - 美しい友人リンク表示カード
 - [x] **広告コンポーネント** - カスタムサイドバー広告コンテンツをサポート
@@ -93,7 +103,6 @@
 ## 📝 予定...
 
 - [ ] **Live2Dマスコットのリファクタリング**
-- [ ] **グリッドレイアウトの記事カバーの最適化**
 - [ ] **アニメーションの滑らかさの継続的な最適化**
 - [ ] より多くの機能が継続的に改善中...
 
@@ -193,7 +202,7 @@ src/
 │   ├── adConfig.ts           # 広告設定
 │   ├── friendsConfig.ts      # 友人リンク設定
 │   ├── sponsorConfig.ts      # スポンサー設定
-│   └── coverImageConfig.ts   # 記事ランダムカバー画像設定
+│   └── coverImageConfig.ts   # 記事カバー画像設定
 ```
 
 
@@ -236,6 +245,10 @@ lang: zh-CN      # 記事の言語が`siteConfig.ts`のサイト言語と異な�
 - Bilibili UP主[公公的日常](https://space.bilibili.com/3546750017080050)が提供するQ版`蛍`マスコットスライスデータモデルを使用
 - アイコンは[Iconify](https://iconify.design/)から
 - 蛍関連の画像素材の著作権はゲーム[「崩壊：スターレイル」](https://sr.mihoyo.com/)の開発元[miHoYo](https://www.mihoyo.com/)に帰属します。
+
+## 📝 ライセンス
+
+本プロジェクトは [MIT license](https://mit-license.org/) の下で公開されています。詳細は [LICENSE](../LICENSE) ファイルをご覧ください。[saicaca/fuwari](https://github.com/saicaca/fuwari) からフォークされました。原作者の貢献に感謝します。元のプロジェクトも [MIT license](https://mit-license.org/) を採用しています。
 
 ## 🍀 貢献者
 

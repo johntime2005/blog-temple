@@ -43,6 +43,12 @@ export async function GET({ request, locals }) {
 			return isOwner; // Only owner sees private posts
 		}
 
+		// [NEW] Encrypted posts -> Owner only (via this API list)
+		// Public users won't see them in the list at all.
+		if (post.data.encrypted) {
+			return isOwner;
+		}
+
 		// Members-only posts -> Owner only (User Request)
 		if (post.data.accessLevel === "members-only") {
 			return isOwner;

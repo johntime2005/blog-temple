@@ -1,5 +1,6 @@
 ---
 import { render } from "astro:content";
+import * as path from "node:path";
 import Comment from "@components/comment/index.astro";
 import License from "@components/misc/License.astro";
 import Markdown from "@components/misc/Markdown.astro";
@@ -21,6 +22,8 @@ import AccessGuard from "@/components/auth/AccessGuard.svelte";
 import PostMetadata from "@/components/content/PostMeta.astro";
 import EncryptedPostGuard from "@/components/EncryptedPostGuard.svelte";
 import RandomCoverImage from "@/components/misc/RandomCoverImage.astro";
+import SharePoster from "@/components/misc/SharePoster.svelte";
+import { coverImageConfig } from "@/config/coverImageConfig";
 import { licenseConfig } from "@/config/licenseConfig";
 import { profileConfig } from "@/config/profileConfig";
 import { siteConfig } from "@/config/siteConfig";
@@ -70,7 +73,29 @@ if (isEncrypted || isMembersOnly) {
 // 处理随机图：如果image为"api"，则从配置的API获取随机图
 const processedImage = processCoverImageSync(entry.data.image, entry.id);
 
-// ...existing code...
+let posterCoverUrl = processedImage;
+if (processedImage) {
+  const isLocal = !(
+    processedImage.startsWith("/") ||
+    processedImage.startsWith("http") ||
+    processedImage.startsWith("https") ||
+    processedImage.startsWith("data:")
+  );
+  if (isLocal) {
+    const basePath = getFileDirFromPath(entry.filePath || "");
+    const files = import.meta.glob<ImageMetadata>("../../**", {
+      import: "default",
+    });
+    let normalizedPath = path
+      .normalize(path.join("../../", basePath, processedImage))
+      .replace(/\\/g, "/");
+    const file = files[normalizedPath];
+    if (file) {
+      const img = await file();
+      posterCoverUrl = img.src;
+    }
+  }
+}
 
 dayjs.extend(utc);
 
@@ -189,7 +214,7 @@ const jsonLd = {
       <!-- always show cover as long as it has one -->
 
       {
-        processedImage && (
+        processedImage && coverImageConfig.enableInPost && (
           <div style="margin-top:1rem;">
             <RandomCoverImage
               id="post-cover"
@@ -208,14 +233,14 @@ const jsonLd = {
       {
         entry.data.encrypted && entry.data.encryptionId ? (
           <EncryptedPostGuard
-            client:only="svelte"
+            client:load
             encryptionId={entry.data.encryptionId}
             postSlug={entry.id}
             encryptedContent={encryptedContent}
           />
         ) : entry.data.accessLevel === "members-only" ? (
           <AccessGuard
-            client:only="svelte"
+            client:load
             accessLevel={entry.data.accessLevel}
             postSlug={entry.id}
             encryptedContent={encryptedContent}
@@ -227,37 +252,70 @@ const jsonLd = {
         )
       }
 
-      {/* 赞助按钮 */}
-      {
-        sponsorConfig.showButtonInPost && siteConfig.pages.sponsor && (
-          <div class="mb-6 rounded-xl onload-animation">
-            <div class="p-6 bg-[var(--license-block-bg)] rounded-xl">
-              <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3 flex-1">
-                  <div class="h-12 w-12 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70 flex-shrink-0">
-                    <Icon name="material-symbols:favorite" class="text-2xl" />
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
-                      {i18n(I18nKey.sponsorButton)}
-                    </h3>
-                    <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                      {i18n(I18nKey.sponsorButtonText)}
-                    </p>
-                  </div>
-                </div>
-                <a
-                  href={url("/sponsor/")}
-                  class="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white dark:text-black/70 rounded-lg font-medium hover:bg-[var(--primary)]/80 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+      {/* 赞助按钮 & 分享按钮 */}
+      <div class="mb-6 rounded-xl onload-animation">
+        <div class="p-6 bg-[var(--license-block-bg)] rounded-xl">
+          <div
+            class="flex flex-col sm:flex-row items-center justify-between gap-4"
+          >
+            <div class="flex items-center gap-3 flex-1">
+              <div
+                class="h-12 w-12 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70 flex-shrink-0"
+              >
+                <Icon
+                  name={sponsorConfig.showButtonInPost &&
+                  siteConfig.pages.sponsor
+                    ? "material-symbols:favorite"
+                    : "material-symbols:share"}
+                  class="text-2xl"
+                />
+              </div>
+              <div>
+                <h3
+                  class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1"
                 >
-                  <span>{i18n(I18nKey.sponsor)}</span>
-                  <Icon name="fa6-solid:arrow-right" class="text-sm" />
-                </a>
+                  {
+                    sponsorConfig.showButtonInPost && siteConfig.pages.sponsor
+                      ? i18n(I18nKey.sponsorButton)
+                      : i18n(I18nKey.shareOnSocial)
+                  }
+                </h3>
+                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                  {
+                    sponsorConfig.showButtonInPost && siteConfig.pages.sponsor
+                      ? i18n(I18nKey.sponsorButtonText)
+                      : i18n(I18nKey.shareOnSocialDescription)
+                  }
+                </p>
               </div>
             </div>
+            <div class="flex items-center gap-3">
+              <SharePoster
+                client:load
+                title={entry.data.title}
+                author={profileConfig.name}
+                description={entry.data.description || entry.data.title}
+                pubDate={formatDateToYYYYMMDD(entry.data.published)}
+                coverImage={posterCoverUrl}
+                url={Astro.url.href}
+                siteTitle={siteConfig.title}
+                avatar={profileConfig.avatar}
+              />
+              {
+                sponsorConfig.showButtonInPost && siteConfig.pages.sponsor && (
+                  <a
+                    href={url("/sponsor/")}
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-white dark:text-black/70 rounded-lg font-medium hover:bg-[var(--primary)]/80 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+                  >
+                    <span>{i18n(I18nKey.sponsor)}</span>
+                    <Icon name="fa6-solid:arrow-right" class="text-sm" />
+                  </a>
+                )
+              }
+            </div>
           </div>
-        )
-      }
+        </div>
+      </div>
 
       {
         licenseConfig.enable && (
@@ -278,49 +336,51 @@ const jsonLd = {
 
   <!-- 上次编辑时间 -->
   {
-    siteConfig.showLastModified && (
-      <div class="card-base p-6 mb-4">
-        <div class="flex items-center gap-2">
-          <div class="transition h-9 w-9 rounded-lg overflow-hidden relative flex items-center justify-center mr-0">
-            <Icon
-              name="material-symbols:history-rounded"
-              class="text-4xl text-[var(--primary)] transition-transform group-hover:translate-x-0.5 bg-[var(--enter-btn-bg)] p-2 rounded-md"
-            />
-          </div>
+    siteConfig.showLastModified &&
+      (() => {
+        const lastModified = dayjs(entry.data.updated || entry.data.published);
+        const now = dayjs();
+        const daysDiff = now.diff(lastModified, "day");
+        // 使用用户定义的阈值，如果没有定义则默认为1天
+        const outdatedThreshold = siteConfig.outdatedThreshold ?? 1;
+        const shouldShowOutdatedCard = daysDiff >= outdatedThreshold;
 
-          {(() => {
-            const lastModified = dayjs(
-              entry.data.updated || entry.data.published,
-            );
-            const now = dayjs();
-            const daysDiff = now.diff(lastModified, "day");
-            const dateStr = lastModified.format("YYYY-MM-DD");
-            const isOutdated = daysDiff >= 1;
-
-            return (
-              <div class="flex flex-col gap-0.1">
-                <div class="text-[1.0rem] leading-tight text-black/75 dark:text-white/75">
-                  {`${i18n(I18nKey.lastModifiedPrefix)}${dateStr}${
-                    isOutdated
-                      ? `，${i18n(I18nKey.lastModifiedDaysAgo).replace("{days}", daysDiff.toString())}`
-                      : ""
-                  }`}
-                </div>
-                {isOutdated && (
-                  <p class="text-[0.8rem] leading-tight text-black/75 dark:text-white/75">
-                    {i18n(I18nKey.lastModifiedOutdated)}
-                  </p>
-                )}
+        return shouldShowOutdatedCard ? (
+          <div class="card-base p-6 mb-4">
+            <div class="flex items-center gap-2">
+              <div class="transition h-9 w-9 rounded-lg overflow-hidden relative flex items-center justify-center mr-0">
+                <Icon
+                  name="material-symbols:history-rounded"
+                  class="text-4xl text-[var(--primary)] transition-transform group-hover:translate-x-0.5 bg-[var(--enter-btn-bg)] p-2 rounded-md"
+                />
               </div>
-            );
-          })()}
-        </div>
-      </div>
-    )
-  }
 
-  <!-- 评论 -->
-  <Comment post={entry} />
+              {(() => {
+                const dateStr = lastModified.format("YYYY-MM-DD");
+                const isOutdated = daysDiff >= 1;
+
+                return (
+                  <div class="flex flex-col gap-0.1">
+                    <div class="text-[1.0rem] leading-tight text-black/75 dark:text-white/75">
+                      {`${i18n(I18nKey.lastModifiedPrefix)}${dateStr}${
+                        isOutdated
+                          ? `，${i18n(I18nKey.lastModifiedDaysAgo).replace("{days}", daysDiff.toString())}`
+                          : ""
+                      }`}
+                    </div>
+                    {isOutdated && (
+                      <p class="text-[0.8rem] leading-tight text-black/75 dark:text-white/75">
+                        {i18n(I18nKey.lastModifiedOutdated)}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        ) : null;
+      })()
+  }
 
   <div
     class="flex flex-col md:flex-row justify-between mb-4 gap-4 overflow-hidden w-full"
@@ -369,4 +429,7 @@ const jsonLd = {
       }
     </a>
   </div>
+
+  <!-- 评论 -->
+  <Comment post={entry} />
 </MainGridLayout>
