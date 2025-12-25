@@ -9,10 +9,10 @@ import swup from "@swup/astro";
 import { defineConfig } from "astro/config";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
+import katex from "katex";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeComponents from "rehype-components"; /* Render the custom directive content */
 import rehypeKatex from "rehype-katex";
-import katex from "katex";
 import "katex/dist/contrib/mhchem.mjs"; // 加载 mhchem 扩展
 import rehypeSlug from "rehype-slug";
 import remarkDirective from "remark-directive"; /* Handle directives */
@@ -38,7 +38,9 @@ export default defineConfig({
 
 	base: "/",
 	trailingSlash: "always",
-	adapter: cloudflare(),
+	adapter: cloudflare({
+		imageService: "passthrough",
+	}),
 	integrations: [
 		tailwind({
 			nesting: true,
@@ -188,6 +190,9 @@ export default defineConfig({
 		],
 	},
 	vite: {
+		ssr: {
+			external: ["sharp", "satori", "@resvg/resvg-js"],
+		},
 		build: {
 			rollupOptions: {
 				onwarn(warning, warn) {
