@@ -6,7 +6,7 @@ backend:
   repo: johntime2005/blog  # 您的GitHub仓库
   branch: main  # 要使用的分支
   base_url: https://blog.johntime.top  # OAuth 认证基础URL (生产环境)
-  auth_endpoint: auth/  # OAuth 认证端点
+  auth_endpoint: auth/login/  # OAuth 认证端点
 
 # 本地开发模式 - 启用此选项后，运行 npx decap-server 即可本地编辑
 local_backend: true
