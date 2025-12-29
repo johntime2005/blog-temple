@@ -127,15 +127,16 @@
         <!-- Decap CMS 挂载点 -->
         <div id="nc-root"></div>
 
-        <!-- React 环境 (用于自定义预览) - 本地托管 (Cloudflare CDN 加速) -->
-        <script is:inline src="/admin/scripts/react.production.min.js"></script>
-        <script is:inline src="/admin/scripts/react-dom.production.min.js"
-        ></script>
+        <!-- React 环境 (已由 Decap CMS 内置，无需重复加载) -->
+        <!-- <script is:inline src="/admin/scripts/react.production.min.js"></script> -->
+        <!-- <script is:inline src="/admin/scripts/react-dom.production.min.js"></script> -->
 
         <!-- Decap CMS 核心脚本 - 本地托管 (Cloudflare CDN 加速) -->
         <script is:inline src="/admin/scripts/decap-cms.js"></script>
 
-        <!-- 自定义预览模板和样式注册 -->
+        <!-- 自定义预览模板 (React + Katex) -->
+        <script src="../../scripts/cms-preview.tsx"></script>
+
         <script is:inline>
             // 错误超时检测 - 延长到 20 秒
             const loaderTimeout = setTimeout(() => {
@@ -145,170 +146,15 @@
                 }
             }, 30000);
 
-            // 等待 CMS 对象加载
+            // 加载器隐藏逻辑移到这里，或者等待 CMS 初始化后自动隐藏
             const interval = setInterval(() => {
-                if (window.CMS && window.React && window.ReactDOM) {
+                if (window.CMS) {
                     clearInterval(interval);
                     clearTimeout(loaderTimeout);
-
-                    // 隐藏加载器
                     const loader = document.getElementById("cms-loader");
                     if (loader) loader.style.display = "none";
-
-                    try {
-                        initCMS();
-                    } catch (e) {
-                        console.error(
-                            "Failed to initialize CMS custom previews:",
-                            e,
-                        );
-                    }
                 }
             }, 100);
-
-            function initCMS() {
-                const CMS = window.CMS;
-                const React = window.React;
-                const h = React.createElement;
-                const { useEffect } = React;
-
-                console.log("Initializing CMS preview templates...");
-
-                // 定义文章预览组件
-                const PostPreview = (props) => {
-                    if (!props.entry) return null;
-
-                    const entry = props.entry;
-                    const title = entry.getIn(["data", "title"]) || "";
-                    const date = entry.getIn(["data", "published"]);
-                    const image = entry.getIn(["data", "image"]);
-                    const description = entry.getIn(["data", "description"]);
-                    const tags = entry.getIn(["data", "tags"]);
-
-                    const renderTags = () => {
-                        if (!tags) return null;
-                        const tagsArray =
-                            tags && typeof tags.toJS === "function"
-                                ? tags.toJS()
-                                : tags;
-                        if (Array.isArray(tagsArray)) {
-                            return tagsArray.map((tag) =>
-                                h(
-                                    "span",
-                                    {
-                                        key: tag,
-                                        className:
-                                            "px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full mr-2 mb-2 inline-block text-xs",
-                                    },
-                                    tag,
-                                ),
-                            );
-                        }
-                        return null;
-                    };
-
-                    useEffect(() => {
-                        try {
-                            const iframe =
-                                document.querySelector("#nc-root iframe");
-                            const doc = iframe
-                                ? iframe.contentDocument ||
-                                  iframe.contentWindow.document
-                                : document;
-                            if (
-                                doc &&
-                                !doc.getElementById("tailwind-preview-script")
-                            ) {
-                                const script = doc.createElement("script");
-                                script.id = "tailwind-preview-script";
-                                script.src =
-                                    "https://cdn.tailwindcss.com?plugins=typography";
-                                doc.head.appendChild(script);
-                            }
-                        } catch (e) {
-                            console.warn(
-                                "Failed to inject Tailwind into preview",
-                                e,
-                            );
-                        }
-                    }, []);
-
-                    let dateStr = "";
-                    try {
-                        dateStr = date
-                            ? new Date(date).toLocaleDateString("zh-CN", {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                              })
-                            : "";
-                    } catch (e) {
-                        console.warn("Date formatting error", e);
-                    }
-
-                    return h(
-                        "div",
-                        {
-                            className:
-                                "bg-white dark:bg-gray-900 min-h-screen p-8 shadow-inner",
-                        },
-                        h(
-                            "div",
-                            { className: "max-w-3xl mx-auto" },
-                            image &&
-                                h("img", {
-                                    src: props.getAsset(image).toString(),
-                                    className:
-                                        "w-full h-64 md:h-96 object-cover rounded-xl shadow-lg mb-8",
-                                }),
-                            h(
-                                "h1",
-                                {
-                                    className:
-                                        "text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4",
-                                },
-                                title,
-                            ),
-                            h(
-                                "div",
-                                {
-                                    className:
-                                        "flex flex-wrap gap-2 text-gray-500 dark:text-gray-400 text-sm mb-8",
-                                },
-                                h("span", {}, dateStr),
-                                h(
-                                    "div",
-                                    { className: "flex flex-wrap" },
-                                    renderTags(),
-                                ),
-                            ),
-                            description &&
-                                h(
-                                    "div",
-                                    {
-                                        className:
-                                            "text-xl text-gray-600 dark:text-gray-300 italic mb-8 pl-4 border-l-4 border-blue-500",
-                                    },
-                                    description,
-                                ),
-                            h(
-                                "div",
-                                {
-                                    className:
-                                        "prose prose-lg dark:prose-invert max-w-none",
-                                },
-                                props.widgetFor("body"),
-                            ),
-                        ),
-                    );
-                };
-
-                CMS.registerPreviewTemplate("posts", PostPreview);
-                CMS.registerPreviewTemplate("tutorials", PostPreview);
-                CMS.registerPreviewTemplate("wordpress-posts", PostPreview);
-
-                console.log("CMS Preview Templates Registered Successfully");
-            }
         </script>
 
         <script is:inline>

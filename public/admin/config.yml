@@ -53,17 +53,38 @@ collections:
           default: ["博客"],
           required: true }
 
-      - { label: "分类", name: "category", widget: "string", default: "默认分类", required: true }
+      - { label: "分类", name: "category", widget: "relation", collection: "categories", value_field: "title", search_fields: ["title"], display_fields: ["title"], default: "默认分类", required: true }
 
       - { label: "草稿", name: "draft", widget: "boolean", default: false, required: true }
 
       - { label: "从主页隐藏", name: "hideFromHome", widget: "boolean", default: false, required: false,
           hint: "开启后文章不会在主页显示，但可通过直接链接访问" }
 
+      - { label: "加密文章", name: "encrypted", widget: "boolean", default: false, required: false }
+      - { label: "加密密码/ID", name: "encryptionId", widget: "string", required: false,
+          hint: "输入密码或加密ID，启用上方开关后生效" }
+
       - { label: "封面图", name: "image", widget: "image", required: false,
           hint: "可选：文章封面图片" }
 
       - { label: "正文", name: "body", widget: "markdown", required: true }
+
+    view_groups:
+      - label: "按分类"
+        field: "category"
+      - label: "按年份"
+        field: "published"
+        pattern: "\\d{4}"
+      - label: "草稿状态"
+        field: "draft"
+
+    view_filters:
+      - label: "仅草稿"
+        field: "draft"
+        pattern: true
+      - label: "仅已发布"
+        field: "draft"
+        pattern: false
 
   # 全局设置 - 控制哪些分类是公开的
   - name: "settings"
