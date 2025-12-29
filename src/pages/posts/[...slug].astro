@@ -14,11 +14,11 @@ import {
   getPostUrlBySlug,
   removeFileExtension,
 } from "@utils/url-utils";
-import { Icon } from "astro-icon/components";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { marked } from "marked";
 import AccessGuard from "@/components/auth/AccessGuard.svelte";
+import Icon from "@/components/common/Icon.astro";
 import PostMetadata from "@/components/content/PostMeta.astro";
 import EncryptedPostGuard from "@/components/EncryptedPostGuard.svelte";
 import RandomCoverImage from "@/components/misc/RandomCoverImage.astro";

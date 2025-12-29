@@ -67,14 +67,7 @@ export default defineConfig({
 			},
 		}),
 		icon({
-			include: {
-				"fa6-brands": ["*"],
-				"fa6-regular": ["*"],
-				"fa6-solid": ["*"],
-				"material-symbols": ["*"],
-				"simple-icons": ["*"],
-				mdi: ["*"],
-			},
+			include: {},
 		}),
 		expressiveCode({
 			themes: [expressiveCodeConfig.darkTheme, expressiveCodeConfig.lightTheme],

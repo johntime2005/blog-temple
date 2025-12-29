@@ -1,5 +1,5 @@
 ---
-import { Icon } from "astro-icon/components";
+import Icon from "@/components/common/Icon.astro";
 import { siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
@@ -98,71 +98,88 @@ const stats = [
 ];
 ---
 
-<WidgetLayout name={i18n(I18nKey.siteStats)} id="site-stats" class={className} style={style}>
-  <div class="flex flex-col gap-2">
-    {stats.map((stat) => (
-      <div class="flex items-center justify-between px-3 py-1.5">
-        <div class="flex items-center gap-2.5">
-          <div class="text-[var(--primary)] text-xl">
-            <Icon name={stat.icon} />
-          </div>
-          <span class="text-neutral-700 dark:text-neutral-300 font-medium text-sm">
-            {stat.label}
-          </span>
-        </div>
-        <div class="flex items-center">
-          <span 
-            class="text-base font-bold text-neutral-900 dark:text-neutral-100"
-            data-stat-id={stat.id}
-          >
-            {stat.formatted ? formatNumber(stat.value) : stat.value}
-          </span>
-          {stat.suffix && (
-            <span class="text-sm text-neutral-500 dark:text-neutral-400 ml-1">
-              {stat.suffix}
-            </span>
-          )}
-        </div>
-      </div>
-    ))}
-  </div>
+<WidgetLayout
+	name={i18n(I18nKey.siteStats)}
+	id="site-stats"
+	class={className}
+	style={style}
+>
+	<div class="flex flex-col gap-2">
+		{
+			stats.map((stat) => (
+				<div class="flex items-center justify-between px-3 py-1.5">
+					<div class="flex items-center gap-2.5">
+						<div class="text-[var(--primary)] text-xl">
+							<Icon name={stat.icon} />
+						</div>
+						<span class="text-neutral-700 dark:text-neutral-300 font-medium text-sm">
+							{stat.label}
+						</span>
+					</div>
+					<div class="flex items-center">
+						<span
+							class="text-base font-bold text-neutral-900 dark:text-neutral-100"
+							data-stat-id={stat.id}
+						>
+							{stat.formatted
+								? formatNumber(stat.value)
+								: stat.value}
+						</span>
+						{stat.suffix && (
+							<span class="text-sm text-neutral-500 dark:text-neutral-400 ml-1">
+								{stat.suffix}
+							</span>
+						)}
+					</div>
+				</div>
+			))
+		}
+	</div>
 </WidgetLayout>
 
 <script is:inline define:vars={{ siteStartDate, lastPostDate }}>
-  function updateDynamicStats() {
-    const today = new Date();
-    
-    // 更新运行天数
-    const startDate = new Date(siteStartDate);
-    const diffTime = Math.abs(today.getTime() - startDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    const runningDaysElement = document.querySelector('[data-stat-id="running-days"]');
-    if (runningDaysElement) {
-      runningDaysElement.textContent = diffDays.toString();
-    }
-    
-    // 更新最后活动时间
-    if (lastPostDate) {
-      const lastPost = new Date(lastPostDate);
-      const timeSinceLastPost = Math.abs(today.getTime() - lastPost.getTime());
-      const daysSinceLastUpdate = Math.floor(timeSinceLastPost / (1000 * 60 * 60 * 24));
-      
-      const lastUpdateElement = document.querySelector('[data-stat-id="last-update"]');
-      if (lastUpdateElement) {
-        lastUpdateElement.textContent = daysSinceLastUpdate.toString();
-      }
-    }
-  }
+	function updateDynamicStats() {
+		const today = new Date();
 
-  // 页面加载时更新
-  updateDynamicStats();
-  
-  // 每小时更新一次（可选，因为天数变化较慢）
-  setInterval(updateDynamicStats, 60 * 60 * 1000);
+		// 更新运行天数
+		const startDate = new Date(siteStartDate);
+		const diffTime = Math.abs(today.getTime() - startDate.getTime());
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  // 页面切换时重新更新
-  document.addEventListener("swup:contentReplaced", () => {
-    setTimeout(updateDynamicStats, 100);
-  });
+		const runningDaysElement = document.querySelector(
+			'[data-stat-id="running-days"]',
+		);
+		if (runningDaysElement) {
+			runningDaysElement.textContent = diffDays.toString();
+		}
+
+		// 更新最后活动时间
+		if (lastPostDate) {
+			const lastPost = new Date(lastPostDate);
+			const timeSinceLastPost = Math.abs(
+				today.getTime() - lastPost.getTime(),
+			);
+			const daysSinceLastUpdate = Math.floor(
+				timeSinceLastPost / (1000 * 60 * 60 * 24),
+			);
+
+			const lastUpdateElement = document.querySelector(
+				'[data-stat-id="last-update"]',
+			);
+			if (lastUpdateElement) {
+				lastUpdateElement.textContent = daysSinceLastUpdate.toString();
+			}
+		}
+	}
+
+	// 页面加载时更新
+	updateDynamicStats();
+
+	// 每小时更新一次（可选，因为天数变化较慢）
+	setInterval(updateDynamicStats, 60 * 60 * 1000);
+
+	// 页面切换时重新更新
+	document.addEventListener("swup:contentReplaced", () => {
+		setTimeout(updateDynamicStats, 100);
+	});
 </script>

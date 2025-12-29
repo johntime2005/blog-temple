@@ -1,26 +1,29 @@
 ---
 import type { MarkdownHeading } from "astro";
-import { Icon } from "astro-icon/components";
+import Icon from "@/components/common/Icon.astro";
 import TOCStyles from "@/components/common/styles/TOCStyles.astro";
 import { sidebarLayoutConfig } from "@/config/sidebarConfig";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 
 interface Props {
-	headings: MarkdownHeading[];
+  headings: MarkdownHeading[];
 }
 
 let { headings: _ = [] } = Astro.props;
 
 // 检查侧边栏目录组件是否启用
 const sidebarTocComponent = sidebarLayoutConfig.rightComponents?.find(
-	(c) => c.type === "sidebarToc",
+  (c) => c.type === "sidebarToc",
 );
 const isSidebarTocEnabled = sidebarTocComponent?.enable ?? false;
 ---
 
 <!-- 悬浮TOC按钮 -->
-<div class="floating-toc-wrapper" data-is-sidebar-toc-enabled={String(isSidebarTocEnabled)}>
+<div
+  class="floating-toc-wrapper"
+  data-is-sidebar-toc-enabled={String(isSidebarTocEnabled)}
+>
   <div
     id="floating-toc-btn"
     class="floating-toc-btn hide flex items-center rounded-2xl overflow-hidden transition"
@@ -256,15 +259,16 @@ const isSidebarTocEnabled = sidebarTocComponent?.enable ?? false;
   import { TOCManager, isPostPage } from "@/utils/tocUtils";
 
   // 从 data 属性读取配置
-  const wrapper = document.querySelector('.floating-toc-wrapper');
-  const isSidebarTocEnabled = wrapper?.getAttribute('data-is-sidebar-toc-enabled') === 'true';
+  const wrapper = document.querySelector(".floating-toc-wrapper");
+  const isSidebarTocEnabled =
+    wrapper?.getAttribute("data-is-sidebar-toc-enabled") === "true";
 
   if (typeof window.FloatingTOC === "undefined") {
     window.FloatingTOC = {
       btn: null,
       panel: null,
       manager: null,
-      isPostPage: isPostPage // 使用导入的工具函数
+      isPostPage: isPostPage, // 使用导入的工具函数
     };
   }
 
@@ -298,7 +302,7 @@ const isSidebarTocEnabled = sidebarTocComponent?.enable ?? false;
     window.addEventListener("beforeunload", closeTOC);
     window.addEventListener("pagehide", closeTOC);
     window.addEventListener("popstate", closeTOC);
-    
+
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) closeTOC();
     });
@@ -322,8 +326,9 @@ const isSidebarTocEnabled = sidebarTocComponent?.enable ?? false;
       if (!link || !link.href) return;
 
       const href = link.getAttribute("href");
-      const isExternalLink = href && !href.startsWith("#") && !href.startsWith("javascript:");
-      
+      const isExternalLink =
+        href && !href.startsWith("#") && !href.startsWith("javascript:");
+
       if (isExternalLink && !window.tocInternalNavigation) {
         const tocPanel = document.getElementById("floating-toc-panel");
         if (!tocPanel || !tocPanel.contains(link)) {
@@ -355,13 +360,13 @@ const isSidebarTocEnabled = sidebarTocComponent?.enable ?? false;
     }
 
     // 获取当前布局模式
-    const currentLayout = localStorage.getItem('postListLayout') || 'list';
-    
+    const currentLayout = localStorage.getItem("postListLayout") || "list";
+
     // 检查屏幕宽度
     const isSmallScreen = window.innerWidth < 1200;
-    
+
     // 显示条件：网格模式 OR 小屏幕 OR 侧边栏目录未启用
-    return currentLayout === 'grid' || isSmallScreen || !isSidebarTocEnabled;
+    return currentLayout === "grid" || isSmallScreen || !isSidebarTocEnabled;
   }
 
   // 更新悬浮目录的显示状态
@@ -410,13 +415,17 @@ const isSidebarTocEnabled = sidebarTocComponent?.enable ?? false;
       // 设置点击事件 - 标记为 TOC 内部导航
       const tocContent = document.getElementById("floating-toc-content");
       if (tocContent) {
-        tocContent.addEventListener("click", (e) => {
-          const target = e.target as Element | null;
-          const anchor = target?.closest('a[href^="#"]');
-          if (anchor) {
-            window.tocInternalNavigation = true;
-          }
-        }, { capture: true });
+        tocContent.addEventListener(
+          "click",
+          (e) => {
+            const target = e.target as Element | null;
+            const anchor = target?.closest('a[href^="#"]');
+            if (anchor) {
+              window.tocInternalNavigation = true;
+            }
+          },
+          { capture: true },
+        );
       }
 
       // 设置自动关闭
@@ -435,25 +444,25 @@ const isSidebarTocEnabled = sidebarTocComponent?.enable ?? false;
     document.addEventListener("swup:contentReplaced", () => {
       setTimeout(initFloatingTOC, 100);
     });
-    
+
     // Astro 页面切换事件
     document.addEventListener("astro:page-load", () => {
       setTimeout(initFloatingTOC, 100);
     });
-    
+
     // 浏览器导航事件
     window.addEventListener("popstate", () => {
       setTimeout(initFloatingTOC, 200);
     });
 
     // 监听布局模式切换（通过自定义事件）
-    window.addEventListener('layoutChange', () => {
+    window.addEventListener("layoutChange", () => {
       updateFloatingTOCVisibility();
     });
 
     // 监听窗口大小变化
     let resizeTimeout: ReturnType<typeof setTimeout>;
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         updateFloatingTOCVisibility();

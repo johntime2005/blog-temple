@@ -67,6 +67,8 @@ function buildImageImportPath(src: string, postId: string): string | null {
 		: `${CONTENT_POSTS_PATH}/${src}`;
 }
 
+export const prerender = true;
+
 export async function GET(context: APIContext) {
 	if (!context.site) {
 		throw new Error("site not set");

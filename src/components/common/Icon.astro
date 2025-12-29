@@ -1,0 +1,12 @@
+---
+interface Props {
+    name: string;
+    class?: string;
+    style?: string;
+    [key: string]: any;
+}
+const { name, class: className, style, ...rest } = Astro.props;
+---
+
+<iconify-icon icon={name} class={className} style={style} {...rest}
+></iconify-icon>

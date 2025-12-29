@@ -1,5 +1,5 @@
 ---
-import { Icon } from "astro-icon/components";
+import Icon from "@/components/common/Icon.astro";
 import { announcementConfig } from "@/config/announcementConfig";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
@@ -8,8 +8,8 @@ import WidgetLayout from "./WidgetLayout.astro";
 const config = announcementConfig;
 
 interface Props {
-	class?: string;
-	style?: string;
+  class?: string;
+  style?: string;
 }
 const className = Astro.props.class;
 const style = Astro.props.style;
@@ -64,7 +64,7 @@ const style = Astro.props.style;
   function closeAnnouncement() {
     // 通过data-id属性找到整个widget-layout元素
     const widgetLayout = document.querySelector(
-      'widget-layout[data-id="announcement"]'
+      'widget-layout[data-id="announcement"]',
     ) as HTMLElement | null;
     if (widgetLayout) {
       // 隐藏整个widget-layout元素
@@ -77,7 +77,7 @@ const style = Astro.props.style;
   // 页面加载时检查是否已关闭
   document.addEventListener("DOMContentLoaded", function () {
     const widgetLayout = document.querySelector(
-      'widget-layout[data-id="announcement"]'
+      'widget-layout[data-id="announcement"]',
     ) as HTMLElement | null;
     if (widgetLayout && localStorage.getItem("announcementClosed") === "true") {
       widgetLayout.style.display = "none";

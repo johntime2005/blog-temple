@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { render } from "astro:content";
-import { Icon } from "astro-icon/components";
+import Icon from "@/components/common/Icon.astro";
 import RandomCoverImage from "@/components/misc/RandomCoverImage.astro";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
@@ -10,41 +10,41 @@ import { getFileDirFromPath, getTagUrl } from "@/utils/url-utils";
 import PostMetadata from "./PostMeta.astro";
 
 interface Props {
-	class?: string;
-	entry: CollectionEntry<"posts">;
-	title: string;
-	url: string;
-	published: Date;
-	updated?: Date;
-	tags: string[];
-	category: string | null;
-	image: string;
-	description: string;
-	draft: boolean;
-	pinned?: boolean;
-	style: string;
+  class?: string;
+  entry: CollectionEntry<"posts">;
+  title: string;
+  url: string;
+  published: Date;
+  updated?: Date;
+  tags: string[];
+  category: string | null;
+  image: string;
+  description: string;
+  draft: boolean;
+  pinned?: boolean;
+  style: string;
 }
 const {
-	entry,
-	title,
-	url,
-	published,
-	updated,
-	tags,
-	category,
-	image,
-	description,
-	pinned,
-	style,
+  entry,
+  title,
+  url,
+  published,
+  updated,
+  tags,
+  category,
+  image,
+  description,
+  pinned,
+  style,
 } = Astro.props;
 const className = Astro.props.class;
 
 // 处理随机图：如果image为"api"，则从配置的API获取随机图
 const processedImage = processCoverImageSync(image, entry.id);
 const hasCover =
-	processedImage !== undefined &&
-	processedImage !== null &&
-	processedImage !== "";
+  processedImage !== undefined &&
+  processedImage !== null &&
+  processedImage !== "";
 
 const coverWidth = "28%";
 
@@ -90,8 +90,6 @@ const { remarkPluginFrontmatter } = await render(entry);
       },
     ]}
   >
-
-
     <a
       href={url}
       class="post-card-title transition group w-full block font-bold mb-3 text-3xl text-90
@@ -196,7 +194,7 @@ const { remarkPluginFrontmatter } = await render(entry);
         </div>
         <RandomCoverImage
           src={processedImage}
-          basePath={getFileDirFromPath(entry.filePath || '')}
+          basePath={getFileDirFromPath(entry.filePath || "")}
           alt="Cover Image of the Post"
           class="w-full h-full"
           seed={entry.id}
@@ -271,7 +269,7 @@ const { remarkPluginFrontmatter } = await render(entry);
   :global(.grid-mode) .has-cover .post-card-title::before {
     top: 1.3rem !important;
   }
- 
+
   /* Pinned Button Background Logic */
   .post-card-wrapper.has-cover .pinned-btn {
     background: rgba(255, 255, 255, 0.5);
@@ -279,7 +277,7 @@ const { remarkPluginFrontmatter } = await render(entry);
     border-radius: 0.5rem;
     padding: 0.25rem 0.5rem;
   }
-  
+
   :global(.dark) .post-card-wrapper.has-cover .pinned-btn {
     background: rgba(0, 0, 0, 0.5);
   }
@@ -299,6 +297,6 @@ const { remarkPluginFrontmatter } = await render(entry);
   }
 
   :global(.dark .grid-mode) .post-card-wrapper.has-cover .pinned-btn {
-     background: rgba(0, 0, 0, 0.5) !important;
+    background: rgba(0, 0, 0, 0.5) !important;
   }
 </style>

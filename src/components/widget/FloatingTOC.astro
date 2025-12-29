@@ -1,18 +1,18 @@
 ---
 import type { MarkdownHeading } from "astro";
-import { Icon } from "astro-icon/components";
+import Icon from "@/components/common/Icon.astro";
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
 
 interface Props {
-	headings: MarkdownHeading[];
+  headings: MarkdownHeading[];
 }
 
 let { headings = [] } = Astro.props;
 
 let minDepth = 10;
 for (const heading of headings) {
-	minDepth = Math.min(minDepth, heading.depth);
+  minDepth = Math.min(minDepth, heading.depth);
 }
 ---
 
@@ -438,7 +438,7 @@ for (const heading of headings) {
       if (!contentContainer) return;
 
       const headings = contentContainer.querySelectorAll(
-        "h1, h2, h3, h4, h5, h6"
+        "h1, h2, h3, h4, h5, h6",
       );
       const scrollTop = window.scrollY;
       const windowHeight = window.innerHeight;
@@ -585,7 +585,7 @@ for (const heading of headings) {
       if (!contentContainer) return;
 
       const headings = contentContainer.querySelectorAll(
-        "h1, h2, h3, h4, h5, h6"
+        "h1, h2, h3, h4, h5, h6",
       );
 
       if (observer) {
@@ -600,7 +600,7 @@ for (const heading of headings) {
         {
           rootMargin: "0px 0px 0px 0px",
           threshold: 0,
-        }
+        },
       );
 
       headings.forEach((heading) => {
@@ -640,7 +640,7 @@ for (const heading of headings) {
       }
 
       const headings = contentContainer.querySelectorAll(
-        "h1, h2, h3, h4, h5, h6"
+        "h1, h2, h3, h4, h5, h6",
       );
 
       // 计算最小深度
@@ -703,7 +703,7 @@ for (const heading of headings) {
         tocHTML +
         '<div id="floating-active-indicator" style="opacity: 0" class="-z-10 absolute bg-[var(--toc-btn-hover)] left-0 right-0 rounded-xl transition-all group-hover:bg-transparent border-2 border-[var(--toc-btn-hover)] group-hover:border-[var(--toc-btn-active)] border-dashed"></div>';
       tocItems = Array.from(
-        document.querySelectorAll("#floating-toc-content a")
+        document.querySelectorAll("#floating-toc-content a"),
       );
       window.tocItems = tocItems;
     }
@@ -880,7 +880,7 @@ for (const heading of headings) {
             closeTOC();
           }
         },
-        { capture: false }
+        { capture: false },
       );
 
       // 监听表单提交
