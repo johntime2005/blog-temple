@@ -127,36 +127,23 @@
         <!-- Decap CMS 挂载点 -->
         <div id="nc-root"></div>
 
-        <!-- React 环境 (用于自定义预览) -->
-        <script
-            is:inline
-            crossorigin
-            src="https://unpkg.com/react@18/umd/react.production.min.js"
-            onerror="this.src='https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js'"
-        ></script>
-        <script
-            is:inline
-            crossorigin
-            src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
-            onerror="this.src='https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js'"
+        <!-- React 环境 (用于自定义预览) - 本地托管 (Cloudflare CDN 加速) -->
+        <script is:inline src="/admin/scripts/react.production.min.js"></script>
+        <script is:inline src="/admin/scripts/react-dom.production.min.js"
         ></script>
 
-        <!-- Decap CMS 核心脚本 -->
-        <script
-            is:inline
-            src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"
-            onerror="this.src='https://cdn.jsdelivr.net/npm/decap-cms@3.1.2/dist/decap-cms.js'"
-        ></script>
+        <!-- Decap CMS 核心脚本 - 本地托管 (Cloudflare CDN 加速) -->
+        <script is:inline src="/admin/scripts/decap-cms.js"></script>
 
         <!-- 自定义预览模板和样式注册 -->
         <script is:inline>
-            // 错误超时检测
+            // 错误超时检测 - 延长到 20 秒
             const loaderTimeout = setTimeout(() => {
                 const errorMsg = document.getElementById("error-message");
                 if (errorMsg && !window.CMS) {
                     errorMsg.style.display = "block";
                 }
-            }, 10000);
+            }, 30000);
 
             // 等待 CMS 对象加载
             const interval = setInterval(() => {
