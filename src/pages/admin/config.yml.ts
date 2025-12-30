@@ -58,7 +58,7 @@ collections:
         field: "category"
       - label: "按年份"
         field: "published"
-        pattern: "\\d{4}"
+        pattern: "\\\\d{4}"
       - label: "草稿状态"
         field: "draft"
 
