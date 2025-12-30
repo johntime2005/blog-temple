@@ -459,6 +459,7 @@ function buildSuccessPage(
   </div>
   <script>
       const origin = window.location.origin;
+      const postMsgContent = ${_postMsgContent ? JSON.stringify(_postMsgContent) : "null"};
 
       function log(msg) {
         console.log('[OAuth] ' + msg);
