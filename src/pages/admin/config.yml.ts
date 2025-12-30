@@ -2,10 +2,10 @@
 export const prerender = false;
 
 export async function GET({ url }) {
-	const _origin = url.origin; // Renamed _origin to origin for direct use in template
+	const origin = url.origin;
 
 	// Embedded config template to avoid file system access issues in Cloudflare Pages Functions
-	const _configTemplate = `# Decap CMS 配置文件
+	const configTemplate = `# Decap CMS 配置文件
 # 文档: https://decapcms.org/docs/configuration-options/
 
 backend:
@@ -168,7 +168,7 @@ collections:
       - { label: "在导航栏显示", name: "showInNavbar", widget: "boolean", default: false }
       - { label: "同步到公共仓库", name: "syncToPublic", widget: "boolean", default: false }
       - { label: "自定义链接", name: "customLink", widget: "string", required: false }
-\`;
+`;
 
 	return new Response(configTemplate, {
 		headers: {
