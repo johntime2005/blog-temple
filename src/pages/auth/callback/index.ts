@@ -478,8 +478,17 @@ function buildSuccessPage(
 
         // 2. 发送成功消息
         const successMessage = 'authorization:github:success:' + JSON.stringify(postMsgContent);
-        window.opener.postMessage(successMessage, '*'); // 使用 * 以防 origin 匹配问题
-        log('已发送 success 消息');
+        
+        // Critical: Decap CMS expects exactly this format and might be listening on the origin
+        // We use '*' to ensure it reaches the opener regardless of specific subdomain issues,
+        // but we should also try to target the known origin if possible for security best practice.
+        // However, given the infinite loop issues, '*' is safer relative to 'login loop'.
+        window.opener.postMessage(successMessage, '*'); 
+        log('已发送 success 消息 (Target: *)');
+
+        // Also send just the object as some versions might expect that
+        window.opener.postMessage(postMsgContent, '*');
+        log('已发送 object 消息 (Target: *)');
 
         // 延迟关闭
         log('正在关闭窗口...');

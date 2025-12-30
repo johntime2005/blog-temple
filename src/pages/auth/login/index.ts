@@ -67,7 +67,7 @@ export async function GET({ request, redirect, locals, cookies }) {
 
 		authUrl.searchParams.set("client_id", clientId);
 		authUrl.searchParams.set("redirect_uri", redirectUri);
-		authUrl.searchParams.set("scope", "public_repo"); // 最小权限原则
+		authUrl.searchParams.set("scope", "repo"); // Need full repo access for CMS
 		authUrl.searchParams.set("state", state);
 
 		console.log("[OAuth] 重定向到 GitHub 授权页面");
