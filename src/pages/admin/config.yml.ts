@@ -2,17 +2,17 @@
 export const prerender = false;
 
 export async function GET({ url }) {
-	const _origin = url.origin;
+	const _origin = url.origin; // Renamed _origin to origin for direct use in template
 
 	// Embedded config template to avoid file system access issues in Cloudflare Pages Functions
-	const _configTemplate = \`# Decap CMS 配置文件
+	const _configTemplate = `# Decap CMS 配置文件
 # 文档: https://decapcms.org/docs/configuration-options/
 
 backend:
   name: github
   repo: johntime2005/blog
   branch: main
-  base_url: \${origin}
+  base_url: ${origin}
   auth_endpoint: auth/login/
 
 # 本地开发模式
@@ -26,8 +26,8 @@ public_folder: "/assets/images"
 publish_mode: editorial_workflow
 
 # 站点配置
-site_url: \${origin}
-display_url: \${origin}
+site_url: ${origin}
+display_url: ${origin}
 logo_url: /favicon/favicon-light-128.png
 
 collections:
@@ -58,7 +58,7 @@ collections:
         field: "category"
       - label: "按年份"
         field: "published"
-        pattern: "\\\\d{4}"
+        pattern: "\\d{4}"
       - label: "草稿状态"
         field: "draft"
 
