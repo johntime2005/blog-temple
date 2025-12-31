@@ -132,12 +132,14 @@
         <!-- <script is:inline src="/admin/scripts/react-dom.production.min.js"></script> -->
 
         <!-- Decap CMS 核心脚本 - 本地托管 (Cloudflare CDN 加速) -->
-        <script is:inline src="/admin/scripts/decap-cms.js"></script>
+        <script is:inline data-cfasync="false" src="/admin/scripts/decap-cms.js"
+        ></script>
 
         <!-- 自定义预览模板 (React + Katex) -->
-        <script src="../../scripts/cms-preview.tsx"></script>
+        <script data-cfasync="false" src="../../scripts/cms-preview.tsx"
+        ></script>
 
-        <script is:inline>
+        <script is:inline data-cfasync="false">
             // --- 调试脚本：监听消息和检查登录状态 ---
             console.log("Admin Page Loaded. Checking environment...");
 
@@ -166,7 +168,7 @@
             checkLoginState();
         </script>
 
-        <script is:inline>
+        <script is:inline data-cfasync="false">
             // 错误超时检测 - 延长到 20 秒
             const loaderTimeout = setTimeout(() => {
                 const errorMsg = document.getElementById("error-message");
@@ -186,7 +188,7 @@
             }, 100);
         </script>
 
-        <script is:inline>
+        <script is:inline data-cfasync="false">
             // 弹窗阻止检测
             (() => {
                 const originalOpen = window.open;
