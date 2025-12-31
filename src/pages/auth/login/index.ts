@@ -1,4 +1,6 @@
 // OAuth 授权端点 - 使用加密安全的 state 参数
+
+import { getEnv } from "@/utils/env-utils";
 import {
 	generateSecureToken,
 	getSecureCookieOptions,
@@ -10,9 +12,8 @@ export const prerender = false;
 
 export async function GET({ request, redirect, locals, cookies }) {
 	try {
-		const runtime = locals.runtime as any;
-		const clientId = runtime?.env?.GITHUB_CLIENT_ID;
-		const clientSecret = runtime?.env?.GITHUB_CLIENT_SECRET;
+		const clientId = getEnv(locals, "GITHUB_CLIENT_ID");
+		const clientSecret = getEnv(locals, "GITHUB_CLIENT_SECRET");
 
 		// 详细的环境变量检查
 		if (!clientId) {

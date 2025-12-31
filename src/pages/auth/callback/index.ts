@@ -1,9 +1,7 @@
 // OAuth 回调端点 - 完整的 state 验证和安全令牌处理
-import {
-	hmacSha256,
-	securityHeaders,
-	timingSafeEqual,
-} from "@/utils/security";
+
+import { getEnv } from "@/utils/env-utils";
+import { hmacSha256, securityHeaders, timingSafeEqual } from "@/utils/security";
 
 export const prerender = false;
 
@@ -100,11 +98,11 @@ export async function GET({ request, locals, cookies }) {
 	}
 
 	// 验证 state 签名（如果包含签名）
+	const clientId = getEnv(locals, "GITHUB_CLIENT_ID");
+	const clientSecret = getEnv(locals, "GITHUB_CLIENT_SECRET");
+	const ownerUsername = getEnv(locals, "GITHUB_OWNER_USERNAME"); // 获取配置的所有者用户名
+	// KV 绑定 - this is strictly Cloudflare, so we keep runtime access or check locals
 	const runtime = locals.runtime as any;
-	const clientId = runtime?.env?.GITHUB_CLIENT_ID;
-	const clientSecret = runtime?.env?.GITHUB_CLIENT_SECRET;
-	const ownerUsername = runtime?.env?.GITHUB_OWNER_USERNAME; // 获取配置的所有者用户名
-	// KV 绑定
 	const POST_ENCRYPTION = runtime?.env?.POST_ENCRYPTION;
 
 	if (clientSecret) {
