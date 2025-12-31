@@ -456,66 +456,79 @@ function buildSuccessPage(
     </div>
   </div>
   <script>
+  <script>
       const origin = window.location.origin;
       const postMsgContent = ${_postMsgContent ? JSON.stringify(_postMsgContent) : "null"};
 
-      function log(msg) {
+      function log(msg, type = 'info') {
         console.log('[OAuth] ' + msg);
         const el = document.querySelector('.message');
-        if (el) el.innerHTML += '<br>' + msg;
+        if (el) {
+          const time = new Date().toLocaleTimeString();
+          const p = document.createElement('div');
+          p.style.fontSize = '12px';
+          p.style.marginTop = '4px';
+          p.style.color = type === 'error' ? 'red' : '#666';
+          p.innerText = '[' + time + '] ' + msg;
+          el.appendChild(p);
+        }
       }
 
       log('授权成功，Token 已就绪');
 
-      if (window.opener) {
-        log('检测到父窗口 (Opener)');
-        
-        // 1. 发送正在授权的消息 (兼容性)
-        window.opener.postMessage("authorizing:github", "*");
-        log('已发送 authorizing 消息');
-
-        // 2. 发送成功消息
-        const successMessage = 'authorization:github:success:' + JSON.stringify(postMsgContent);
-        
-        // Critical: Decap CMS expects exactly this format and might be listening on the origin
-        // We use '*' to ensure it reaches the opener regardless of specific subdomain issues,
-        // but we should also try to target the known origin if possible for security best practice.
-        // However, given the infinite loop issues, '*' is safer relative to 'login loop'.
-        window.opener.postMessage(successMessage, '*'); 
-        log('已发送 success 消息 (Target: *)');
-
-        // Also send just the object as some versions might expect that
-        window.opener.postMessage(postMsgContent, '*');
-        log('已发送 object 消息 (Target: *)');
-
-        // 延迟关闭
-        log('正在关闭窗口...');
-        setTimeout(function() {
-          window.close();
-        }, 2000); // 增加延迟以便用户看清日志
-      } else {
-        // 如果没有 opener，说明是前台登录
-        log('未检测到 UI 父窗口，尝试本地跳转...');
-        try {
-          // 存储到 localStorage 供 AccessGuard 和 frontend 使用
-          localStorage.setItem('user-token', postMsgContent.token);
-          
-          // 同时也为 CMS 存储 (兼容性)
-          localStorage.setItem('netlify-cms-user', JSON.stringify(postMsgContent));
-
-          const url = "${redirectUrl}";
-          document.querySelector('.message').textContent = '登录成功！正在跳转...';
-
-          // 重定向回之前的页面
-          setTimeout(function() {
-            window.location.href = url;
-          }, 1000);
-        } catch (e) {
-          console.error('[OAuth] 无法保存 token:', e);
-          document.querySelector('.message').textContent = '登录成功，但无法保存会话。请手动返回。';
+      // 尝试自动执行
+      const handleAuth = () => {
+        if (!postMsgContent) {
+           log('错误：缺少 Token 数据', 'error');
+           return;
         }
-      }
-    })();
+
+        if (window.opener) {
+          log('检测到父窗口 (Opener)，准备通信...');
+          
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          // 定时发送消息，防止竞争条件
+          const interval = setInterval(() => {
+             attempts++;
+             
+             // 1. 发送标准格式消息
+             const successMessage = 'authorization:github:success:' + JSON.stringify(postMsgContent);
+             window.opener.postMessage(successMessage, '*'); 
+             
+             // 2. 发送对象格式 (兼容性)
+             window.opener.postMessage(postMsgContent, '*');
+             
+             log('已发送消息 (尝试 ' + attempts + ')');
+             
+             if (attempts >= maxAttempts) {
+               clearInterval(interval);
+               log('发送完成，正在关闭...');
+               setTimeout(() => window.close(), 1000);
+             }
+          }, 500); // 每 500ms 发送一次
+
+        } else {
+          log('警告：未检测到父窗口 (Opener lost)', 'error');
+          log('尝试使用 LocalStorage 存储凭证...');
+          
+          try {
+            localStorage.setItem('user-token', postMsgContent.token);
+            localStorage.setItem('netlify-cms-user', JSON.stringify(postMsgContent));
+            log('凭证已保存到 LocalStorage');
+            
+            const url = "${redirectUrl}";
+            log('3秒后跳转到: ' + url);
+            setTimeout(() => window.location.href = url, 3000);
+          } catch (e) {
+            log('LocalStorage 保存失败: ' + e.message, 'error');
+          }
+        }
+      };
+
+      // 立即执行
+      handleAuth();
   </script>
 </body>
 </html>

@@ -15,8 +15,8 @@ backend:
   base_url: ${origin}
   auth_endpoint: auth/login/
 
-# 本地开发模式
-local_backend: true
+# 本地开发模式 (仅在开发环境启用)
+${import.meta.env.DEV ? "local_backend: true" : ""}
 
 # 媒体文件配置
 media_folder: "public/assets/images"
