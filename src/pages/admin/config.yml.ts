@@ -13,7 +13,7 @@ backend:
   repo: johntime2005/blog
   branch: main
   base_url: ${origin}
-  auth_endpoint: auth/login/
+  auth_endpoint: /auth/login/
 
 # 本地开发模式 (仅在开发环境启用)
 ${import.meta.env.DEV ? "local_backend: true" : ""}

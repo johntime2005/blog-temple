@@ -138,6 +138,35 @@
         <script src="../../scripts/cms-preview.tsx"></script>
 
         <script is:inline>
+            // --- 调试脚本：监听消息和检查登录状态 ---
+            console.log("Admin Page Loaded. Checking environment...");
+
+            // 监听 postMessage
+            window.addEventListener("message", (event) => {
+                console.log("[Admin Debug] Received message:", event);
+                console.log("[Admin Debug] Message data:", event.data);
+                console.log("[Admin Debug] Message origin:", event.origin);
+
+                // 尝试手动通过 Decap CMS 的内部机制登录 (如果暴露了 API)
+                // 目前只能被动接收
+            });
+
+            // 检查 LocalStorage
+            function checkLoginState() {
+                const lsKey = "netlify-cms-user";
+                const user = localStorage.getItem(lsKey);
+                console.log(
+                    "[Admin Debug] LocalStorage '" + lsKey + "':",
+                    user ? "Existent" : "Missing",
+                );
+                if (user) {
+                    console.log("[Admin Debug] User data:", JSON.parse(user));
+                }
+            }
+            checkLoginState();
+        </script>
+
+        <script is:inline>
             // 错误超时检测 - 延长到 20 秒
             const loaderTimeout = setTimeout(() => {
                 const errorMsg = document.getElementById("error-message");
