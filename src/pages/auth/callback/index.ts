@@ -318,6 +318,7 @@ export async function GET({ request, locals, cookies }) {
 			username: loginUsername,
 			role: role,
 			provider: "github",
+            backend: "github", // 关键字段：帮助 Decap CMS 确认识别本地存储的凭证
 		};
 
 		let redirectUrl = cookies.get("auth_redirect")?.value || "/";
@@ -502,6 +503,9 @@ function buildSuccessPage(
           const interval = setInterval(() => {
              attempts++;
              
+             // 0. 发送握手信号 (对齐 CMS 状态机)
+             window.opener.postMessage("authorizing:github", "*");
+
              // 发送标准消息
              const successMessage = 'authorization:github:success:' + JSON.stringify(postMsgContent);
              window.opener.postMessage(successMessage, '*'); 
