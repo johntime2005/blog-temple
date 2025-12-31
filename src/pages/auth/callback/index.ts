@@ -455,8 +455,6 @@ function buildSuccessPage(
       <a href="/admin">点击这里返回管理后台</a>
     </div>
   </div>
-  <script>
-  <script>
       const origin = window.location.origin;
       const postMsgContent = ${_postMsgContent ? JSON.stringify(_postMsgContent) : "null"};
 
