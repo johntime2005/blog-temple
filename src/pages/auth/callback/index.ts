@@ -482,47 +482,50 @@ function buildSuccessPage(
            return;
         }
 
+        // --- 核心修复：无论此时是否检测到 opener，都强制写入 LocalStorage ---
+        // 这样即使跨窗口通信失败，用户刷新主页也能自动登录
+        try {
+          const jsonStr = JSON.stringify(postMsgContent);
+          localStorage.setItem('netlify-cms-user', jsonStr); // Netlify/Decap CMS 标准 Key
+          localStorage.setItem('user-token', postMsgContent.token); // 本地应用 Key
+          log('✅ 凭证已强制写入 LocalStorage (作为备份)');
+        } catch (e) {
+          log('LocalStorage 写入失败: ' + e.message, 'error');
+        }
+
         if (window.opener) {
-          log('检测到父窗口 (Opener)，准备通信...');
+          log('检测到父窗口 (Opener)，开始发送握手信号...');
           
           let attempts = 0;
-          const maxAttempts = 10;
+          const maxAttempts = 5; // 稍微减少尝试次数，不要让用户等太久
           
-          // 定时发送消息，防止竞争条件
           const interval = setInterval(() => {
              attempts++;
              
-             // 1. 发送标准格式消息
+             // 发送标准消息
              const successMessage = 'authorization:github:success:' + JSON.stringify(postMsgContent);
              window.opener.postMessage(successMessage, '*'); 
-             
-             // 2. 发送对象格式 (兼容性)
              window.opener.postMessage(postMsgContent, '*');
              
-             log('已发送消息 (尝试 ' + attempts + ')');
+             log('正在呼叫主窗口... (' + attempts + '/' + maxAttempts + ')');
              
              if (attempts >= maxAttempts) {
                clearInterval(interval);
-               log('发送完成，正在关闭...');
-               setTimeout(() => window.close(), 1000);
+               // 重点修改：与其自动关闭，不如提示用户
+               log('通信发送完毕。如果主窗口没有反应：');
+               log('👉 请回到主窗口并 **手动刷新页面** 即可登录', 'error');
+               
+               // 延迟关闭，给用户时间看提示
+               setTimeout(() => {
+                  window.close();
+               }, 4000);
              }
-          }, 500); // 每 500ms 发送一次
+          }, 800); 
 
         } else {
-          log('警告：未检测到父窗口 (Opener lost)', 'error');
-          log('尝试使用 LocalStorage 存储凭证...');
-          
-          try {
-            localStorage.setItem('user-token', postMsgContent.token);
-            localStorage.setItem('netlify-cms-user', JSON.stringify(postMsgContent));
-            log('凭证已保存到 LocalStorage');
-            
-            const url = "${redirectUrl}";
-            log('3秒后跳转到: ' + url);
-            setTimeout(() => window.location.href = url, 3000);
-          } catch (e) {
-            log('LocalStorage 保存失败: ' + e.message, 'error');
-          }
+          log('未检测到父窗口，将跳转...');
+          const url = "${redirectUrl}";
+          setTimeout(() => window.location.href = url, 2000);
         }
       };
 
