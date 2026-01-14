@@ -207,13 +207,13 @@ const initCMS = () => {
 	console.log("[CMS Preview] Registration complete.");
 };
 
-// Check loop
-const checkCMS = setInterval(() => {
-	if ((window as any).CMS) {
-		clearInterval(checkCMS);
-		initCMS();
-	}
-}, 100);
+if (typeof window !== "undefined") {
+	const checkCMS = setInterval(() => {
+		if ((window as any).CMS) {
+			clearInterval(checkCMS);
+			initCMS();
+		}
+	}, 100);
 
-// Stop checking after 30 seconds
-setTimeout(() => clearInterval(checkCMS), 30000);
+	setTimeout(() => clearInterval(checkCMS), 30000);
+}
