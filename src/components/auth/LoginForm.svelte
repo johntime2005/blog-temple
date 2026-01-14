@@ -1,25 +1,55 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
-import { onMount } from "svelte";
+import { onDestroy, onMount } from "svelte";
 
 interface Props {
-	redirectUrl?: string; // 登录成功后的重定向URL
+	redirectUrl?: string;
 }
 
 let { redirectUrl = "/" }: Props = $props();
+let authWindow: Window | null = null;
 
-// 状态管理
-// Removed username/password state as we only use GitHub login now
+function handleStorageChange(e: StorageEvent) {
+	if (e.key === "user-token" && e.newValue) {
+		verifyExistingToken(e.newValue);
+	}
+}
 
-// 检查是否已经登录
+function handleMessage(e: MessageEvent) {
+	if (
+		typeof e.data === "string" &&
+		e.data.startsWith("authorization:github:success:")
+	) {
+		try {
+			const json = e.data.replace("authorization:github:success:", "");
+			const data = JSON.parse(json);
+			if (data.token) {
+				localStorage.setItem("user-token", data.token);
+				window.location.href = redirectUrl;
+			}
+		} catch {}
+	} else if (e.data?.token) {
+		localStorage.setItem("user-token", e.data.token);
+		window.location.href = redirectUrl;
+	}
+}
+
 onMount(() => {
 	const token = localStorage.getItem("user-token");
 	if (token) {
 		verifyExistingToken(token);
 	}
+	window.addEventListener("storage", handleStorageChange);
+	window.addEventListener("message", handleMessage);
 });
 
-// 验证已存储的token
+onDestroy(() => {
+	if (typeof window !== "undefined") {
+		window.removeEventListener("storage", handleStorageChange);
+		window.removeEventListener("message", handleMessage);
+	}
+});
+
 async function verifyExistingToken(token: string) {
 	try {
 		const response = await fetch("/api/auth/verify/", {
@@ -27,19 +57,29 @@ async function verifyExistingToken(token: string) {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ token }),
 		});
-
 		const data = await response.json();
 		if (data.valid) {
-			// 已登录，重定向
 			window.location.href = redirectUrl;
 		} else {
-			// Token无效，清除
 			localStorage.removeItem("user-token");
 		}
-	} catch (error) {
-		console.error("Token verification failed:", error);
+	} catch {
 		localStorage.removeItem("user-token");
 	}
+}
+
+function openAuthPopup(e: MouseEvent) {
+	e.preventDefault();
+	const url = `/auth/?redirect=${encodeURIComponent(redirectUrl)}`;
+	const width = 600;
+	const height = 700;
+	const left = window.screenX + (window.outerWidth - width) / 2;
+	const top = window.screenY + (window.outerHeight - height) / 2;
+	authWindow = window.open(
+		url,
+		"github-auth",
+		`width=${width},height=${height},left=${left},top=${top}`,
+	);
 }
 </script>
 
@@ -52,10 +92,10 @@ async function verifyExistingToken(token: string) {
 		</div>
 
 		<div class="login-actions">
-            <a href="/auth/?redirect={encodeURIComponent(redirectUrl)}" class="github-login-button">
+            <button onclick={openAuthPopup} class="github-login-button">
                 <Icon icon="fa6-brands:github" />
                 <span>使用 GitHub 登录</span>
-            </a>
+            </button>
 		</div>
 	</div>
 </div>
