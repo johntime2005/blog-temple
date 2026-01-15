@@ -1,6 +1,6 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
-import { onMount } from "svelte";
+import { onDestroy, onMount } from "svelte";
 
 interface Post {
 	slug: string;
@@ -20,10 +20,10 @@ let { posts }: Props = $props();
 
 // 状态管理
 let isLoggedIn = $state(false);
-let loginPassword = $state("");
 let isLoggingIn = $state(false);
 let loginError = $state("");
 let adminToken = $state("");
+let username = $state("");
 
 // 文章列表状态
 let searchQuery = $state("");
@@ -44,71 +44,93 @@ let shareResult = $state<{ password: string; expiresAt: number } | null>(null);
 
 // 检查本地存储中的 token
 onMount(() => {
-	const storedToken = localStorage.getItem("admin-token");
+	const storedToken = localStorage.getItem("user-token");
 	if (storedToken) {
 		verifyStoredToken(storedToken);
 	}
+	window.addEventListener("storage", handleStorageChange);
+	window.addEventListener("message", handleMessage);
 });
+
+onDestroy(() => {
+	if (typeof window !== "undefined") {
+		window.removeEventListener("storage", handleStorageChange);
+		window.removeEventListener("message", handleMessage);
+	}
+});
+
+function handleStorageChange(e: StorageEvent) {
+	if (e.key === "user-token" && e.newValue) {
+		verifyStoredToken(e.newValue);
+	}
+}
+
+function handleMessage(e: MessageEvent) {
+	if (
+		typeof e.data === "string" &&
+		e.data.startsWith("authorization:github:success:")
+	) {
+		try {
+			const json = e.data.replace("authorization:github:success:", "");
+			const data = JSON.parse(json);
+			if (data.token) {
+				localStorage.setItem("user-token", data.token);
+				verifyStoredToken(data.token);
+			}
+		} catch {}
+	} else if (e.data?.token) {
+		localStorage.setItem("user-token", e.data.token);
+		verifyStoredToken(e.data.token);
+	}
+}
 
 // 验证已存储的 token
 async function verifyStoredToken(token: string) {
+	isLoggingIn = true;
 	try {
-		const response = await fetch("/api/admin/verify-token", {
+		const response = await fetch("/api/admin/verify-token/", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ token }),
 		});
 
 		const data = await response.json();
-		if (data.valid) {
+		if (data.valid && data.isOwner) {
 			adminToken = token;
+			username = data.username || "";
 			isLoggedIn = true;
 			await loadEncryptedPasswords();
+		} else if (data.valid && !data.isOwner) {
+			loginError = "您不是站长，无权访问管理后台";
+			localStorage.removeItem("user-token");
 		} else {
-			localStorage.removeItem("admin-token");
+			localStorage.removeItem("user-token");
 		}
 	} catch (error) {
 		console.error("Token verification failed:", error);
-		localStorage.removeItem("admin-token");
-	}
-}
-
-// 登录处理
-async function handleLogin(e: Event) {
-	e.preventDefault();
-	loginError = "";
-	isLoggingIn = true;
-
-	try {
-		const response = await fetch("/api/admin/login", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ password: loginPassword }),
-		});
-
-		const data = await response.json();
-
-		if (data.success) {
-			adminToken = data.token;
-			isLoggedIn = true;
-			localStorage.setItem("admin-token", data.token);
-			loginPassword = "";
-			await loadEncryptedPasswords();
-		} else {
-			loginError = data.message || "登录失败";
-		}
-	} catch (error) {
-		console.error("Login error:", error);
-		loginError = "登录失败，请稍后重试";
+		localStorage.removeItem("user-token");
 	} finally {
 		isLoggingIn = false;
 	}
 }
 
+function openAuthPopup() {
+	const width = 600;
+	const height = 700;
+	const left = window.screenX + (window.outerWidth - width) / 2;
+	const top = window.screenY + (window.outerHeight - height) / 2;
+	window.open(
+		"/auth/",
+		"github-auth",
+		`width=${width},height=${height},left=${left},top=${top}`,
+	);
+}
+
 // 登出
 function handleLogout() {
-	localStorage.removeItem("admin-token");
+	localStorage.removeItem("user-token");
 	adminToken = "";
+	username = "";
 	isLoggedIn = false;
 	encryptedPasswords.clear();
 }
@@ -350,42 +372,28 @@ const filteredPosts = $derived(() => {
 	<div class="login-container">
 		<div class="login-box card-base">
 			<div class="login-icon">
-				<Icon name="material-symbols:admin-panel-settings" class="text-6xl text-[var(--primary)]" />
+				<Icon icon="material-symbols:admin-panel-settings" class="text-6xl text-[var(--primary)]" />
 			</div>
 
 			<h1 class="login-title">加密管理后台</h1>
-			<p class="login-subtitle">请输入管理员密码登录</p>
+			<p class="login-subtitle">使用 GitHub 账号登录（仅站长可访问）</p>
 
-			<form onsubmit={handleLogin} class="login-form">
-				<div class="input-wrapper">
-					<Icon name="material-symbols:vpn-key-outline" class="input-icon" />
-					<input
-						type="password"
-						bind:value={loginPassword}
-						placeholder="管理员密码"
-						disabled={isLoggingIn}
-						class="password-input"
-						autocomplete="off"
-					/>
+			{#if loginError}
+				<div class="error-message">
+					<Icon icon="material-symbols:error-outline" class="error-icon" />
+					<span>{loginError}</span>
 				</div>
+			{/if}
 
-				{#if loginError}
-					<div class="error-message">
-						<Icon name="material-symbols:error-outline" class="error-icon" />
-						<span>{loginError}</span>
-					</div>
+			<button onclick={openAuthPopup} disabled={isLoggingIn} class="github-login-button">
+				{#if isLoggingIn}
+					<Icon icon="svg-spinners:180-ring" class="spinner" />
+					<span>验证中...</span>
+				{:else}
+					<Icon icon="mdi:github" />
+					<span>使用 GitHub 登录</span>
 				{/if}
-
-				<button type="submit" disabled={isLoggingIn || !loginPassword} class="login-button">
-					{#if isLoggingIn}
-						<Icon name="svg-spinners:180-ring" class="spinner" />
-						<span>登录中...</span>
-					{:else}
-						<Icon name="material-symbols:login" />
-						<span>登录</span>
-					{/if}
-				</button>
-			</form>
+			</button>
 		</div>
 	</div>
 {:else}
@@ -656,6 +664,34 @@ const filteredPosts = $derived(() => {
 	}
 
 	.login-button:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.github-login-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.875rem 2rem;
+		background: #24292e;
+		color: white;
+		border: none;
+		border-radius: var(--radius-medium);
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.github-login-button:hover:not(:disabled) {
+		background: #2f363d;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+
+	.github-login-button:disabled {
 		opacity: 0.6;
 		cursor: not-allowed;
 	}
