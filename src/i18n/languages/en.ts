@@ -107,12 +107,32 @@ export const en: Translation = {
 	[Key.searchContent]: "Content",
 	[Key.searchViewMore]: "View more results ({count} more)",
 	[Key.other]: "Other",
+	[Key.all]: "All",
 
 	[Key.tags]: "Tags",
 	[Key.categories]: "Categories",
 	[Key.recentPosts]: "Recent Posts",
 	[Key.postList]: "Post List",
 	[Key.tableOfContents]: "Table of Contents",
+	[Key.music]: "Music",
+	[Key.musicNoPlaying]: "No playing",
+	[Key.musicLyrics]: "Lyrics",
+	[Key.musicVolume]: "Volume",
+	[Key.musicPlayMode]: "Switch Play Mode",
+	[Key.musicPrev]: "Previous",
+	[Key.musicNext]: "Next",
+	[Key.musicPlaylist]: "Playlist",
+	[Key.musicNoLyrics]: "No lyrics available",
+	[Key.musicLoadingLyrics]: "Loading lyrics...",
+	[Key.musicFailedLyrics]: "Failed to load lyrics",
+	[Key.musicNoSongs]: "No songs",
+	[Key.musicError]: "Player Error",
+	[Key.musicPlay]: "Play",
+	[Key.musicPause]: "Pause",
+	[Key.musicProgress]: "Playback Progress",
+	[Key.musicCover]: "Cover",
+	[Key.musicNoCover]: "No cover available",
+	[Key.musicAudioPlayer]: "Audio Player",
 
 	// Announcement
 	[Key.announcement]: "Announcement",
@@ -275,8 +295,13 @@ export const en: Translation = {
 	// Wallpaper Mode
 	[Key.wallpaperMode]: "Wallpaper Mode",
 	[Key.wallpaperBannerMode]: "Banner Wallpaper",
-	[Key.wallpaperOverlayMode]: "Transparent",
-	[Key.wallpaperNoneMode]: "Solid Color Background",
+	[Key.wallpaperOverlayMode]: "Overlay Wallpaper",
+	[Key.wallpaperNoneMode]: "None Wallpaper",
+
+	// Post List Layout
+	[Key.postListLayout]: "Post List Layout",
+	[Key.postListLayoutList]: "List",
+	[Key.postListLayoutGrid]: "Grid",
 
 	// Sponsor Page
 	[Key.sponsor]: "Sponsor",
@@ -296,7 +321,7 @@ export const en: Translation = {
 	[Key.sponsorButtonText]:
 		"If this article helped you, please share or support!",
 
-	[Key.shareOnSocial]: "Share",
+	[Key.shareOnSocial]: "Share Article",
 	[Key.shareOnSocialDescription]:
 		"If this article helped you, please share it with others!",
 
@@ -310,6 +335,7 @@ export const en: Translation = {
 	[Key.siteStatsLastUpdate]: "Last Activity",
 	[Key.siteStatsDaysAgo]: "{days} days ago",
 	[Key.siteStatsDays]: "{days} days",
+	[Key.today]: "Today",
 
 	// Calendar Component
 	[Key.calendarSunday]: "Sun",
@@ -338,4 +364,10 @@ export const en: Translation = {
 	[Key.copyLink]: "Copy Link",
 	[Key.savePoster]: "Save Poster",
 	[Key.scanToRead]: "Scan to Read",
+
+	// Code Block Collapsible Configuration
+	[Key.codeCollapsibleShowMore]: "Show more",
+	[Key.codeCollapsibleShowLess]: "Show less",
+	[Key.codeCollapsibleExpanded]: "Code block expanded",
+	[Key.codeCollapsibleCollapsed]: "Code block collapsed",
 };

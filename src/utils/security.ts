@@ -194,11 +194,15 @@ export function timingSafeEqual(a: string, b: string): boolean {
  */
 export const securityHeaders: Record<string, string> = {
 	"X-Content-Type-Options": "nosniff",
-	"X-Frame-Options": "DENY",
+	"X-Frame-Options": "SAMEORIGIN",
 	"X-XSS-Protection": "1; mode=block",
 	"Referrer-Policy": "strict-origin-when-cross-origin",
 	"Permissions-Policy":
 		"camera=(), microphone=(), geolocation=(), interest-cohort=()",
+	// 添加 CORS 头，解决 Cloudflare Pages 跨域问题
+	"Access-Control-Allow-Origin": "*",
+	"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+	"Access-Control-Allow-Headers": "Content-Type",
 };
 
 /**

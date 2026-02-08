@@ -8,7 +8,11 @@ import {
 	WALLPAPER_OVERLAY,
 } from "@constants/constants";
 import type { LIGHT_DARK_MODE, WALLPAPER_MODE } from "@/types/config";
-import { expressiveCodeConfig, siteConfig } from "../config";
+import {
+	backgroundWallpaper,
+	expressiveCodeConfig,
+	siteConfig,
+} from "../config";
 import { isHomePage as checkIsHomePage } from "./layout-utils";
 
 // Declare global functions moved to global.d.ts
@@ -48,11 +52,8 @@ export function resolveTheme(theme: LIGHT_DARK_MODE): LIGHT_DARK_MODE {
 }
 
 export function getHue(): number {
-	// 检查是否在浏览器环境中
-	if (
-		typeof localStorage === "undefined" ||
-		typeof localStorage.getItem !== "function"
-	) {
+	// 先检查全局对象
+	if (typeof window === "undefined" || !window.localStorage) {
 		return getDefaultHue();
 	}
 	const stored = localStorage.getItem("hue");
@@ -60,10 +61,10 @@ export function getHue(): number {
 }
 
 export function setHue(hue: number): void {
-	// 检查是否在浏览器环境中
+	// 先检查是否在浏览器环境
 	if (
-		typeof localStorage === "undefined" ||
-		typeof localStorage.setItem !== "function" ||
+		typeof window === "undefined" ||
+		!window.localStorage ||
 		typeof document === "undefined"
 	) {
 		return;
@@ -269,7 +270,7 @@ export function initThemeListener() {
 // Wallpaper mode functions
 export function applyWallpaperModeToDocument(mode: WALLPAPER_MODE) {
 	// 检查是否允许切换壁纸模式
-	const isSwitchable = siteConfig.backgroundWallpaper.switchable ?? true;
+	const isSwitchable = backgroundWallpaper.switchable ?? true;
 	if (!isSwitchable) {
 		// 如果不允许切换，直接返回，不执行任何操作
 		return;
@@ -279,7 +280,7 @@ export function applyWallpaperModeToDocument(mode: WALLPAPER_MODE) {
 	const currentMode =
 		(document.documentElement.getAttribute(
 			"data-wallpaper-mode",
-		) as WALLPAPER_MODE) || siteConfig.backgroundWallpaper.mode;
+		) as WALLPAPER_MODE) || backgroundWallpaper.mode;
 
 	// 如果模式没有变化，直接返回
 	if (currentMode === mode) {
@@ -401,8 +402,7 @@ function showBannerMode() {
 	const bannerTextOverlay = document.querySelector(".banner-text-overlay");
 	if (bannerTextOverlay) {
 		// 检查是否启用 homeText
-		const homeTextEnabled =
-			siteConfig.backgroundWallpaper.banner?.homeText?.enable;
+		const homeTextEnabled = backgroundWallpaper.banner?.homeText?.enable;
 
 		// 检查当前是否为首页
 		const isHomePage = checkIsHomePage(window.location.pathname);
@@ -439,7 +439,7 @@ function showBannerMode() {
 	if (navbar) {
 		// 获取导航栏透明模式配置（banner模式）
 		const transparentMode =
-			siteConfig.backgroundWallpaper.banner?.navbar?.transparentMode || "semi";
+			backgroundWallpaper.banner?.navbar?.transparentMode || "semi";
 		navbar.setAttribute("data-transparent-mode", transparentMode);
 
 		// 重新初始化半透明模式滚动检测（如果需要）
@@ -538,22 +538,27 @@ function updateNavbarTransparency(mode: WALLPAPER_MODE) {
 	if (!navbar) return;
 
 	let transparentMode: string;
+	let enableBlur: boolean;
 
-	// 根据当前壁纸模式设置导航栏透明模式
+	// 根据当前壁纸模式设置导航栏透明模式和模糊效果
 	if (mode === WALLPAPER_OVERLAY) {
-		// 全屏壁纸模式：固定使用半透明
-		transparentMode = "semi";
-	} else if (mode === WALLPAPER_NONE) {
-		// 纯色背景模式：完全不透明，使用默认背景
+		// 全屏壁纸模式
 		transparentMode = "none";
+		enableBlur = false;
+	} else if (mode === WALLPAPER_NONE) {
+		// 纯色背景模式
+		transparentMode = "none";
+		enableBlur = false;
 	} else {
-		// Banner模式：使用配置的透明模式
+		// Banner模式：使用配置的透明模式和模糊效果
 		transparentMode =
-			siteConfig.backgroundWallpaper.banner?.navbar?.transparentMode || "semi";
+			backgroundWallpaper.banner?.navbar?.transparentMode || "semi";
+		enableBlur = backgroundWallpaper.banner?.navbar?.enableBlur ?? true;
 	}
 
 	// 更新导航栏的透明模式属性
 	navbar.setAttribute("data-transparent-mode", transparentMode);
+	navbar.setAttribute("data-enable-blur", String(enableBlur));
 
 	// 移除现有的透明模式类
 	navbar.classList.remove(
@@ -650,10 +655,10 @@ export function getStoredWallpaperMode(): WALLPAPER_MODE {
 		typeof localStorage === "undefined" ||
 		typeof localStorage.getItem !== "function"
 	) {
-		return siteConfig.backgroundWallpaper.mode;
+		return backgroundWallpaper.mode;
 	}
 	return (
 		(localStorage.getItem("wallpaperMode") as WALLPAPER_MODE) ||
-		siteConfig.backgroundWallpaper.mode
+		backgroundWallpaper.mode
 	);
 }

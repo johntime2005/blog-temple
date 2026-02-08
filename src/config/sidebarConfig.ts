@@ -146,6 +146,22 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 		},
 	],
 
+	// 移动端底部组件配置列表（<768px显示）
+	mobileBottomComponents: [
+		{
+			type: "categories",
+			enable: true,
+			showOnPostPage: false,
+			showOnNonPostPage: true,
+		},
+		{
+			type: "tags",
+			enable: true,
+			showOnPostPage: false,
+			showOnNonPostPage: true,
+		},
+	],
+
 	// 默认动画配置
 	defaultAnimation: {
 		// 是否启用默认动画

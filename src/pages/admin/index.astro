@@ -106,6 +106,43 @@ import "../../scripts/cms-preview.tsx";
         />
     </head>
     <body>
+        <!-- 本地开发环境自动修复配置：拦截 config.yml 请求并动态替换 base_url -->
+        <script is:inline>
+            if (
+                window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1"
+            ) {
+                const originalFetch = window.fetch;
+                window.fetch = async function (url, options) {
+                    // 转换为字符串以处理 URL 对象
+                    const urlStr = url.toString();
+                    if (urlStr.endsWith("config.yml")) {
+                        console.log(
+                            "[Dev Fix] Intercepting config.yml fetch to patch base_url for localhost",
+                        );
+                        try {
+                            const response = await originalFetch(url, options);
+                            if (!response.ok) return response;
+                            const text = await response.text();
+                            // 将生产环境 base_url 替换为当前本地地址
+                            const newText = text.replace(
+                                /base_url:\s*https:\/\/blog\.johntime\.top/g,
+                                `base_url: ${window.location.origin}`,
+                            );
+                            return new Response(newText, {
+                                status: 200,
+                                headers: response.headers,
+                            });
+                        } catch (e) {
+                            console.error("[Dev Fix] Failed to patch config.yml", e);
+                            throw e;
+                        }
+                    }
+                    return originalFetch(url, options);
+                };
+            }
+        </script>
+
         <!-- 加载状态 -->
         <div id="cms-loader">
             <div class="spinner"></div>
@@ -187,10 +224,26 @@ import "../../scripts/cms-preview.tsx";
         </script>
 
         <script is:inline data-cfasync="false">
-            // 弹窗阻止检测
+            // 弹窗拦截：修正 OAuth URL 尾斜杠 + 弹窗阻止检测
             (() => {
                 const originalOpen = window.open;
                 window.open = function (...args) {
+                    // 修正 Decap CMS 生成的 OAuth URL：
+                    // CMS 内部会 trim auth_endpoint 的尾斜杠，导致 /auth/login?... 而非 /auth/login/?...
+                    // Astro trailingSlash:"always" 要求带尾斜杠，否则返回 404
+                    if (typeof args[0] === "string" && args[0].includes("/auth/login")) {
+                        try {
+                            const url = new URL(args[0], window.location.origin);
+                            if (!url.pathname.endsWith("/")) {
+                                url.pathname = url.pathname + "/";
+                                args[0] = url.toString();
+                                console.log("[Admin] Fixed OAuth URL trailing slash:", args[0]);
+                            }
+                        } catch (e) {
+                            console.error("[Admin] Failed to fix OAuth URL:", e);
+                        }
+                    }
+
                     const popup = originalOpen.apply(this, args);
                     if (
                         !popup ||

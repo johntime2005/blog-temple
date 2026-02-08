@@ -318,7 +318,7 @@ export async function GET({ request, locals, cookies }) {
 			username: loginUsername,
 			role: role,
 			provider: "github",
-            backend: "github", // 关键字段：帮助 Decap CMS 确认识别本地存储的凭证
+			backend: "github", // 关键字段：帮助 Decap CMS 确认识别本地存储的凭证
 		};
 
 		let redirectUrl = cookies.get("auth_redirect")?.value || "/";
@@ -338,11 +338,17 @@ export async function GET({ request, locals, cookies }) {
 		});
 	} catch (error) {
 		console.error("[OAuth] 令牌交换失败:", error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		return new Response(
-			buildErrorPage("授权过程出错", "在处理 GitHub 授权时发生错误。", [
-				"请重新尝试授权",
-				"如果问题持续，请联系管理员",
-			]),
+			buildErrorPage(
+				"授权过程出错",
+				`在处理 GitHub 授权时发生错误。详情: ${errorMessage}`,
+				[
+					"请重新尝试授权",
+					"如果问题持续，请联系管理员",
+					`错误信息: ${errorMessage}`,
+				],
+			),
 			{
 				status: 500,
 				headers: {

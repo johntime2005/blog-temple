@@ -108,12 +108,32 @@ export const ru: Translation = {
 	[Key.searchContent]: "Содержание",
 	[Key.searchViewMore]: "Показать еще ({count} шт)",
 	[Key.other]: "Прочее",
+	[Key.all]: "Все",
 
 	[Key.tags]: "Теги",
 	[Key.categories]: "Категории",
 	[Key.recentPosts]: "Последние посты",
 	[Key.postList]: "Список постов",
 	[Key.tableOfContents]: "Содержание",
+	[Key.music]: "Музыка",
+	[Key.musicNoPlaying]: "Ничего не воспроизводится",
+	[Key.musicLyrics]: "Текст песни",
+	[Key.musicVolume]: "Громкость",
+	[Key.musicPlayMode]: "Переключить режим воспроизведения",
+	[Key.musicPrev]: "Предыдущий трек",
+	[Key.musicNext]: "Следующий трек",
+	[Key.musicPlaylist]: "Плейлист",
+	[Key.musicNoLyrics]: "Текст песни отсутствует",
+	[Key.musicLoadingLyrics]: "Загрузка текста песни...",
+	[Key.musicFailedLyrics]: "Ошибка загрузки текста песни",
+	[Key.musicNoSongs]: "Нет песен",
+	[Key.musicError]: "Ошибка плеера",
+	[Key.musicPlay]: "Воспроизвести",
+	[Key.musicPause]: "Пауза",
+	[Key.musicProgress]: "Прогресс воспроизведения",
+	[Key.musicCover]: "Обложка",
+	[Key.musicNoCover]: "Нет обложки",
+	[Key.musicAudioPlayer]: "Аудиоплеер",
 
 	// Объявление
 	[Key.announcement]: "Объявление",
@@ -280,6 +300,11 @@ export const ru: Translation = {
 	[Key.wallpaperOverlayMode]: "Прозрачный",
 	[Key.wallpaperNoneMode]: "Однотонный фон",
 
+	// Макет списка сообщений
+	[Key.postListLayout]: "Макет списка сообщений",
+	[Key.postListLayoutList]: "Список",
+	[Key.postListLayoutGrid]: "Сетка",
+
 	// Страница спонсоров
 	[Key.sponsor]: "Спонсор",
 	[Key.sponsorTitle]: "Поддержать меня",
@@ -298,7 +323,7 @@ export const ru: Translation = {
 	[Key.sponsorButtonText]:
 		"Если эта статья помогла вам, пожалуйста, поделитесь или поддержите!",
 
-	[Key.shareOnSocial]: "Поделиться",
+	[Key.shareOnSocial]: "Поделиться статьей",
 	[Key.shareOnSocialDescription]:
 		"Если эта статья помогла вам, пожалуйста, поделитесь ею с другими!",
 
@@ -312,6 +337,7 @@ export const ru: Translation = {
 	[Key.siteStatsLastUpdate]: "Последняя активность",
 	[Key.siteStatsDaysAgo]: "{days} дней назад",
 	[Key.siteStatsDays]: "{days} дней",
+	[Key.today]: "Сегодня",
 
 	// Компонент календаря
 	[Key.calendarSunday]: "Вс",
@@ -340,4 +366,10 @@ export const ru: Translation = {
 	[Key.copyLink]: "Копировать ссылку",
 	[Key.savePoster]: "Сохранить постер",
 	[Key.scanToRead]: "Сканируйте, чтобы прочитать",
+
+	// Конфигурация блоков коллапсируемого кода
+	[Key.codeCollapsibleShowMore]: "Показать больше",
+	[Key.codeCollapsibleShowLess]: "Показать меньше",
+	[Key.codeCollapsibleExpanded]: "Блок кода развернут",
+	[Key.codeCollapsibleCollapsed]: "Блок кода свернут",
 };

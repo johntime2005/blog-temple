@@ -8,7 +8,6 @@ import type {
 } from "../constants/constants";
 
 export type SiteConfig = {
-	initialized?: boolean;
 	title: string;
 	subtitle: string;
 	site_url: string;
@@ -23,49 +22,59 @@ export type SiteConfig = {
 		defaultMode?: LIGHT_DARK_MODE; // 默认模式：浅色、深色或跟随系统
 	};
 
+	// 卡片样式配置
+	card: {
+		// 是否开启卡片边框和阴影立体效果
+		border: boolean;
+	};
+
 	// 字体配置
 	font: FontConfig;
 
 	// 站点开始日期，用于计算运行天数
 	siteStartDate?: string; // 格式: "YYYY-MM-DD"
 
+	// 可选：站点时区，使用 IANA 时区标识，例如 "Asia/Shanghai"、"UTC"
+	timezone?: string;
+
+	// 提醒框配置
+	rehypeCallouts: {
+		theme: "github" | "obsidian" | "vitepress";
+	};
+
 	// 添加bangumi配置
 	bangumi?: {
 		userId?: string; // Bangumi用户ID
 	};
 
-	backgroundWallpaper: BackgroundWallpaperConfig;
 	generateOgImages: boolean;
 	favicon: Array<{
 		src: string;
 		theme?: "light" | "dark";
 		sizes?: string;
 	}>;
-	/** 导航栏Logo图标，可选类型：icon库、图片链接、本地图片 */
-	logoIcon?: {
-		type: "icon" | "image";
-		value: string; // icon名或图片url
-		alt?: string; // 图片alt文本
+
+	navbar: {
+		/** 导航栏Logo图标，可选类型：icon库、本地图片、网络图片链接 */
+		logo?: {
+			type: "icon" | "image" | "url";
+			value: string; // icon名、本地图片路径或网络图片url
+			alt?: string; // 图片alt文本
+		};
+		title?: string; // 导航栏标题，如果不设置则使用 title
+		widthFull?: boolean; // 导航栏是否占满屏幕宽度
+		followTheme?: boolean; // 导航栏图标和标题是否跟随主题色
 	};
-	navbarTitle?: string; // 导航栏标题，如果不设置则使用 title
-	navbarWidthFull?: boolean; // 导航栏是否占满屏幕宽度
+
 	showLastModified: boolean; // 控制"上次编辑"卡片显示的开关
 	outdatedThreshold?: number; // 文章过期阈值（天数），超过此天数才显示"上次编辑"卡片
+	sharePoster?: boolean; // 是否显示分享海报按钮
 
 	// 页面开关配置
 	pages: {
 		sponsor: boolean; // 赞助页面开关
 		guestbook: boolean; // 留言板页面开关
 		bangumi: boolean;
-		anime: boolean; // 追番页面开关
-		projects: boolean;
-		skills: boolean;
-		timeline: boolean;
-	};
-
-	toc?: {
-		enable: boolean;
-		depth?: number;
 	};
 
 	// 文章列表布局配置
@@ -76,6 +85,8 @@ export type SiteConfig = {
 			// 网格布局配置，仅在 defaultMode 为 "grid" 或允许切换布局时生效
 			// 是否开启瀑布流布局
 			masonry: boolean;
+			// 网格模式列数：2 或 3，默认为 2。注意：3列模式仅在单侧边栏（或无侧边栏）且屏幕宽度足够时生效
+			columns?: 2 | 3;
 		};
 	};
 
@@ -84,18 +95,11 @@ export type SiteConfig = {
 		postsPerPage: number; // 每页显示的文章数量
 	};
 
-	/*
-	 * 友链配置
-	 * */
-	friends?: string;
-	/**
-	 * 赞助配置
-	 * */
-	sponsor?: string;
-	/**
-	 * 文章封面图配置
-	 * */
-	coverImage?: string;
+	// 统计分析
+	analytics?: {
+		googleAnalyticsId?: string; // Google Analytics ID
+		microsoftClarityId?: string; // Microsoft Clarity ID
+	};
 };
 
 export type Favicon = {
@@ -124,35 +128,14 @@ export type NavBarLink = {
 
 export enum NavBarSearchMethod {
 	PageFind = 0,
-	MeiliSearch = 1,
 }
-
-/**
- * MeiliSearch配置
- *
- * @property INDEX_NAME MeiliSearch索引名称
- * @property CONTENT_DIR 需要被索引的内容目录
- * @property MEILI_HOST MeiliSearch服务器地址
- * @property PUBLIC_MEILI_HOST 公共MeiliSearch服务器地址（前端使用）
- * @property PUBLIC_MEILI_SEARCH_KEY 公共MeiliSearch搜索密钥（前端使用）
- */
-export type MeiliSearchConfig = {
-	INDEX_NAME: string;
-	CONTENT_DIR: string;
-	MEILI_HOST: string;
-	PUBLIC_MEILI_HOST: string;
-	PUBLIC_MEILI_SEARCH_KEY: string;
-};
 
 export type NavBarSearchConfig = {
 	method: NavBarSearchMethod;
-	meiliSearchConfig?: MeiliSearchConfig;
 };
 
 export type NavBarConfig = {
 	links: (NavBarLink | LinkPreset)[];
-	searchMethod?: NavBarSearchMethod;
-	meiliSearchConfig?: MeiliSearchConfig;
 };
 
 export type ProfileConfig = {
@@ -260,6 +243,15 @@ export type ExpressiveCodeConfig = {
 	darkTheme: string;
 	/** 亮色主题名称（用于亮色模式） */
 	lightTheme: string;
+	/** 代码块折叠插件配置 */
+	pluginCollapsible?: PluginCollapsibleConfig;
+};
+
+export type PluginCollapsibleConfig = {
+	enable: boolean; // 是否启用代码块折叠功能
+	lineThreshold: number; // 触发折叠的行数阈值
+	previewLines: number; // 折叠时显示的预览行数
+	defaultCollapsed: boolean; // 默认是否折叠
 };
 
 export type AnnouncementConfig = {
@@ -312,30 +304,31 @@ export type FooterConfig = {
 
 export type CoverImageConfig = {
 	enableInPost: boolean; // 是否在文章详情页显示封面图
-	enable: boolean; // 是否启用随机图功能
-	useAsDefault?: boolean; // 当文章未设置 image 字段时，是否默认使用随机封面图
-	apis: string[]; // 随机图API列表，支持 {seed} 占位符，会替换为文章slug或时间戳
-	fallback?: string; // 当API请求失败时的备用图片路径
-	// 加载指示器配置
-	loading?: {
-		// 加载指示器开关
-		enable: boolean;
-		image?: string; // 自定义加载图片路径（相对于public目录），默认 "/assets/images/loading.gif"
-		backgroundColor?: string; // 加载指示器背景颜色，默认与loading.gif背景色一致 (#fefefe)
-	};
-	watermark?: {
-		enable: boolean; // 是否显示水印
-		text?: string; // 水印文本，默认为"随机图"
-		position?:
-			| "top-left"
-			| "top-right"
-			| "bottom-left"
-			| "bottom-right"
-			| "center"; // 水印位置
-		opacity?: number; // 水印透明度 0-1, 默认0.6
-		fontSize?: string; // 字体大小, 默认"0.75rem"
-		color?: string; // 文字颜色，默认为白色
-		backgroundColor?: string; // 背景颜色，默认为半透明黑色
+	randomCoverImage: {
+		enable: boolean; // 是否启用随机图功能
+		apis: string[]; // 随机图API列表，支持 {seed} 占位符，会替换为文章slug或时间戳
+		fallback?: string; // 当API请求失败时的备用图片路径
+		// 加载指示器配置
+		loading?: {
+			// 加载指示器开关
+			enable: boolean;
+			image?: string; // 自定义加载图片路径（相对于public目录），默认 "/assets/images/loading.gif"
+			backgroundColor?: string; // 加载指示器背景颜色，默认与loading.gif背景色一致 (#fefefe)
+		};
+		watermark?: {
+			enable: boolean; // 是否显示水印
+			text?: string; // 水印文本，默认为"随机图"
+			position?:
+				| "top-left"
+				| "top-right"
+				| "bottom-left"
+				| "bottom-right"
+				| "center"; // 水印位置
+			opacity?: number; // 水印透明度 0-1，默认0.6
+			fontSize?: string; // 字体大小，默认"0.75rem"
+			color?: string; // 文字颜色，默认为白色
+			backgroundColor?: string; // 背景颜色，默认为半透明黑色
+		};
 	};
 };
 
@@ -349,18 +342,28 @@ export type WidgetComponentType =
 	| "advertisement"
 	| "stats"
 	| "calendar"
-	| "custom";
+	| "music";
 
 export type WidgetComponentConfig = {
 	type: WidgetComponentType; // 组件类型
 	enable: boolean; // 是否启用该组件
-	order: number; // 显示顺序，数字越小越靠前
 	position: "top" | "sticky"; // 组件位置：top=固定在顶部，sticky=粘性定位（可滚动）
-	class?: string; // 自定义CSS类名
-	style?: string; // 自定义内联样式
-	animationDelay?: number; // 动画延迟时间（毫秒）
 	configId?: string; // 配置ID，用于广告组件指定使用哪个配置
-	showOnPostPage?: boolean; // 是否在文章详情页显示（仅右侧边栏组件有效）
+	showOnPostPage?: boolean; // 是否在文章详情页显示
+	showOnNonPostPage?: boolean; // 是否在非文章详情页显示
+	responsive?: {
+		hidden?: ("mobile" | "tablet" | "desktop")[]; // 在指定设备上隐藏
+		collapseThreshold?: number; // 折叠阈值
+	};
+	customProps?: Record<string, unknown>; // 自定义属性，用于扩展组件功能
+};
+
+export type MobileBottomComponentConfig = {
+	type: WidgetComponentType; // 组件类型
+	enable: boolean; // 是否启用该组件
+	configId?: string; // 配置ID，用于广告组件指定使用哪个配置
+	showOnPostPage?: boolean; // 是否在文章详情页显示
+	showOnNonPostPage?: boolean; // 是否在非文章详情页显示
 	responsive?: {
 		hidden?: ("mobile" | "tablet" | "desktop")[]; // 在指定设备上隐藏
 		collapseThreshold?: number; // 折叠阈值
@@ -371,20 +374,10 @@ export type WidgetComponentConfig = {
 export type SidebarLayoutConfig = {
 	enable: boolean; // 是否启用侧边栏
 	position: "left" | "both"; // 侧边栏位置：左侧或双侧
+	showRightSidebarOnPostPage?: boolean; // 当position为left时，是否在文章详情页显示右侧边栏
 	leftComponents: WidgetComponentConfig[]; // 左侧边栏组件配置列表
 	rightComponents: WidgetComponentConfig[]; // 右侧边栏组件配置列表
-	defaultAnimation: {
-		enable: boolean; // 是否启用默认动画
-		baseDelay: number; // 基础延迟时间（毫秒）
-		increment: number; // 每个组件递增的延迟时间（毫秒）
-	};
-	responsive: {
-		layout: {
-			mobile: "hidden" | "bottom" | "drawer" | "sidebar"; // 移动端布局模式
-			tablet: "hidden" | "sidebar" | "bottom" | "drawer"; // 平板端布局模式
-			desktop: "sidebar"; // 桌面端布局模式
-		};
-	};
+	mobileBottomComponents: MobileBottomComponentConfig[]; // 移动端底部组件配置列表（<768px显示）
 };
 
 export type SakuraConfig = {
@@ -512,6 +505,8 @@ export type BackgroundWallpaperConfig = {
 			enable: boolean; // 是否在首页显示自定义文字（全局开关）
 			title?: string; // 主标题
 			subtitle?: string | string[]; // 副标题，支持单个字符串或字符串数组
+			titleSize?: string; // 主标题字体大小，如 "3.5rem"
+			subtitleSize?: string; // 副标题字体大小，如 "1.5rem"
 			typewriter?: {
 				enable: boolean; // 是否启用打字机效果
 				speed: number; // 打字速度（毫秒）
@@ -541,6 +536,8 @@ export type BackgroundWallpaperConfig = {
 		};
 		navbar?: {
 			transparentMode?: "semi" | "full" | "semifull"; // 导航栏透明模式
+			enableBlur?: boolean; // 是否开启毛玻璃模糊效果
+			blur?: number; // 毛玻璃模糊度
 		};
 		waves?: {
 			enable:
@@ -549,10 +546,6 @@ export type BackgroundWallpaperConfig = {
 						desktop: boolean; // 桌面端是否启用波浪动画效果
 						mobile: boolean; // 移动端是否启用波浪动画效果
 				  }; // 是否启用波浪动画效果，支持布尔值或分别设置桌面端和移动端
-			performance?: {
-				quality: "high" | "medium" | "low"; // 渲染质量：high=高质量，medium=中等质量，low=低质量
-				hardwareAcceleration: boolean; // 是否启用硬件加速
-			}; // 波浪效果性能优化配置
 		};
 	};
 	// 全屏透明覆盖模式特有配置
@@ -601,13 +594,26 @@ export type FriendLink = {
 	enabled: boolean; // 是否启用
 };
 
+export type FriendsPageConfig = {
+	columns: 2 | 3; // 显示列数：2列或3列
+};
+
 // 音乐播放器配置
 export type MusicPlayerConfig = {
-	// 基础功能开关
-	enable: boolean; // 启用音乐播放器功能
-
 	// 使用方式：'meting' 或 'local'
 	mode?: "meting" | "local"; // "meting" 使用 Meting API，"local" 使用本地音乐列表
+
+	// 默认音量 (0-1)
+	volume?: number;
+
+	// 播放模式：'list'=列表循环, 'one'=单曲循环, 'random'=随机播放
+	playMode?: "list" | "one" | "random";
+
+	// 是否显示歌词
+	showLyrics?: boolean;
+
+	// 是否在导航栏显示音乐播放器
+	showInNavbar?: boolean;
 
 	// Meting API 配置
 	meting?: {
@@ -628,9 +634,6 @@ export type MusicPlayerConfig = {
 
 		// 备用 API 配置（当主 API 失败时使用）
 		fallbackApis?: string[];
-
-		// MetingJS 脚本路径（默认使用 CDN，也可配置为本地路径）
-		jsPath?: string;
 	};
 
 	// 本地音乐配置（当 mode 为 'local' 时使用）
@@ -643,69 +646,12 @@ export type MusicPlayerConfig = {
 			lrc?: string; // 歌词内容，支持 LRC 格式
 		}>;
 	};
-
-	// APlayer 配置选项
-	player?: {
-		// 是否固定模式（固定在页面底部）
-		fixed?: boolean;
-
-		// 是否迷你模式
-		mini?: boolean;
-
-		// 是否自动播放
-		autoplay?: boolean;
-
-		// 主题色
-		theme?: string;
-
-		// 循环模式：'all'=列表循环, 'one'=单曲循环, 'none'=不循环
-		loop?: "all" | "one" | "none";
-
-		// 播放顺序：'list'=列表顺序, 'random'=随机播放
-		order?: "list" | "random";
-
-		// 预加载：'none'=不预加载, 'metadata'=预加载元数据, 'auto'=自动
-		preload?: "none" | "metadata" | "auto";
-
-		// 默认音量 (0-1)
-		volume?: number;
-
-		// 是否互斥播放（同时只能播放一个播放器）
-		mutex?: boolean;
-
-		// 歌词类型：0=不显示, 1=显示（需要提供 lrc 字段）, 2=显示（从 HTML 内容读取）, 3=异步加载（从 API 获取）
-		lrcType?: 0 | 1 | 2 | 3;
-
-		// 歌词是否默认隐藏（当 lrcType 不为 0 时，可以通过此选项控制初始显示状态）
-		lrcHidden?: boolean;
-
-		// 播放列表是否默认折叠
-		listFolded?: boolean;
-
-		// 播放列表最大高度
-		listMaxHeight?: string;
-
-		// localStorage 存储键名
-		storageName?: string;
-	};
-
-	// 响应式配置
-	responsive?: {
-		// 移动端配置
-		mobile?: {
-			// 在移动端是否隐藏
-			hide?: boolean;
-
-			// 移动端断点（小于此宽度时应用移动端配置）
-			breakpoint?: number;
-		};
-	};
 };
 
 // 赞助方式类型
 export type SponsorMethod = {
 	name: string; // 赞助方式名称，如 "支付宝"、"微信"、"PayPal"
-	icon?: string; // 图标名称（Iconify 格式），如 "fa6-brands:alipay"
+	icon?: string; // 图标名称（Iconify 格式），如 "fa7-brands:alipay"
 	qrCode?: string; // 收款码图片路径（相对于 public 目录），可选
 	link?: string; // 赞助链接 URL，可选。如果提供，会显示跳转按钮
 	description?: string; // 描述文本

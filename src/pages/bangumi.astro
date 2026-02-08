@@ -1,5 +1,5 @@
 ---
-import Icon from "@/components/misc/Icon.astro";
+import { Icon } from "astro-icon/components";
 import BangumiSection from "@/components/pages/bangumi/BangumiSection.astro";
 import TabNav from "@/components/pages/bangumi/TabNav.astro";
 import { siteConfig } from "@/config";
@@ -10,6 +10,7 @@ import type {
 	UserSubjectCollection,
 	UserSubjectCollectionResponse,
 } from "@/types/bangumi";
+import { formatDateI18nWithTime } from "@/utils/date-utils";
 
 //参考：霞葉 https://kasuha.com/posts/fuwari-enhance-ep2/
 
@@ -18,7 +19,10 @@ if (!siteConfig.pages.bangumi) {
 	return Astro.redirect("/404/");
 }
 
-//////////////// Bangumi 配置 ////////////////////////
+// 获取构建时间
+const buildTime = formatDateI18nWithTime(new Date());
+
+////////////// Bangumi 配置 ////////////////////////
 const bangumiConfig = {
 	username: siteConfig.bangumi?.userId, // 在这里配置你的Bangumi用户名
 	apiUrl: "https://api.bgm.tv",
@@ -36,7 +40,7 @@ const bangumiConfig = {
 		maxTotal: 1000, // 最大获取总数，防止无限循环（0=无限制）
 	},
 };
-////////////////////////////////////////////////////
+//////////////////////////////////////////////////
 
 // 分类映射
 const categoryMap = {
@@ -180,20 +184,17 @@ for (const [categoryKey, enabled] of Object.entries(bangumiConfig.categories)) {
 }
 
 const activeTab = tabs[0]?.id || "anime";
-
-// 获取构建时间
-const buildTime = new Date().toLocaleString();
 ---
 
 <MainGridLayout title={i18n(I18nKey.bangumi)} description={i18n(I18nKey.bangumiSubtitle)}>
-  <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+  <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
     <div class="card-base z-10 px-9 py-6 relative w-full">
         <!-- 页面标题 -->
         <div class="relative w-full mb-8">
             <div class="mb-6">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="h-8 w-8 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70">
-                        <Icon icon="material-symbols:movie" class="text-[1.5rem]"></Icon>
+                    <div class="h-8 w-8 rounded-lg bg-(--primary) flex items-center justify-center text-white dark:text-black/70">
+                        <Icon name="material-symbols:movie" class="text-[1.5rem]"></Icon>
                     </div>
                     <h1 class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
                         {i18n(I18nKey.bangumi)}
@@ -224,8 +225,8 @@ const buildTime = new Date().toLocaleString();
         </>
       ) : (
         <div class="text-center py-16">
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-[var(--btn-regular-bg)] rounded-full mb-6 border border-[var(--line-divider)]">
-            <Icon icon="material-symbols:settings" class="text-[2rem] text-[var(--btn-content)]" />
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-(--btn-regular-bg) rounded-full mb-6 border border-(--line-divider)">
+            <Icon name="material-symbols:settings" class="text-[2rem] text-(--btn-content)" />
           </div>
           <h2 class="text-xl font-semibold text-black/80 dark:text-white/80 mb-3">
             {isUserIdConfigured ? i18n(I18nKey.bangumiEmpty) : "未配置 Bangumi 用户ID"}

@@ -106,12 +106,32 @@ export const zh_TW: Translation = {
 	[Key.searchContent]: "內容",
 	[Key.searchViewMore]: "查看更多結果 ({count} 個更多)",
 	[Key.other]: "其他",
+	[Key.all]: "全部",
 
 	[Key.tags]: "標籤",
 	[Key.categories]: "分類",
 	[Key.recentPosts]: "最新文章",
 	[Key.postList]: "文章列表",
 	[Key.tableOfContents]: "目錄",
+	[Key.music]: "音樂",
+	[Key.musicNoPlaying]: "暫未播放",
+	[Key.musicLyrics]: "歌詞",
+	[Key.musicVolume]: "音量",
+	[Key.musicPlayMode]: "切換播放模式",
+	[Key.musicPrev]: "上一首",
+	[Key.musicNext]: "下一首",
+	[Key.musicPlaylist]: "列表",
+	[Key.musicNoLyrics]: "暫無歌詞",
+	[Key.musicLoadingLyrics]: "正在加載歌詞...",
+	[Key.musicFailedLyrics]: "歌詞加載失敗",
+	[Key.musicNoSongs]: "暫無歌曲",
+	[Key.musicError]: "播放器錯誤",
+	[Key.musicPlay]: "播放",
+	[Key.musicPause]: "暫停",
+	[Key.musicProgress]: "播放進度",
+	[Key.musicCover]: "封面",
+	[Key.musicNoCover]: "暫無封面",
+	[Key.musicAudioPlayer]: "音頻播放器",
 
 	// 公告欄
 	[Key.announcement]: "公告",
@@ -138,7 +158,7 @@ export const zh_TW: Translation = {
 	[Key.postCount]: "篇文章",
 	[Key.postsCount]: "篇文章",
 
-	[Key.themeColor]: "主題色",
+	[Key.themeColor]: "主題色相",
 
 	[Key.lightMode]: "亮色",
 	[Key.darkMode]: "暗色",
@@ -271,6 +291,11 @@ export const zh_TW: Translation = {
 	[Key.wallpaperOverlayMode]: "全屏透明",
 	[Key.wallpaperNoneMode]: "純色背景",
 
+	// 文章佈局
+	[Key.postListLayout]: "文章佈局",
+	[Key.postListLayoutList]: "清單",
+	[Key.postListLayoutGrid]: "網格",
+
 	// 贊助頁面
 	[Key.sponsor]: "贊助",
 	[Key.sponsorTitle]: "贊助支持",
@@ -289,7 +314,7 @@ export const zh_TW: Translation = {
 	[Key.sponsorButtonText]:
 		"如果這篇文章對你有幫助，歡迎分享給更多人或贊助支持！",
 
-	[Key.shareOnSocial]: "分享",
+	[Key.shareOnSocial]: "文章分享",
 	[Key.shareOnSocialDescription]: "如果這篇文章對你有幫助，歡迎分享給更多人！",
 
 	// 站點統計
@@ -302,6 +327,7 @@ export const zh_TW: Translation = {
 	[Key.siteStatsLastUpdate]: "最後活動",
 	[Key.siteStatsDaysAgo]: "{days} 天前",
 	[Key.siteStatsDays]: "{days} 天",
+	[Key.today]: "今天",
 
 	// 日曆組件
 	[Key.calendarSunday]: "日",
@@ -330,4 +356,10 @@ export const zh_TW: Translation = {
 	[Key.copyLink]: "複製連結",
 	[Key.savePoster]: "保存海報",
 	[Key.scanToRead]: "掃碼閱讀文章",
+
+	// 代碼區塊折疊配置
+	[Key.codeCollapsibleShowMore]: "顯示更多",
+	[Key.codeCollapsibleShowLess]: "顯示更少",
+	[Key.codeCollapsibleExpanded]: "代碼區塊已展開",
+	[Key.codeCollapsibleCollapsed]: "代碼區塊已折疊",
 };

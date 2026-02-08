@@ -2,10 +2,10 @@ import cloudflare from "@astrojs/cloudflare";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
-import tailwind from "@astrojs/tailwind";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import swup from "@swup/astro";
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
@@ -14,15 +14,16 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeComponents from "rehype-components"; /* Render the custom directive content */
 import rehypeKatex from "rehype-katex";
 import "katex/dist/contrib/mhchem.mjs"; // 加载 mhchem 扩展
+import { pluginCollapsible } from "expressive-code-collapsible"; /* Collapsible */
+import { pluginLanguageBadge } from "expressive-code-language-badge"; /* Language Badge */
+import rehypeCallouts from "rehype-callouts";
 import rehypeSlug from "rehype-slug";
 import remarkDirective from "remark-directive"; /* Handle directives */
-import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
 import { expressiveCodeConfig, siteConfig } from "./src/config";
-import searchIndexer from "./src/integrations/searchIndex.mts";
-import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-copy-button.js";
-import { AdmonitionComponent } from "./src/plugins/rehype-component-admonition.mjs";
+import I18nKey from "./src/i18n/i18nKey";
+import { i18n } from "./src/i18n/translation";
 import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
 import rehypeEmailProtection from "./src/plugins/rehype-email-protection.mjs";
 import rehypeFigure from "./src/plugins/rehype-figure.mjs";
@@ -42,15 +43,16 @@ export default defineConfig({
 		imageService: "passthrough",
 	}),
 	integrations: [
-		tailwind({
-			nesting: true,
-		}),
 		swup({
 			theme: false,
 			animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
 			// the default value `transition-` cause transition delay
 			// when the Tailwind class `transition-all` is used
-			containers: ["main"],
+			containers: [
+				"#swup-container",
+				"#right-sidebar-dynamic",
+				"#floating-toc-wrapper",
+			],
 			smoothScrolling: false,
 			cache: true,
 			preload: true,
@@ -67,17 +69,44 @@ export default defineConfig({
 			},
 		}),
 		icon({
-			include: {},
+			include: {
+				"material-symbols": ["*"],
+				"fa6-brands": ["*"],
+				"fa6-regular": ["*"],
+				"fa6-solid": ["*"],
+				"fa7-brands": ["*"],
+				"fa7-regular": ["*"],
+				"fa7-solid": ["*"],
+				"simple-icons": ["*"],
+				mdi: ["*"],
+			},
 		}),
 		expressiveCode({
 			themes: [expressiveCodeConfig.darkTheme, expressiveCodeConfig.lightTheme],
 			useDarkModeMediaQuery: false,
 			themeCssSelector: (theme) => `[data-theme='${theme.name}']`,
 			plugins: [
+				pluginLanguageBadge(),
 				pluginCollapsibleSections(),
 				pluginLineNumbers(),
-				// pluginLanguageBadge(),
-				pluginCustomCopyButton(),
+				// pluginCollapsible 配置 - 从expressiveCodeConfig读取设置，使用i18n文本
+				...(expressiveCodeConfig.pluginCollapsible?.enable === true
+					? [
+							pluginCollapsible({
+								lineThreshold:
+									expressiveCodeConfig.pluginCollapsible.lineThreshold || 15,
+								previewLines:
+									expressiveCodeConfig.pluginCollapsible.previewLines || 8,
+								defaultCollapsed:
+									expressiveCodeConfig.pluginCollapsible.defaultCollapsed ??
+									true,
+								expandButtonText: i18n(I18nKey.codeCollapsibleShowMore),
+								collapseButtonText: i18n(I18nKey.codeCollapsibleShowLess),
+								expandedAnnouncement: i18n(I18nKey.codeCollapsibleExpanded),
+								collapsedAnnouncement: i18n(I18nKey.codeCollapsibleCollapsed),
+							}),
+						]
+					: []),
 			],
 			defaultProps: {
 				wrap: false,
@@ -99,9 +128,17 @@ export default defineConfig({
 					insHue: 180,
 					markHue: 250,
 				},
+				languageBadge: {
+					fontSize: "0.75rem",
+					fontWeight: "bold",
+					borderRadius: "0.25rem",
+					opacity: "1",
+					borderWidth: "0px",
+					borderColor: "transparent",
+				},
 			},
 			frames: {
-				showCopyToClipboardButton: false,
+				showCopyToClipboardButton: true,
 			},
 		}),
 		svelte(),
@@ -124,7 +161,6 @@ export default defineConfig({
 				return true;
 			},
 		}),
-		searchIndexer(),
 		mdx(),
 	],
 	markdown: {
@@ -132,7 +168,6 @@ export default defineConfig({
 			remarkMath,
 			remarkReadingTime,
 			remarkExcerpt,
-			remarkGithubAdmonitionsToDirectives,
 			remarkDirective,
 			remarkSectionize,
 			parseDirectiveNode,
@@ -140,6 +175,7 @@ export default defineConfig({
 		],
 		rehypePlugins: [
 			[rehypeKatex, { katex }],
+			[rehypeCallouts, { theme: siteConfig.rehypeCallouts.theme }],
 			rehypeSlug,
 			rehypeMermaid,
 			rehypeFigure,
@@ -149,11 +185,6 @@ export default defineConfig({
 				{
 					components: {
 						github: GithubCardComponent,
-						note: (x, y) => AdmonitionComponent(x, y, "note"),
-						tip: (x, y) => AdmonitionComponent(x, y, "tip"),
-						important: (x, y) => AdmonitionComponent(x, y, "important"),
-						caution: (x, y) => AdmonitionComponent(x, y, "caution"),
-						warning: (x, y) => AdmonitionComponent(x, y, "warning"),
 					},
 				},
 			],
@@ -183,10 +214,28 @@ export default defineConfig({
 		],
 	},
 	vite: {
+		plugins: [tailwindcss()],
 		ssr: {
 			external: ["sharp", "satori", "@resvg/resvg-js"],
 		},
+		resolve: {
+			alias: {
+				"@rehype-callouts-theme": `rehype-callouts/theme/${siteConfig.rehypeCallouts.theme}`,
+			},
+		},
 		build: {
+			// 启用资源压缩和优化
+			minify: "terser",
+			terserOptions: {
+				compress: {
+					drop_console: false, // 生产环境可改为true移除console
+					drop_debugger: true,
+				},
+				mangle: true,
+				format: {
+					comments: false,
+				},
+			},
 			rollupOptions: {
 				onwarn(warning, warn) {
 					// temporarily suppress this warning
@@ -199,6 +248,15 @@ export default defineConfig({
 					warn(warning);
 				},
 			},
+			// CSS 优化
+			cssCodeSplit: true,
+			cssMinify: true,
+			// 资源大小限制 - 减少内联资源
+			assetsInlineLimit: 4096,
+			// 减少源映射大小（可选，生产环境改为false）
+			sourcemap: false,
+			// 并行处理构建
+			workers: 4,
 		},
 	},
 });

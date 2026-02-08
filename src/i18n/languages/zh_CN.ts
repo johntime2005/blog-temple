@@ -106,12 +106,32 @@ export const zh_CN: Translation = {
 	[Key.searchContent]: "内容",
 	[Key.searchViewMore]: "查看更多结果 ({count} 个更多)",
 	[Key.other]: "其他",
+	[Key.all]: "全部",
 
 	[Key.tags]: "标签",
 	[Key.categories]: "分类",
 	[Key.recentPosts]: "最新文章",
 	[Key.postList]: "文章列表",
 	[Key.tableOfContents]: "目录",
+	[Key.music]: "音乐",
+	[Key.musicNoPlaying]: "暂未播放",
+	[Key.musicLyrics]: "歌词",
+	[Key.musicVolume]: "音量",
+	[Key.musicPlayMode]: "切换播放模式",
+	[Key.musicPrev]: "上一首",
+	[Key.musicNext]: "下一首",
+	[Key.musicPlaylist]: "列表",
+	[Key.musicNoLyrics]: "暂无歌词",
+	[Key.musicLoadingLyrics]: "正在加载歌词...",
+	[Key.musicFailedLyrics]: "歌词加载失败",
+	[Key.musicNoSongs]: "暂无歌曲",
+	[Key.musicError]: "播放器错误",
+	[Key.musicPlay]: "播放",
+	[Key.musicPause]: "暂停",
+	[Key.musicProgress]: "播放进度",
+	[Key.musicCover]: "封面",
+	[Key.musicNoCover]: "暂无封面",
+	[Key.musicAudioPlayer]: "音频播放器",
 
 	// 公告栏
 	[Key.announcement]: "公告",
@@ -138,7 +158,7 @@ export const zh_CN: Translation = {
 	[Key.postCount]: "篇文章",
 	[Key.postsCount]: "篇文章",
 
-	[Key.themeColor]: "主题色",
+	[Key.themeColor]: "主题色相",
 
 	[Key.lightMode]: "亮色",
 	[Key.darkMode]: "暗色",
@@ -269,6 +289,11 @@ export const zh_CN: Translation = {
 	[Key.wallpaperOverlayMode]: "全屏透明",
 	[Key.wallpaperNoneMode]: "纯色背景",
 
+	// 文章布局
+	[Key.postListLayout]: "文章布局",
+	[Key.postListLayoutList]: "列表",
+	[Key.postListLayoutGrid]: "网格",
+
 	// 赞助页面
 	[Key.sponsor]: "赞助",
 	[Key.sponsorTitle]: "赞助支持",
@@ -287,7 +312,7 @@ export const zh_CN: Translation = {
 	[Key.sponsorButtonText]:
 		"如果这篇文章对你有帮助，欢迎分享给更多人或赞助支持！",
 
-	[Key.shareOnSocial]: "分享",
+	[Key.shareOnSocial]: "文章分享",
 	[Key.shareOnSocialDescription]: "如果这篇文章对你有帮助，欢迎分享给更多人！",
 
 	// 站点统计
@@ -300,6 +325,7 @@ export const zh_CN: Translation = {
 	[Key.siteStatsLastUpdate]: "最后活动",
 	[Key.siteStatsDaysAgo]: "{days} 天前",
 	[Key.siteStatsDays]: "{days} 天",
+	[Key.today]: "今天",
 
 	// 日历组件
 	[Key.calendarSunday]: "日",
@@ -328,4 +354,10 @@ export const zh_CN: Translation = {
 	[Key.copyLink]: "复制链接",
 	[Key.savePoster]: "保存海报",
 	[Key.scanToRead]: "扫码阅读文章",
+
+	// 代码块折叠配置
+	[Key.codeCollapsibleShowMore]: "显示更多",
+	[Key.codeCollapsibleShowLess]: "显示更少",
+	[Key.codeCollapsibleExpanded]: "代码块已展开",
+	[Key.codeCollapsibleCollapsed]: "代码块已折叠",
 };
