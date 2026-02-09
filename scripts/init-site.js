@@ -7,8 +7,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import readline from "node:readline";
+import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -93,10 +93,10 @@ async function main() {
 		"网站 URL (例如: https://blog.example.com/): ",
 	);
 	const siteTitle = await question("网站标题 (例如: 我的博客): ");
-	const siteSubtitle = await question("网站副标题 (例如: 记录生活，分享技术): ");
-	const siteDescription = await question(
-		"网站描述 (用于 SEO，可以稍长一点): ",
+	const siteSubtitle = await question(
+		"网站副标题 (例如: 记录生活，分享技术): ",
 	);
+	const siteDescription = await question("网站描述 (用于 SEO，可以稍长一点): ");
 
 	log("\n=== 个人信息 ===\n", "yellow");
 

@@ -1,6 +1,5 @@
 ---
-import Icon from "../components/misc/Icon.astro";
-import IconifyLoader from "../components/misc/IconifyLoader.astro";
+import Icon from "../components/common/Icon.astro";
 import { siteConfig } from "../config";
 import {
 	getCurrentItems,
@@ -76,8 +75,6 @@ const subtitle = i18n(I18nKey.timelineSubtitle);
 ---
 
 <MainGridLayout title={title} description={subtitle}>
-  <!-- 图标加载器，预加载所有时间线图标 -->
-  <IconifyLoader preloadIcons={allIcons} />
   <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
     <div class="card-base z-10 px-9 py-6 relative w-full">
       <!-- 页面标题 -->
@@ -124,7 +121,7 @@ const subtitle = i18n(I18nKey.timelineSubtitle);
                 <div class="flex items-start gap-4">
                   <div class="w-12 h-12 rounded-lg flex items-center justify-center" style={`background-color: ${item.color || 'rgb(99 102 241)'}20`}>
                     <Icon 
-                      icon={item.icon || getTypeIcon(item.type)} 
+                      name={item.icon || getTypeIcon(item.type)} 
                       class="text-2xl" 
                       color={item.color || 'rgb(99 102 241)'}
                       fallback={item.title.charAt(0)}
@@ -202,7 +199,7 @@ const subtitle = i18n(I18nKey.timelineSubtitle);
                 <!-- 时间线节点 -->
                 <div class="relative z-10 w-12 h-12 rounded-full flex items-center justify-center" style={`background-color: ${item.color || 'rgb(99 102 241)'}`}>
                   <Icon 
-                    icon={item.icon || getTypeIcon(item.type)} 
+                    name={item.icon || getTypeIcon(item.type)} 
                     class="text-xl text-white" 
                     color="white"
                     fallback={item.title.charAt(0)}

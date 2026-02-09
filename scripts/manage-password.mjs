@@ -30,7 +30,7 @@ try {
 			process.env[key.trim()] = value.trim().replace(/^["']|["']$/g, "");
 		}
 	}
-} catch (error) {
+} catch (_error) {
 	// 忽略错误，_error能已通过其他方式设置
 }
 

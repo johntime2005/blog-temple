@@ -5,14 +5,14 @@ import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
 
 interface Props {
-  headings: MarkdownHeading[];
+	headings: MarkdownHeading[];
 }
 
 let { headings = [] } = Astro.props;
 
 let minDepth = 10;
 for (const heading of headings) {
-  minDepth = Math.min(minDepth, heading.depth);
+	minDepth = Math.min(minDepth, heading.depth);
 }
 ---
 

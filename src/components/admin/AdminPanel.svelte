@@ -301,7 +301,7 @@ async function createShareLink(slug: string) {
 	const minutes = prompt("请输入有效期（分钟），默认60分钟：", "60, 10");
 	if (minutes === null) return;
 
-	const expiresInMinutes = Number.parseInt(minutes) || 60;
+	const expiresInMinutes = Number.parseInt(minutes, 10) || 60;
 
 	isProcessing = true;
 	errorMessage = "";

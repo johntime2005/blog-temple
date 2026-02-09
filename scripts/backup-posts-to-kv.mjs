@@ -31,7 +31,7 @@ try {
 			process.env[key.trim()] = value.trim().replace(/^["']|["']$/g, "");
 		}
 	}
-} catch (error) {
+} catch (_error) {
 	// 忽略错误，_error可能已通过其他方式设置
 }
 
@@ -150,12 +150,12 @@ async function backupPosts() {
 				files: indexEntries,
 			},
 			null,
-			2
+			2,
 		),
 		{
 			updatedAt: now,
 			count: indexEntries.length,
-		}
+		},
 	);
 
 	console.log(`\n🎉 备份完成，索引已写入: ${indexKey}`);

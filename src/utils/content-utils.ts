@@ -310,11 +310,14 @@ export async function getCategoriesWithConfig(): Promise<CategoryWithConfig[]> {
 	});
 
 	// 构建配置映射
-	const configMap = new Map<string, CollectionEntry<"categories">["data"] & { slug: string }>();
+	const configMap = new Map<
+		string,
+		CollectionEntry<"categories">["data"] & { slug: string }
+	>();
 	for (const entry of categoryEntries) {
 		configMap.set(entry.data.title, {
 			...entry.data,
-			slug: entry.data.slug || entry.id.replace(/\.md$/, ''),
+			slug: entry.data.slug || entry.id.replace(/\.md$/, ""),
 		});
 	}
 
@@ -346,7 +349,7 @@ export async function getCategoriesWithConfig(): Promise<CategoryWithConfig[]> {
 				name: categoryName,
 				count: count[categoryName],
 				url: getCategoryUrl(categoryName),
-				slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
+				slug: categoryName.toLowerCase().replace(/\s+/g, "-"),
 				icon: "material-symbols:folder",
 				description: "",
 				showInHome: true,
@@ -368,6 +371,5 @@ export async function getCategoriesWithConfig(): Promise<CategoryWithConfig[]> {
  */
 export async function getNavbarCategories(): Promise<CategoryWithConfig[]> {
 	const categories = await getCategoriesWithConfig();
-	return categories.filter(c => c.showInNavbar);
+	return categories.filter((c) => c.showInNavbar);
 }
-

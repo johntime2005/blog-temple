@@ -8,7 +8,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	for (const path of AUTH_PATHS_NEEDING_SLASH) {
 		if (pathname === path) {
 			const target = new URL(context.request.url);
-			target.pathname = path + "/";
+			target.pathname = `${path}/`;
 			return context.redirect(target.toString(), 302);
 		}
 	}

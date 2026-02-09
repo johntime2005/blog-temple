@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		}
 
 		const runtime = (locals as any).runtime as any;
-		
+
 		// Fallback for local dev (Node) where runtime.env might be missing
 		const getEnv = (key: string) => {
 			return runtime?.env?.[key] || import.meta.env[key] || process.env[key];
@@ -26,7 +26,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		const SITE_SECRET = getEnv("SITE_SECRET") || getEnv("GITHUB_CLIENT_SECRET");
 		const ownerUsername = getEnv("GITHUB_OWNER_USERNAME");
 
-		console.log(`[KeyAPI] Check: Owner=${ownerUsername}, HasSecret=${!!SITE_SECRET}`);
+		console.log(
+			`[KeyAPI] Check: Owner=${ownerUsername}, HasSecret=${!!SITE_SECRET}`,
+		);
 
 		if (!SITE_SECRET) {
 			console.error("SITE_SECRET not configured");
@@ -76,7 +78,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
 			// Valid share token! Check slug match
 			if (shareData.slug !== slug) {
 				return new Response(
-					JSON.stringify({ valid: false, message: "Invalid token for this post" }),
+					JSON.stringify({
+						valid: false,
+						message: "Invalid token for this post",
+					}),
 					{ status: 403 },
 				);
 			}
@@ -136,7 +141,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		// Restricted access level -> Owner only
 		if (accessLevel === "restricted" && !isOwner) {
 			return new Response(
-				JSON.stringify({ valid: false, message: "Forbidden: Restricted access" }),
+				JSON.stringify({
+					valid: false,
+					message: "Forbidden: Restricted access",
+				}),
 				{ status: 403 },
 			);
 		}

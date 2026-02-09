@@ -52,7 +52,7 @@ export async function getCategoryConfigFromContent(): Promise<CategoryConfigMap>
 		for (const entry of categoryEntries) {
 			const { data, id } = entry;
 			const categoryName = data.title;
-			const slug = data.slug || id.replace(/\.md$/, '');
+			const slug = data.slug || id.replace(/\.md$/, "");
 
 			configMap[categoryName] = {
 				id: categoryName,
@@ -72,7 +72,10 @@ export async function getCategoryConfigFromContent(): Promise<CategoryConfigMap>
 		cachedCategoryConfig = configMap;
 		return configMap;
 	} catch (error) {
-		console.warn("Failed to load categories from content, using defaults:", error);
+		console.warn(
+			"Failed to load categories from content, using defaults:",
+			error,
+		);
 		return defaultCategoryConfig;
 	}
 }
@@ -90,7 +93,9 @@ export function getCategoryConfig(): CategoryConfigMap {
  */
 export async function getCategoriesListAsync(): Promise<CategoryConfig[]> {
 	const config = await getCategoryConfigFromContent();
-	return Object.values(config).sort((a, b) => a.order - b.order) as CategoryConfig[];
+	return Object.values(config).sort(
+		(a, b) => a.order - b.order,
+	) as CategoryConfig[];
 }
 
 /**
@@ -98,7 +103,9 @@ export async function getCategoriesListAsync(): Promise<CategoryConfig[]> {
  */
 export function getCategoriesList(): CategoryConfig[] {
 	const config = getCategoryConfig();
-	return Object.values(config).sort((a, b) => a.order - b.order) as CategoryConfig[];
+	return Object.values(config).sort(
+		(a, b) => a.order - b.order,
+	) as CategoryConfig[];
 }
 
 /**
@@ -112,7 +119,9 @@ export function getCategoryById(id: string): CategoryConfig | undefined {
 /**
  * 根据 ID 异步获取类别
  */
-export async function getCategoryByIdAsync(id: string): Promise<CategoryConfig | undefined> {
+export async function getCategoryByIdAsync(
+	id: string,
+): Promise<CategoryConfig | undefined> {
 	const config = await getCategoryConfigFromContent();
 	return config[id] as CategoryConfig | undefined;
 }
@@ -153,7 +162,7 @@ export async function shouldShowCategoryInHomeAsync(
 export async function getNavbarCategories(): Promise<CategoryConfig[]> {
 	const config = await getCategoryConfigFromContent();
 	return Object.values(config)
-		.filter(c => c.showInNavbar)
+		.filter((c) => c.showInNavbar)
 		.sort((a, b) => a.order - b.order) as CategoryConfig[];
 }
 

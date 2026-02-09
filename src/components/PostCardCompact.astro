@@ -8,30 +8,30 @@ import { getTagUrl } from "../utils/url-utils";
 import PostMetadata from "./PostMeta.astro";
 
 interface Props {
-  class?: string;
-  entry: CollectionEntry<"posts">;
-  title: string;
-  url: string;
-  published: Date;
-  updated?: Date;
-  tags: string[];
-  category: string | null;
-  description: string;
-  draft: boolean;
-  pinned?: boolean;
-  style: string;
+	class?: string;
+	entry: CollectionEntry<"posts">;
+	title: string;
+	url: string;
+	published: Date;
+	updated?: Date;
+	tags: string[];
+	category: string | null;
+	description: string;
+	draft: boolean;
+	pinned?: boolean;
+	style: string;
 }
 const {
-  entry,
-  title,
-  url,
-  published,
-  updated,
-  tags,
-  category,
-  description,
-  pinned,
-  style,
+	entry,
+	title,
+	url,
+	published,
+	updated,
+	tags,
+	category,
+	description,
+	pinned,
+	style,
 } = Astro.props;
 const className = Astro.props.class;
 

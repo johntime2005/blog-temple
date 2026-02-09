@@ -14,7 +14,7 @@
 
 import { readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, join, normalize, isAbsolute } from "node:path";
+import { dirname, isAbsolute, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,7 +30,7 @@ try {
 			process.env[key.trim()] = value.trim().replace(/^["']|["']$/g, "");
 		}
 	}
-} catch (error) {
+} catch (_error) {
 	// 忽略错误，_error可能已通过其他方式设置
 }
 
@@ -83,13 +83,13 @@ async function kvGetValueText(key) {
  */
 async function listKeys(prefix) {
 	const keys = [];
-	let cursor = undefined;
+	let cursor;
 	let done = false;
 
 	while (!done) {
 		const query = cursor
 			? `/keys?prefix=${encodeURIComponent(prefix)}&cursor=${encodeURIComponent(
-					cursor
+					cursor,
 				)}`
 			: `/keys?prefix=${encodeURIComponent(prefix)}`;
 		const url = `${KV_API_BASE}${query}`;
@@ -159,7 +159,7 @@ async function restorePosts() {
 					path: item.path,
 				}));
 			}
-		} catch (error) {
+		} catch (_error) {
 			// 索引解析失败，回退到 keys 列表
 		}
 	}

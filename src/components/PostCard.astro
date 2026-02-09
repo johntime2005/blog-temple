@@ -7,47 +7,47 @@ import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { processCoverImageSync } from "../utils/image-utils";
 import { getDir, getTagUrl } from "../utils/url-utils";
-import RandomCoverImage from "./misc/RandomCoverImage.astro";
+import RandomCoverImage from "./common/RandomCoverImage.astro";
 import PostMetadata from "./PostMeta.astro";
 
 interface Props {
-  class?: string;
-  entry: CollectionEntry<"posts">;
-  title: string;
-  url: string;
-  published: Date;
-  updated?: Date;
-  tags: string[];
-  category: string | null;
-  image: string;
-  description: string;
-  draft: boolean;
-  pinned?: boolean;
-  featured?: boolean;
-  style?: string;
+	class?: string;
+	entry: CollectionEntry<"posts">;
+	title: string;
+	url: string;
+	published: Date;
+	updated?: Date;
+	tags: string[];
+	category: string | null;
+	image: string;
+	description: string;
+	draft: boolean;
+	pinned?: boolean;
+	featured?: boolean;
+	style?: string;
 }
 const {
-  entry,
-  title,
-  url,
-  published,
-  updated,
-  tags,
-  category,
-  image,
-  description,
-  pinned,
-  featured,
-  style,
+	entry,
+	title,
+	url,
+	published,
+	updated,
+	tags,
+	category,
+	image,
+	description,
+	pinned,
+	featured,
+	style,
 } = Astro.props;
 const className = Astro.props.class;
 
 // 处理封面图片（支持随机封面）
 const processedImage = processCoverImageSync(image, entry.id);
 const hasCover =
-  processedImage !== undefined &&
-  processedImage !== null &&
-  processedImage !== "";
+	processedImage !== undefined &&
+	processedImage !== null &&
+	processedImage !== "";
 
 const coverWidth = "28%";
 

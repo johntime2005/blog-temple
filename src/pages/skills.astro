@@ -1,6 +1,5 @@
 ---
-import Icon from "../components/misc/Icon.astro";
-import IconifyLoader from "../components/misc/IconifyLoader.astro";
+import Icon from "../components/common/Icon.astro";
 import { siteConfig } from "../config";
 import { UNCATEGORIZED } from "../constants/constants";
 import {
@@ -96,8 +95,6 @@ const allIcons = skillsData.map((skill) => skill.icon).filter(Boolean);
 ---
 
 <MainGridLayout title={title} description={subtitle}>
-  <!-- 图标加载器，预加载所有技能图标 -->
-  <IconifyLoader preloadIcons={allIcons} />
   <div
     class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32"
   >
@@ -175,7 +172,7 @@ const allIcons = skillsData.map((skill) => skill.icon).filter(Boolean);
                         style={`background-color: ${skill.color || "rgb(99 102 241)"}20`}
                       >
                         <Icon
-                          icon={skill.icon}
+                          name={skill.icon}
                           class="text-2xl"
                           color={skill.color || "rgb(99 102 241)"}
                           fallback={skill.name.charAt(0)}
@@ -269,7 +266,7 @@ const allIcons = skillsData.map((skill) => skill.icon).filter(Boolean);
                             style={`background-color: ${skill.color || "rgb(99 102 241)"}20`}
                           >
                             <Icon
-                              icon={skill.icon}
+                              name={skill.icon}
                               class="text-lg"
                               color={skill.color || "rgb(99 102 241)"}
                               fallback={skill.name.charAt(0)}
