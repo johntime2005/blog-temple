@@ -20,6 +20,10 @@ ${import.meta.env.DEV ? "local_backend: true" : ""}
 # 媒体文件配置
 media_folder: "public/assets/images"
 public_folder: "/assets/images"
+media_library:
+  name: ''
+  max_file_size: 10240000
+  folder_support: true
 
 # 发布模式
 publish_mode: editorial_workflow
@@ -166,6 +170,7 @@ collections:
       - { label: "在主页显示", name: "showInHome", widget: "boolean", default: true }
       - { label: "在导航栏显示", name: "showInNavbar", widget: "boolean", default: false }
       - { label: "同步到公共仓库", name: "syncToPublic", widget: "boolean", default: false }
+      - { label: "加密分类", name: "encrypted", widget: "boolean", default: false, hint: "开启后该分类下的文章默认启用加密" }
       - { label: "自定义链接", name: "customLink", widget: "string", required: false }
 `;
 

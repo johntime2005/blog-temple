@@ -18,12 +18,20 @@ export interface Category {
 	description?: string;
 	/** 是否在主页显示该类别的文章 */
 	showInHome: boolean;
+	/** 是否在导航栏显示 */
+	showInNavbar?: boolean;
+	/** 是否同步到公共仓库 */
+	syncToPublic?: boolean;
+	/** 是否加密该分类 */
+	encrypted?: boolean;
 	/** 排序顺序 (数字越小越靠前) */
 	order: number;
 	/** 类别主题色 (十六进制颜色代码) */
 	color?: string;
 	/** 类别 URL slug (用于生成链接) */
 	slug?: string;
+	/** 自定义链接 */
+	customLink?: string;
 }
 
 /**

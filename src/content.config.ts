@@ -84,6 +84,7 @@ const categoriesCollection = defineCollection({
 		showInHome: z.boolean().default(true),
 		showInNavbar: z.boolean().default(false),
 		syncToPublic: z.boolean().default(false),
+		encrypted: z.boolean().default(false), // Whether this category requires encryption
 		order: z.number().default(99),
 		color: z.string().optional().default("#3b82f6"),
 		icon: z.string().optional().default("material-symbols:folder"),

@@ -1,5 +1,4 @@
 import { getCollection } from "astro:content";
-import type { CategoryConfigMap } from "../types/admin";
 
 /**
  * 分类配置接口
@@ -13,10 +12,13 @@ export interface CategoryConfig {
 	showInHome: boolean;
 	showInNavbar: boolean;
 	syncToPublic: boolean;
+	encrypted: boolean;
 	order: number;
 	color: string;
 	customLink?: string;
 }
+
+export type CategoryConfigMap = Record<string, CategoryConfig>;
 
 /**
  * 默认分类配置（用于兼容和兜底）
@@ -28,6 +30,9 @@ export const defaultCategoryConfig: CategoryConfigMap = {
 		icon: "material-symbols:edit-note",
 		description: "博客相关文章",
 		showInHome: true,
+		showInNavbar: false,
+		syncToPublic: false,
+		encrypted: false,
 		order: 99,
 		color: "#3b82f6",
 		slug: "blog",
@@ -63,6 +68,7 @@ export async function getCategoryConfigFromContent(): Promise<CategoryConfigMap>
 				showInHome: data.showInHome ?? true,
 				showInNavbar: data.showInNavbar ?? false,
 				syncToPublic: data.syncToPublic ?? false,
+				encrypted: data.encrypted ?? false,
 				order: data.order ?? 99,
 				color: data.color || "#3b82f6",
 				customLink: data.customLink,
