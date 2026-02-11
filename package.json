@@ -42,6 +42,8 @@
 		"@iconify-json/simple-icons": "^1.2.69",
 		"@iconify/svelte": "^5.2.1",
 		"@iconify/utils": "^3.1.0",
+		"@keystatic/astro": "^5.0.6",
+		"@keystatic/core": "^0.5.48",
 		"@swup/astro": "^1.7.0",
 		"@tailwindcss/typography": "^0.5.16",
 		"@types/crypto-js": "^4.2.2",

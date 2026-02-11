@@ -8,6 +8,7 @@ import type {
 } from "../constants/constants";
 
 export type SiteConfig = {
+	initialized?: boolean; // 是否已初始化
 	title: string;
 	subtitle: string;
 	site_url: string;

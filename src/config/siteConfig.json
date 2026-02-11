@@ -1,0 +1,72 @@
+{
+	"initialized": true,
+	"title": "johntime 的博客",
+	"subtitle": "记录生活，分享技术",
+	"site_url": "https://blog.johntime.top",
+	"description": "johntime 的个人博客，记录学习笔记、技术分享、生活随笔。内容涵盖服务器搭建、开源项目、旅行记录等。",
+	"keywords": ["johntime", "个人博客", "技术博客", "开源", "旅行", "生活记录"],
+	"lang": "zh_CN",
+	"themeColor": {
+		"hue": 155,
+		"fixed": false,
+		"defaultMode": "system"
+	},
+	"card": {
+		"border": true
+	},
+	"favicon": [
+		{
+			"src": "/assets/images/favicon.ico"
+		}
+	],
+	"navbar": {
+		"logo": {
+			"type": "image",
+			"value": "/assets/images/firefly.png",
+			"alt": "🍀"
+		},
+		"title": "johntime 的博客",
+		"widthFull": false,
+		"followTheme": false
+	},
+	"siteStartDate": "2025-01-01",
+	"timezone": "Asia/Shanghai",
+	"rehypeCallouts": {
+		"theme": "github"
+	},
+	"showLastModified": true,
+	"outdatedThreshold": 30,
+	"sharePoster": true,
+	"generateOgImages": false,
+	"bangumi": {
+		"userId": "1176159"
+	},
+	"pages": {
+		"anime": true,
+		"sponsor": false,
+		"guestbook": true,
+		"bangumi": true,
+		"projects": true,
+		"timeline": true,
+		"skills": true
+	},
+	"postListLayout": {
+		"defaultMode": "list",
+		"allowSwitch": true,
+		"grid": {
+			"masonry": false,
+			"columns": 3
+		}
+	},
+	"pagination": {
+		"postsPerPage": 10
+	},
+	"analytics": {
+		"googleAnalyticsId": "",
+		"microsoftClarityId": ""
+	},
+	"toc": {
+		"enable": true,
+		"depth": 3
+	}
+}

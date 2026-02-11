@@ -2,6 +2,7 @@ import cloudflare from "@astrojs/cloudflare";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
+import keystatic from "@keystatic/astro";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import swup from "@swup/astro";
@@ -35,6 +36,7 @@ import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 
 // https://astro.build/config
 export default defineConfig({
+	output: "server",
 	site: siteConfig.site_url,
 
 	base: "/",
@@ -68,6 +70,7 @@ export default defineConfig({
 				return event.state?.url?.includes("#");
 			},
 		}),
+		keystatic(),
 		icon({
 			include: {
 				"material-symbols": ["*"],
