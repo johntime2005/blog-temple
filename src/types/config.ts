@@ -75,6 +75,10 @@ export type SiteConfig = {
 		sponsor: boolean; // 赞助页面开关
 		guestbook: boolean; // 留言板页面开关
 		bangumi: boolean;
+		anime?: boolean;
+		projects?: boolean;
+		timeline?: boolean;
+		skills?: boolean;
 	};
 
 	// 文章列表布局配置

@@ -48,7 +48,7 @@ export const siteConfig: SiteConfig = {
 	navbar: {
 		logo: {
 			type: "image",
-			value: "/assets/images/LiuYingPure3.svg",
+			value: "/assets/images/firefly.png",
 			alt: "🍀",
 		},
 		title: "johntime 的博客",
