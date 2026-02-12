@@ -217,6 +217,15 @@ export default defineConfig({
 		],
 	},
 	vite: {
+		define: {
+			// Expose env vars to client-side bundle for Keystatic
+			"import.meta.env.GITHUB_CLIENT_ID": JSON.stringify(
+				process.env.GITHUB_CLIENT_ID,
+			),
+			"import.meta.env.GITHUB_OWNER_USERNAME": JSON.stringify(
+				process.env.GITHUB_OWNER_USERNAME,
+			),
+		},
 		plugins: [tailwindcss()],
 		ssr: {
 			external: ["sharp", "satori", "@resvg/resvg-js"],
