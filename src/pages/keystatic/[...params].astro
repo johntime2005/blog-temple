@@ -1,8 +1,7 @@
 ---
+import { Keystatic } from '../../components/Keystatic';
+
 export const prerender = false;
 ---
-<!doctype html>
-<html>
-<head><title>Debug Astro</title></head>
-<body><h1>Debug Astro Page</h1></body>
-</html>
+
+<Keystatic client:only="react" />
