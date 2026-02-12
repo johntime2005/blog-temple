@@ -11,8 +11,8 @@ export const ALL = async (context: any) => {
     const clientId = getVar('GITHUB_CLIENT_ID');
     const clientSecret = getVar('GITHUB_CLIENT_SECRET');
 
-    // Minimal plain object config
-    const inlineConfig = {
+    // Internal config structure (the 'config' property)
+    const internalConfig = {
       storage: {
         kind: 'github' as const,
         repo: 'johntime2005/blog',
@@ -21,6 +21,8 @@ export const ALL = async (context: any) => {
         clientId,
         clientSecret,
       },
+      // Note: 'secret' inside config is used by some internal logic, 
+      // but 'secret' at top level of makeGenericAPIRouteHandler is used for auth.
       secret,
       collections: {}, 
       singletons: {}
@@ -30,7 +32,15 @@ export const ALL = async (context: any) => {
          throw new Error(`Missing vars: secret=${!!secret}, clientId=${!!clientId}, clientSecret=${!!clientSecret}`);
     }
 
-    const apiHandler = makeGenericAPIRouteHandler(inlineConfig, {
+    // Wrapper object expected by makeGenericAPIRouteHandler
+    const handlerOptions = {
+        config: internalConfig,
+        clientId,
+        clientSecret,
+        secret
+    };
+
+    const apiHandler = makeGenericAPIRouteHandler(handlerOptions, {
       slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
     });
 
@@ -38,7 +48,6 @@ export const ALL = async (context: any) => {
 
     const responseHeaders = new Headers();
     if (headers) {
-        // Handle various header formats (Map, Array, Object)
         if (typeof headers.entries === 'function') {
             for (const [key, value] of headers.entries()) {
                 if (Array.isArray(value)) {
@@ -67,7 +76,7 @@ export const ALL = async (context: any) => {
 
   } catch (error: any) {
     return new Response(JSON.stringify({ 
-        error: "Keystatic API Handler Error (Core Direct)",
+        error: "Keystatic API Handler Error (Wrapper Fix)",
         details: error.message,
         stack: error.stack
     }, null, 2), { 
