@@ -11,7 +11,6 @@ export const ALL = async (context: any) => {
     const clientId = getVar('GITHUB_CLIENT_ID');
     const clientSecret = getVar('GITHUB_CLIENT_SECRET');
 
-    // Internal config structure (the 'config' property)
     const internalConfig = {
       storage: {
         kind: 'github' as const,
@@ -21,8 +20,6 @@ export const ALL = async (context: any) => {
         clientId,
         clientSecret,
       },
-      // Note: 'secret' inside config is used by some internal logic, 
-      // but 'secret' at top level of makeGenericAPIRouteHandler is used for auth.
       secret,
       collections: {}, 
       singletons: {}
@@ -32,7 +29,6 @@ export const ALL = async (context: any) => {
          throw new Error(`Missing vars: secret=${!!secret}, clientId=${!!clientId}, clientSecret=${!!clientSecret}`);
     }
 
-    // Wrapper object expected by makeGenericAPIRouteHandler
     const handlerOptions = {
         config: internalConfig,
         clientId,
@@ -45,6 +41,41 @@ export const ALL = async (context: any) => {
     });
 
     const { body, headers, status } = await apiHandler(context.request);
+
+    // DEBUG: Intercept Redirects to verify URL generation
+    if (status === 307 || status === 302) {
+        const debugHeaders: any[] = [];
+        let location = '';
+        
+        if (headers) {
+            if (Array.isArray(headers)) {
+                headers.forEach(([k, v]) => {
+                    debugHeaders.push([k, v]);
+                    if (k.toLowerCase() === 'location') location = v;
+                });
+            } else if (typeof headers.entries === 'function') {
+                 for (const [k, v] of headers.entries()) {
+                     debugHeaders.push([k, v]);
+                     if (k.toLowerCase() === 'location') location = v as string;
+                 }
+            } else {
+                 for (const [k, v] of Object.entries(headers)) {
+                     debugHeaders.push([k, v]);
+                     if (k.toLowerCase() === 'location') location = v as string;
+                 }
+            }
+        }
+
+        return new Response(JSON.stringify({
+            status: 'Debug Intercept',
+            originalStatus: status,
+            location,
+            headers: debugHeaders,
+            configClientId: clientId ? clientId.substring(0, 5) + '...' : 'missing'
+        }, null, 2), {
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
 
     const responseHeaders = new Headers();
     if (headers) {
@@ -76,7 +107,7 @@ export const ALL = async (context: any) => {
 
   } catch (error: any) {
     return new Response(JSON.stringify({ 
-        error: "Keystatic API Handler Error (Wrapper Fix)",
+        error: "Keystatic API Handler Error",
         details: error.message,
         stack: error.stack
     }, null, 2), { 
