@@ -5,7 +5,10 @@ export const prerender = false;
 export const ALL = async (context: any) => {
   try {
     const env = context.locals?.runtime?.env || {};
-    const getVar = (k: string) => env[k];
+    const getVar = (k: string) => {
+        const val = env[k];
+        return typeof val === 'string' ? val.trim() : val;
+    };
 
     const secret = getVar('SITE_SECRET');
     const clientId = getVar('GITHUB_CLIENT_ID');
@@ -44,7 +47,6 @@ export const ALL = async (context: any) => {
 
     const responseHeaders = new Headers();
     if (headers) {
-        // Normalize headers
         const headerEntries = Array.isArray(headers) 
             ? headers 
             : typeof headers.entries === 'function' 
