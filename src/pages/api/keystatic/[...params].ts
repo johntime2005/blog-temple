@@ -4,19 +4,48 @@ import config from '../../../../keystatic.config';
 export const prerender = false;
 
 export const ALL = async (context: any) => {
-  const env = context.locals?.runtime?.env || import.meta.env;
+  try {
+    const env = context.locals?.runtime?.env || {};
+    // Fallback to process.env or import.meta.env if needed, but Cloudflare usually puts it in locals.runtime.env
+    
+    // Helper to get var
+    const getVar = (key: string) => env[key] || import.meta.env[key];
 
-  const enrichedConfig = {
-    ...config,
-    github: {
-      ...(config.github || {}),
-      clientId: env.GITHUB_CLIENT_ID || config.github?.clientId,
-      clientSecret: env.GITHUB_CLIENT_SECRET || config.github?.clientSecret,
-    },
-    // Keystatic needs a secret for session cookies.
-    // We map SITE_SECRET (from user env) to this field.
-    secret: env.SITE_SECRET || env.KEYSTATIC_SECRET || config.secret,
-  };
+    const clientId = getVar('GITHUB_CLIENT_ID');
+    const clientSecret = getVar('GITHUB_CLIENT_SECRET');
+    const secret = getVar('SITE_SECRET') || getVar('KEYSTATIC_SECRET');
 
-  return makeHandler(enrichedConfig)(context);
+    const enrichedConfig = {
+      ...config,
+      github: {
+        ...(config.github || {}),
+        clientId: clientId || config.github?.clientId,
+        clientSecret: clientSecret || config.github?.clientSecret,
+      },
+      secret: secret || config.secret,
+    };
+    
+    if (!enrichedConfig.secret) {
+       throw new Error("Missing 'secret' (SITE_SECRET or KEYSTATIC_SECRET).");
+    }
+    if (!enrichedConfig.github?.clientId) {
+       throw new Error("Missing 'GITHUB_CLIENT_ID'.");
+    }
+    if (!enrichedConfig.github?.clientSecret) {
+       throw new Error("Missing 'GITHUB_CLIENT_SECRET'.");
+    }
+
+    return await makeHandler(enrichedConfig)(context);
+  } catch (error: any) {
+    return new Response(JSON.stringify({
+      message: "Keystatic API Error",
+      error: error.message,
+      stack: error.stack,
+      debug: {
+          hasRuntimeEnv: !!context.locals?.runtime?.env,
+          envKeys: Object.keys(context.locals?.runtime?.env || {}),
+          metaKeys: Object.keys(import.meta.env || {}).filter(k => !k.startsWith('Private')),
+      }
+    }, null, 2), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  }
 };
