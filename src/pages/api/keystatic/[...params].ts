@@ -5,7 +5,10 @@ export const prerender = false;
 export const ALL = async (context: any) => {
   try {
     const env = context.locals?.runtime?.env || {};
-    const getVar = (k: string) => env[k];
+    const getVar = (k: string) => {
+        const val = env[k];
+        return typeof val === 'string' ? val.trim() : val;
+    };
 
     const secret = getVar('SITE_SECRET');
     const clientId = getVar('GITHUB_CLIENT_ID');
@@ -40,17 +43,44 @@ export const ALL = async (context: any) => {
       slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
     });
 
+    // MONKEY PATCH with RESPONSE DEBUGGING
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input, init) => {
-        try {
-            const urlStr = input.toString();
-            // Broader match
-            if (urlStr.includes('github.com') && urlStr.includes('access_token')) {
-                 // PROBE: Force crash to prove interception
-                 throw new Error("DEBUG_PROBE: Intercepted " + urlStr);
-            }
-        } catch (e: any) {
-            if (e.message.startsWith("DEBUG_PROBE")) throw e;
+        let urlStr = String(input);
+        
+        // Handle URL object
+        if (input && typeof (input as any).href === 'string') {
+             urlStr = (input as any).href;
+        }
+
+        if (urlStr.includes('github.com/login/oauth/access_token')) {
+             if (!urlStr.includes('redirect_uri=')) {
+                 const separator = urlStr.includes('?') ? '&' : '?';
+                 const redirectUri = encodeURIComponent('https://blog.johntime.top/api/keystatic/github/oauth/callback');
+                 urlStr = `${urlStr}${separator}redirect_uri=${redirectUri}`;
+                 
+                 const res = await originalFetch(urlStr, init);
+                 
+                 // If GitHub returns error, capture it
+                 if (!res.ok) {
+                     const text = await res.clone().text();
+                     throw new Error(`GitHub Token Exchange HTTP Error ${res.status}: ${text}`);
+                 }
+                 
+                 // GitHub might return 200 OK but with "error" field in JSON?
+                 // Let's check.
+                 const clone = res.clone();
+                 try {
+                     const data = await clone.json() as any;
+                     if (data.error) {
+                         throw new Error(`GitHub Token Exchange JSON Error: ${data.error} - ${data.error_description}`);
+                     }
+                 } catch (e) {
+                     // Ignore json parse error here, it might be fine or not json
+                 }
+
+                 return res;
+             }
         }
         return originalFetch(input, init);
     };
@@ -92,7 +122,7 @@ export const ALL = async (context: any) => {
     return new Response(JSON.stringify({ 
         error: "Keystatic API Handler Error",
         details: error.message,
-        probe: "Did we catch the fetch?"
+        stack: error.stack
     }, null, 2), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
