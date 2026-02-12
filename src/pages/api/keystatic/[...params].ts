@@ -45,24 +45,45 @@ export const ALL = async (context: any) => {
 
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input, init) => {
-        let urlStr = String(input);
-        if (input && typeof (input as any).href === 'string') {
-             urlStr = (input as any).href;
-        }
-
+        const urlStr = String(input);
         if (urlStr.includes('github.com/login/oauth/access_token')) {
-             if (!urlStr.includes('redirect_uri=')) {
-                 const separator = urlStr.includes('?') ? '&' : '?';
-                 const redirectUri = encodeURIComponent('https://blog.johntime.top/api/keystatic/github/oauth/callback');
-                 urlStr = `${urlStr}${separator}redirect_uri=${redirectUri}`;
+             // CLEAN REBUILD STRATEGY
+             // Ignore Keystatic's URL construction, build our own pristine request
+             try {
+                 const currentUrl = new URL(urlStr);
+                 const code = currentUrl.searchParams.get('code');
                  
-                 const res = await originalFetch(urlStr, init);
-                 
-                 const clone = res.clone();
-                 const text = await clone.text();
-                 
-                 // DEBUG: check original request URL protocol
-                 throw new Error(`DEBUG_TOKEN_DUMP || REQ_URL: ${context.request.url} || TOKEN_URL: ${urlStr.replace(clientSecret, '***')} || BODY: ${text}`);
+                 if (code) {
+                     const cleanUrl = new URL('https://github.com/login/oauth/access_token');
+                     cleanUrl.searchParams.set('client_id', clientId);
+                     cleanUrl.searchParams.set('client_secret', clientSecret);
+                     cleanUrl.searchParams.set('code', code);
+                     cleanUrl.searchParams.set('redirect_uri', 'https://blog.johntime.top/api/keystatic/github/oauth/callback');
+                     
+                     const cleanInit = {
+                         method: 'POST',
+                         headers: { 'Accept': 'application/json' }
+                     };
+                     
+                     const res = await originalFetch(cleanUrl.toString(), cleanInit);
+                     
+                     // If error, capture it for debugging
+                     if (!res.ok) {
+                         const text = await res.clone().text();
+                         throw new Error(`GitHub HTTP ${res.status}: ${text}`);
+                     }
+                     
+                     const clone = res.clone();
+                     const data = await clone.json() as any;
+                     if (data.error) {
+                         throw new Error(`GitHub JSON Error: ${data.error} - ${data.error_description}`);
+                     }
+                     
+                     return res;
+                 }
+             } catch (e: any) {
+                 if (e.message.includes('GitHub')) throw e; // Re-throw auth errors
+                 // Else ignore parsing errors
              }
         }
         return originalFetch(input, init);
@@ -75,8 +96,8 @@ export const ALL = async (context: any) => {
         globalThis.fetch = originalFetch;
     }
 
-    // ... response logic ...
     const { body, headers, status } = result;
+
     const responseHeaders = new Headers();
     if (headers) {
         const headerEntries = Array.isArray(headers) 
@@ -93,13 +114,21 @@ export const ALL = async (context: any) => {
             }
         }
     }
+
     const finalBody = body === null && (status === 302 || status === 307) ? "Redirecting..." : body;
-    return new Response(finalBody, { status, headers: responseHeaders });
+
+    return new Response(finalBody, {
+        status,
+        headers: responseHeaders
+    });
 
   } catch (error: any) {
     return new Response(JSON.stringify({ 
-        error: "Keystatic API Debug",
-        details: error.message,
-    }, null, 2), { status: 500, headers: { 'Content-Type': 'application/json' } });
+        error: "Keystatic API Handler Error",
+        details: error.message
+    }, null, 2), { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+    });
   }
 };
