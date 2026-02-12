@@ -43,12 +43,11 @@ export const ALL = async (context: any) => {
       slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
     });
 
+    // MONKEY PATCH: Clean URL + Response Polyfill
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input, init) => {
         const urlStr = String(input);
         if (urlStr.includes('github.com/login/oauth/access_token')) {
-             // CLEAN REBUILD STRATEGY
-             // Ignore Keystatic's URL construction, build our own pristine request
              try {
                  const currentUrl = new URL(urlStr);
                  const code = currentUrl.searchParams.get('code');
@@ -67,23 +66,38 @@ export const ALL = async (context: any) => {
                      
                      const res = await originalFetch(cleanUrl.toString(), cleanInit);
                      
-                     // If error, capture it for debugging
-                     if (!res.ok) {
-                         const text = await res.clone().text();
-                         throw new Error(`GitHub HTTP ${res.status}: ${text}`);
-                     }
+                     if (!res.ok) return res; // Let Keystatic handle error
                      
-                     const clone = res.clone();
-                     const data = await clone.json() as any;
+                     // Polyfill missing fields
+                     const data = await res.json() as any;
+                     
+                     // Log internal error if any
                      if (data.error) {
-                         throw new Error(`GitHub JSON Error: ${data.error} - ${data.error_description}`);
+                         // We can't fix this, pass it through.
+                         // But for debugging, we might want to throw?
+                         // Let's pass it through so Keystatic sees it.
+                         return new Response(JSON.stringify(data), { status: 200 }); 
                      }
                      
-                     return res;
+                     // Normalize fields
+                     if (!data.refresh_token) {
+                         data.refresh_token = "dummy_refresh_token_polyfill";
+                         data.refresh_token_expires_in = 15552000;
+                     }
+                     if (!data.expires_in) {
+                         data.expires_in = 28800; // 8 hours
+                     }
+                     if (data.token_type) {
+                         data.token_type = data.token_type.toLowerCase();
+                     }
+
+                     return new Response(JSON.stringify(data), {
+                         status: 200,
+                         headers: { 'Content-Type': 'application/json' }
+                     });
                  }
-             } catch (e: any) {
-                 if (e.message.includes('GitHub')) throw e; // Re-throw auth errors
-                 // Else ignore parsing errors
+             } catch (e) {
+                 console.error("Fetch patch error:", e);
              }
         }
         return originalFetch(input, init);
