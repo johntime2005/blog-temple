@@ -6,17 +6,25 @@ export const prerender = false;
 export const ALL = async (context: any) => {
   try {
     const env = context.locals?.runtime?.env || {};
-    // Fallback to process.env or import.meta.env if needed, but Cloudflare usually puts it in locals.runtime.env
-    
-    // Helper to get var
-    const getVar = (key: string) => env[key] || import.meta.env[key];
+    // Helper to get var from runtime or build time
+    const getVar = (key: string) => env[key] || (import.meta.env ? import.meta.env[key] : undefined);
 
     const clientId = getVar('GITHUB_CLIENT_ID');
     const clientSecret = getVar('GITHUB_CLIENT_SECRET');
     const secret = getVar('SITE_SECRET') || getVar('KEYSTATIC_SECRET');
+    const repoOwner = getVar('GITHUB_OWNER_USERNAME') || 'johntime2005';
+
+    // DEBUG: Check imported config
+    if (!config) {
+        throw new Error("Imported 'config' is undefined.");
+    }
 
     const enrichedConfig = {
       ...config,
+      storage: {
+        kind: 'github',
+        repo: `${repoOwner}/blog`
+      },
       github: {
         ...(config.github || {}),
         clientId: clientId || config.github?.clientId,
@@ -26,13 +34,7 @@ export const ALL = async (context: any) => {
     };
     
     if (!enrichedConfig.secret) {
-       throw new Error("Missing 'secret' (SITE_SECRET or KEYSTATIC_SECRET).");
-    }
-    if (!enrichedConfig.github?.clientId) {
-       throw new Error("Missing 'GITHUB_CLIENT_ID'.");
-    }
-    if (!enrichedConfig.github?.clientSecret) {
-       throw new Error("Missing 'GITHUB_CLIENT_SECRET'.");
+       throw new Error("Missing 'secret'. Enriched config: " + JSON.stringify(Object.keys(enrichedConfig)));
     }
 
     return await makeHandler(enrichedConfig)(context);
@@ -42,9 +44,8 @@ export const ALL = async (context: any) => {
       error: error.message,
       stack: error.stack,
       debug: {
-          hasRuntimeEnv: !!context.locals?.runtime?.env,
-          envKeys: Object.keys(context.locals?.runtime?.env || {}),
-          metaKeys: Object.keys(import.meta.env || {}).filter(k => !k.startsWith('Private')),
+          configKeys: config ? Object.keys(config) : 'null',
+          envKeys: Object.keys(env),
       }
     }, null, 2), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
