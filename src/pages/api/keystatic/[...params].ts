@@ -1,4 +1,4 @@
-import { makeHandler } from '@keystatic/astro/api';
+import { makeGenericAPIRouteHandler } from '@keystatic/core/api/generic';
 
 export const prerender = false;
 
@@ -11,7 +11,7 @@ export const ALL = async (context: any) => {
     const clientId = getVar('GITHUB_CLIENT_ID');
     const clientSecret = getVar('GITHUB_CLIENT_SECRET');
 
-    // Minimal plain object config for Auth test
+    // Minimal plain object config
     const inlineConfig = {
       storage: {
         kind: 'github' as const,
@@ -30,13 +30,46 @@ export const ALL = async (context: any) => {
          throw new Error(`Missing vars: secret=${!!secret}, clientId=${!!clientId}, clientSecret=${!!clientSecret}`);
     }
 
-    return await makeHandler(inlineConfig)(context);
+    const apiHandler = makeGenericAPIRouteHandler(inlineConfig, {
+      slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
+    });
+
+    const { body, headers, status } = await apiHandler(context.request);
+
+    const responseHeaders = new Headers();
+    if (headers) {
+        // Handle various header formats (Map, Array, Object)
+        if (typeof headers.entries === 'function') {
+            for (const [key, value] of headers.entries()) {
+                if (Array.isArray(value)) {
+                    value.forEach(v => responseHeaders.append(key, v));
+                } else {
+                    responseHeaders.append(key, value);
+                }
+            }
+        } else if (Array.isArray(headers)) {
+            headers.forEach(([key, value]) => responseHeaders.append(key, value));
+        } else {
+            for (const [key, value] of Object.entries(headers)) {
+                if (Array.isArray(value)) {
+                    value.forEach(v => responseHeaders.append(key, v as string));
+                } else {
+                    responseHeaders.append(key, value as string);
+                }
+            }
+        }
+    }
+
+    return new Response(body, {
+        status,
+        headers: responseHeaders
+    });
+
   } catch (error: any) {
     return new Response(JSON.stringify({ 
-        error: "Keystatic API Handler Error",
+        error: "Keystatic API Handler Error (Core Direct)",
         details: error.message,
-        stack: error.stack,
-        configDump: "Config created successfully" 
+        stack: error.stack
     }, null, 2), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
