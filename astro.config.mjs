@@ -219,11 +219,12 @@ export default defineConfig({
 	vite: {
 		define: {
 			// Expose env vars to client-side bundle for Keystatic
+			// Hardcoded to ensure they are present in the build
 			"import.meta.env.GITHUB_CLIENT_ID": JSON.stringify(
-				process.env.GITHUB_CLIENT_ID,
+				"Ov23liJaO14SO0HHQVD8",
 			),
 			"import.meta.env.GITHUB_OWNER_USERNAME": JSON.stringify(
-				process.env.GITHUB_OWNER_USERNAME,
+				process.env.GITHUB_OWNER_USERNAME || "johntime2005",
 			),
 		},
 		plugins: [tailwindcss()],
