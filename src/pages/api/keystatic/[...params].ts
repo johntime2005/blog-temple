@@ -42,65 +42,28 @@ export const ALL = async (context: any) => {
 
     const { body, headers, status } = await apiHandler(context.request);
 
-    // DEBUG: Intercept Redirects to verify URL generation
-    if (status === 307 || status === 302) {
-        const debugHeaders: any[] = [];
-        let location = '';
-        
-        if (headers) {
-            if (Array.isArray(headers)) {
-                headers.forEach(([k, v]) => {
-                    debugHeaders.push([k, v]);
-                    if (k.toLowerCase() === 'location') location = v;
-                });
-            } else if (typeof headers.entries === 'function') {
-                 for (const [k, v] of headers.entries()) {
-                     debugHeaders.push([k, v]);
-                     if (k.toLowerCase() === 'location') location = v as string;
-                 }
-            } else {
-                 for (const [k, v] of Object.entries(headers)) {
-                     debugHeaders.push([k, v]);
-                     if (k.toLowerCase() === 'location') location = v as string;
-                 }
-            }
-        }
-
-        return new Response(JSON.stringify({
-            status: 'Debug Intercept',
-            originalStatus: status,
-            location,
-            headers: debugHeaders,
-            configClientId: clientId ? clientId.substring(0, 5) + '...' : 'missing'
-        }, null, 2), {
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
-
     const responseHeaders = new Headers();
     if (headers) {
-        if (typeof headers.entries === 'function') {
-            for (const [key, value] of headers.entries()) {
-                if (Array.isArray(value)) {
-                    value.forEach(v => responseHeaders.append(key, v));
-                } else {
-                    responseHeaders.append(key, value);
-                }
-            }
-        } else if (Array.isArray(headers)) {
-            headers.forEach(([key, value]) => responseHeaders.append(key, value));
-        } else {
-            for (const [key, value] of Object.entries(headers)) {
-                if (Array.isArray(value)) {
-                    value.forEach(v => responseHeaders.append(key, v as string));
-                } else {
-                    responseHeaders.append(key, value as string);
-                }
+        // Normalize headers
+        const headerEntries = Array.isArray(headers) 
+            ? headers 
+            : typeof headers.entries === 'function' 
+                ? Array.from(headers.entries())
+                : Object.entries(headers);
+
+        for (const [key, value] of headerEntries) {
+            if (Array.isArray(value)) {
+                value.forEach(v => responseHeaders.append(key, v));
+            } else {
+                responseHeaders.append(key, value as string);
             }
         }
     }
 
-    return new Response(body, {
+    // Ensure body is not null for redirect if that helps (though null is standard)
+    const finalBody = body === null && (status === 302 || status === 307) ? "Redirecting..." : body;
+
+    return new Response(finalBody, {
         status,
         headers: responseHeaders
     });
