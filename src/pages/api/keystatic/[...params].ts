@@ -8,7 +8,7 @@ export const ALL = async (context: any) => {
     if (typeof process !== 'undefined') {
         process.env.NODE_ENV = 'production';
     } else {
-        // Polyfill process if missing
+        // Polyfill process if missing in Worker
         (globalThis as any).process = { env: { NODE_ENV: 'production' } };
     }
 
@@ -81,7 +81,7 @@ export const ALL = async (context: any) => {
                          return new Response(JSON.stringify(data), { status: 200 }); 
                      }
                      
-                     // Polyfill
+                     // Polyfill missing fields for Keystatic validation
                      if (!data.refresh_token) {
                          data.refresh_token = "dummy_refresh_token_polyfill";
                          data.refresh_token_expires_in = 15552000;
@@ -114,11 +114,6 @@ export const ALL = async (context: any) => {
 
     const { body, headers, status } = result;
 
-    // DEBUG: Check headers before sending
-    if (status === 307 && context.request.url.includes('callback')) {
-         throw new Error("DEBUG_HEADERS: " + JSON.stringify(headers));
-    }
-
     const responseHeaders = new Headers();
     if (headers) {
         const headerEntries = Array.isArray(headers) 
@@ -146,7 +141,8 @@ export const ALL = async (context: any) => {
   } catch (error: any) {
     return new Response(JSON.stringify({ 
         error: "Keystatic API Handler Error",
-        details: error.message
+        details: error.message,
+        stack: error.stack
     }, null, 2), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
