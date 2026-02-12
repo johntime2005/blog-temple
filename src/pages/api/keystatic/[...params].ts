@@ -43,7 +43,6 @@ export const ALL = async (context: any) => {
       slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
     });
 
-    // MONKEY PATCH with Safer Logic
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input, init) => {
         let urlStr = String(input);
@@ -52,25 +51,18 @@ export const ALL = async (context: any) => {
         }
 
         if (urlStr.includes('github.com/login/oauth/access_token')) {
-             try {
-                 const url = new URL(urlStr);
-                 if (!url.searchParams.has('redirect_uri')) {
-                     url.searchParams.set('redirect_uri', 'https://blog.johntime.top/api/keystatic/github/oauth/callback');
-                     
-                     const finalUrl = url.toString();
-                     const res = await originalFetch(finalUrl, init);
-                     
-                     const clone = res.clone();
-                     const text = await clone.text();
-                     
-                     // DEBUG: Dump URL and Response
-                     // Mask secret
-                     const safeUrl = finalUrl.replace(clientSecret, '***SECRET***');
-                     throw new Error(`DEBUG_TOKEN_DUMP || URL: ${safeUrl} || BODY: ${text}`);
-                 }
-             } catch (e: any) {
-                 if (e.message.startsWith("DEBUG_TOKEN_DUMP")) throw e;
-                 // Else ignore
+             if (!urlStr.includes('redirect_uri=')) {
+                 const separator = urlStr.includes('?') ? '&' : '?';
+                 const redirectUri = encodeURIComponent('https://blog.johntime.top/api/keystatic/github/oauth/callback');
+                 urlStr = `${urlStr}${separator}redirect_uri=${redirectUri}`;
+                 
+                 const res = await originalFetch(urlStr, init);
+                 
+                 const clone = res.clone();
+                 const text = await clone.text();
+                 
+                 // DEBUG: check original request URL protocol
+                 throw new Error(`DEBUG_TOKEN_DUMP || REQ_URL: ${context.request.url} || TOKEN_URL: ${urlStr.replace(clientSecret, '***')} || BODY: ${text}`);
              }
         }
         return originalFetch(input, init);
@@ -82,7 +74,7 @@ export const ALL = async (context: any) => {
     } finally {
         globalThis.fetch = originalFetch;
     }
-    
+
     // ... response logic ...
     const { body, headers, status } = result;
     const responseHeaders = new Headers();
@@ -101,16 +93,13 @@ export const ALL = async (context: any) => {
             }
         }
     }
-
-    return new Response(body, { status, headers: responseHeaders });
+    const finalBody = body === null && (status === 302 || status === 307) ? "Redirecting..." : body;
+    return new Response(finalBody, { status, headers: responseHeaders });
 
   } catch (error: any) {
     return new Response(JSON.stringify({ 
         error: "Keystatic API Debug",
         details: error.message,
-    }, null, 2), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-    });
+    }, null, 2), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };
