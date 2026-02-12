@@ -43,12 +43,10 @@ export const ALL = async (context: any) => {
       slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
     });
 
-    // MONKEY PATCH with RESPONSE DEBUGGING
+    // MONKEY PATCH with SUCCESS DUMP
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input, init) => {
         let urlStr = String(input);
-        
-        // Handle URL object
         if (input && typeof (input as any).href === 'string') {
              urlStr = (input as any).href;
         }
@@ -61,25 +59,11 @@ export const ALL = async (context: any) => {
                  
                  const res = await originalFetch(urlStr, init);
                  
-                 // If GitHub returns error, capture it
-                 if (!res.ok) {
-                     const text = await res.clone().text();
-                     throw new Error(`GitHub Token Exchange HTTP Error ${res.status}: ${text}`);
-                 }
-                 
-                 // GitHub might return 200 OK but with "error" field in JSON?
-                 // Let's check.
                  const clone = res.clone();
-                 try {
-                     const data = await clone.json() as any;
-                     if (data.error) {
-                         throw new Error(`GitHub Token Exchange JSON Error: ${data.error} - ${data.error_description}`);
-                     }
-                 } catch (e) {
-                     // Ignore json parse error here, it might be fine or not json
-                 }
-
-                 return res;
+                 const text = await clone.text();
+                 
+                 // DUMP EVERYTHING
+                 throw new Error("DEBUG_TOKEN_RESPONSE: " + text);
              }
         }
         return originalFetch(input, init);
@@ -91,9 +75,10 @@ export const ALL = async (context: any) => {
     } finally {
         globalThis.fetch = originalFetch;
     }
-
+    
+    // ... rest of response logic ...
+    
     const { body, headers, status } = result;
-
     const responseHeaders = new Headers();
     if (headers) {
         const headerEntries = Array.isArray(headers) 
@@ -111,18 +96,12 @@ export const ALL = async (context: any) => {
         }
     }
 
-    const finalBody = body === null && (status === 302 || status === 307) ? "Redirecting..." : body;
-
-    return new Response(finalBody, {
-        status,
-        headers: responseHeaders
-    });
+    return new Response(body, { status, headers: responseHeaders });
 
   } catch (error: any) {
     return new Response(JSON.stringify({ 
-        error: "Keystatic API Handler Error",
+        error: "Keystatic API Debug",
         details: error.message,
-        stack: error.stack
     }, null, 2), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
