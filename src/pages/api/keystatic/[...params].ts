@@ -1,52 +1,55 @@
 import { makeHandler } from '@keystatic/astro/api';
-import config from '../../../../keystatic.config';
+import { config, fields, collection, singleton } from '@keystatic/core';
 
 export const prerender = false;
 
 export const ALL = async (context: any) => {
   try {
     const env = context.locals?.runtime?.env || {};
-    // Helper to get var from runtime or build time
-    const getVar = (key: string) => env[key] || (import.meta.env ? import.meta.env[key] : undefined);
+    const getVar = (k: string) => env[k];
 
+    const secret = getVar('SITE_SECRET');
     const clientId = getVar('GITHUB_CLIENT_ID');
     const clientSecret = getVar('GITHUB_CLIENT_SECRET');
-    const secret = getVar('SITE_SECRET') || getVar('KEYSTATIC_SECRET');
-    const repoOwner = getVar('GITHUB_OWNER_USERNAME') || 'johntime2005';
 
-    // DEBUG: Check imported config
-    if (!config) {
-        throw new Error("Imported 'config' is undefined.");
+    if (!secret || !clientId || !clientSecret) {
+        throw new Error(`Missing vars: secret=${!!secret}, clientId=${!!clientId}, clientSecret=${!!clientSecret}`);
     }
 
-    const enrichedConfig = {
-      ...config,
+    // Inline configuration to avoid import side-effects
+    const inlineConfig = config({
       storage: {
         kind: 'github',
-        repo: `${repoOwner}/blog`
+        repo: 'johntime2005/blog',
       },
       github: {
-        ...(config.github || {}),
-        clientId: clientId || config.github?.clientId,
-        clientSecret: clientSecret || config.github?.clientSecret,
+        clientId,
+        clientSecret,
       },
-      secret: secret || config.secret,
-    };
-    
-    if (!enrichedConfig.secret) {
-       throw new Error("Missing 'secret'. Enriched config: " + JSON.stringify(Object.keys(enrichedConfig)));
-    }
+      secret,
+      collections: {
+        posts: collection({
+          label: 'Posts',
+          slugField: 'title',
+          path: 'src/content/posts/*/',
+          format: { contentField: 'content' },
+          schema: {
+            title: fields.slug({ name: { label: 'Title' } }),
+            content: fields.mdx({ label: 'Content' }),
+          },
+        }),
+      },
+    });
 
-    return await makeHandler(enrichedConfig)(context);
+    return await makeHandler(inlineConfig)(context);
   } catch (error: any) {
-    return new Response(JSON.stringify({
-      message: "Keystatic API Error",
-      error: error.message,
-      stack: error.stack,
-      debug: {
-          configKeys: config ? Object.keys(config) : 'null',
-          envKeys: Object.keys(env),
-      }
-    }, null, 2), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ 
+        error: "Keystatic API Handler Error",
+        details: error.message,
+        stack: error.stack 
+    }, null, 2), { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+    });
   }
 };
