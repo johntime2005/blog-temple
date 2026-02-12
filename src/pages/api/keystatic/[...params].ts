@@ -54,25 +54,16 @@ export const ALL = async (context: any) => {
         const urlStr = String(input);
         if (urlStr.includes('github.com/login/oauth/access_token')) {
              try {
-                 const currentUrl = new URL(urlStr);
-                 const code = currentUrl.searchParams.get('code');
+                 const u = new URL(urlStr);
                  
-                 if (code) {
-                     const cleanUrl = new URL('https://github.com/login/oauth/access_token');
-                     cleanUrl.searchParams.set('client_id', clientId);
-                     cleanUrl.searchParams.set('client_secret', clientSecret);
-                     cleanUrl.searchParams.set('code', code);
-                     cleanUrl.searchParams.set('redirect_uri', 'https://blog.johntime.top/api/keystatic/github/oauth/callback');
-                     
-                     const cleanInit = {
-                         method: 'POST',
-                         headers: { 'Accept': 'application/json' }
-                     };
-                     
-                     const res = await originalFetch(cleanUrl.toString(), cleanInit);
-                     
+                 // 1. Handle Login (Code)
+                 if (u.searchParams.has('code')) {
+                     if (!u.searchParams.has('redirect_uri')) {
+                         u.searchParams.set('redirect_uri', 'https://blog.johntime.top/api/keystatic/github/oauth/callback');
+                     }
+                     const res = await originalFetch(u.toString(), init);
                      if (!res.ok) return res;
-                     
+
                      const data = await res.json() as any;
                      if (data.error) {
                          return new Response(JSON.stringify(data), { status: 200 }); 
@@ -82,18 +73,28 @@ export const ALL = async (context: any) => {
                          data.refresh_token = "dummy_refresh_token_polyfill";
                          data.refresh_token_expires_in = 15552000;
                      }
-                     if (!data.expires_in) {
-                         data.expires_in = 28800; 
-                     }
-                     if (data.token_type) {
-                         data.token_type = data.token_type.toLowerCase();
-                     }
+                     if (!data.expires_in) data.expires_in = 28800; 
+                     if (data.token_type) data.token_type = data.token_type.toLowerCase();
 
-                     return new Response(JSON.stringify(data), {
-                         status: 200,
-                         headers: { 'Content-Type': 'application/json' }
-                     });
+                     return new Response(JSON.stringify(data), { status: 200 });
                  }
+                 
+                 // 2. Handle Refresh (Polyfill)
+                 if (u.searchParams.get('refresh_token') === 'dummy_refresh_token_polyfill') {
+                     // Get current access token to recycle it
+                     const cookieHeader = context.request.headers.get('Cookie') || '';
+                     const match = cookieHeader.match(/keystatic-gh-access-token=([^;]+)/);
+                     const currentAccessToken = match ? match[1] : "mock_token";
+
+                     return new Response(JSON.stringify({
+                         access_token: currentAccessToken,
+                         expires_in: 28800,
+                         refresh_token: "dummy_refresh_token_polyfill",
+                         refresh_token_expires_in: 15552000,
+                         token_type: "bearer"
+                     }), { status: 200 });
+                 }
+
              } catch (e) {
                  console.error("Fetch patch error:", e);
              }
@@ -109,28 +110,6 @@ export const ALL = async (context: any) => {
     }
 
     const { body, headers, status } = result;
-
-    // FIX INFINITE LOOP: Intercept failed refresh caused by dummy token
-    if (status === 401 && context.request.url.includes('refresh-token')) {
-         const cookieHeader = context.request.headers.get('Cookie') || '';
-         const match = cookieHeader.match(/keystatic-gh-access-token=([^;]+)/);
-         const currentAccessToken = match ? match[1] : null;
-
-         if (currentAccessToken) {
-             // Fake a successful refresh using existing token
-             return new Response(JSON.stringify({
-                 access_token: currentAccessToken,
-                 expires_in: 28800,
-                 refresh_token: "dummy_refresh_token_polyfill",
-                 refresh_token_expires_in: 15552000,
-                 scope: "repo,user",
-                 token_type: "bearer"
-             }), {
-                 status: 200,
-                 headers: { 'Content-Type': 'application/json' }
-             });
-         }
-    }
 
     const responseHeaders = new Headers();
     if (headers) {
@@ -150,20 +129,9 @@ export const ALL = async (context: any) => {
     }
 
     const finalBody = body === null && (status === 302 || status === 307) ? "Redirecting..." : body;
-
-    return new Response(finalBody, {
-        status,
-        headers: responseHeaders
-    });
+    return new Response(finalBody, { status, headers: responseHeaders });
 
   } catch (error: any) {
-    return new Response(JSON.stringify({ 
-        error: "Keystatic API Handler Error",
-        details: error.message,
-        stack: error.stack
-    }, null, 2), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-    });
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };
