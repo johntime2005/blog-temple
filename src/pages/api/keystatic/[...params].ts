@@ -47,18 +47,31 @@ export const ALL = async (context: any) => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input, init) => {
         try {
-            const urlStr = input.toString();
+            // Handle different input types (string, URL, Request)
+            let urlStr: string;
+            if (typeof input === 'string') {
+                urlStr = input;
+            } else if (input instanceof URL) {
+                urlStr = input.toString();
+            } else if (typeof (input as any).url === 'string') {
+                urlStr = (input as any).url;
+            } else {
+                urlStr = String(input);
+            }
+
             if (urlStr.includes('github.com/login/oauth/access_token')) {
-                // Ensure redirect_uri is present
                 const url = new URL(urlStr);
                 if (!url.searchParams.has('redirect_uri')) {
                     url.searchParams.set('redirect_uri', 'https://blog.johntime.top/api/keystatic/github/oauth/callback');
-                    // Keystatic passes params in URL, so this works.
+                    
+                    // If input was Request, construct new Request to preserve other properties if needed
+                    // But Keystatic Core passes URL object + init options, so stringifying URL is safe.
                     return originalFetch(url.toString(), init);
                 }
             }
         } catch (e) {
-            // Ignore parse errors, just pass through
+            // Safe fallback
+            console.error("Fetch patch error:", e);
         }
         return originalFetch(input, init);
     };
@@ -67,7 +80,6 @@ export const ALL = async (context: any) => {
     try {
         result = await apiHandler(context.request);
     } finally {
-        // Restore fetch immediately
         globalThis.fetch = originalFetch;
     }
 
