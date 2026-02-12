@@ -4,6 +4,7 @@
 name = "blog"
 compatibility_date = "2025-11-18"
 compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
 
 # KV 命名空间绑定
 # 用于文章加密密码存储
