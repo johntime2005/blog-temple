@@ -43,7 +43,7 @@ export const ALL = async (context: any) => {
       slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
     });
 
-    // MONKEY PATCH with SUCCESS DUMP
+    // MONKEY PATCH with Safer Logic
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input, init) => {
         let urlStr = String(input);
@@ -52,18 +52,25 @@ export const ALL = async (context: any) => {
         }
 
         if (urlStr.includes('github.com/login/oauth/access_token')) {
-             if (!urlStr.includes('redirect_uri=')) {
-                 const separator = urlStr.includes('?') ? '&' : '?';
-                 const redirectUri = encodeURIComponent('https://blog.johntime.top/api/keystatic/github/oauth/callback');
-                 urlStr = `${urlStr}${separator}redirect_uri=${redirectUri}`;
-                 
-                 const res = await originalFetch(urlStr, init);
-                 
-                 const clone = res.clone();
-                 const text = await clone.text();
-                 
-                 // DUMP EVERYTHING
-                 throw new Error("DEBUG_TOKEN_RESPONSE: " + text);
+             try {
+                 const url = new URL(urlStr);
+                 if (!url.searchParams.has('redirect_uri')) {
+                     url.searchParams.set('redirect_uri', 'https://blog.johntime.top/api/keystatic/github/oauth/callback');
+                     
+                     const finalUrl = url.toString();
+                     const res = await originalFetch(finalUrl, init);
+                     
+                     const clone = res.clone();
+                     const text = await clone.text();
+                     
+                     // DEBUG: Dump URL and Response
+                     // Mask secret
+                     const safeUrl = finalUrl.replace(clientSecret, '***SECRET***');
+                     throw new Error(`DEBUG_TOKEN_DUMP || URL: ${safeUrl} || BODY: ${text}`);
+                 }
+             } catch (e: any) {
+                 if (e.message.startsWith("DEBUG_TOKEN_DUMP")) throw e;
+                 // Else ignore
              }
         }
         return originalFetch(input, init);
@@ -76,8 +83,7 @@ export const ALL = async (context: any) => {
         globalThis.fetch = originalFetch;
     }
     
-    // ... rest of response logic ...
-    
+    // ... response logic ...
     const { body, headers, status } = result;
     const responseHeaders = new Headers();
     if (headers) {
