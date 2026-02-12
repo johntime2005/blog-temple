@@ -1,5 +1,4 @@
 import { makeHandler } from '@keystatic/astro/api';
-import { config, fields, collection, singleton } from '@keystatic/core';
 
 export const prerender = false;
 
@@ -12,14 +11,10 @@ export const ALL = async (context: any) => {
     const clientId = getVar('GITHUB_CLIENT_ID');
     const clientSecret = getVar('GITHUB_CLIENT_SECRET');
 
-    if (!secret || !clientId || !clientSecret) {
-        throw new Error(`Missing vars: secret=${!!secret}, clientId=${!!clientId}, clientSecret=${!!clientSecret}`);
-    }
-
-    // Inline configuration to avoid import side-effects
-    const inlineConfig = config({
+    // Minimal plain object config for Auth test
+    const inlineConfig = {
       storage: {
-        kind: 'github',
+        kind: 'github' as const,
         repo: 'johntime2005/blog',
       },
       github: {
@@ -27,26 +22,21 @@ export const ALL = async (context: any) => {
         clientSecret,
       },
       secret,
-      collections: {
-        posts: collection({
-          label: 'Posts',
-          slugField: 'title',
-          path: 'src/content/posts/*/',
-          format: { contentField: 'content' },
-          schema: {
-            title: fields.slug({ name: { label: 'Title' } }),
-            content: fields.mdx({ label: 'Content' }),
-          },
-        }),
-      },
-    });
+      collections: {}, 
+      singletons: {}
+    };
+
+    if (!secret || !clientId || !clientSecret) {
+         throw new Error(`Missing vars: secret=${!!secret}, clientId=${!!clientId}, clientSecret=${!!clientSecret}`);
+    }
 
     return await makeHandler(inlineConfig)(context);
   } catch (error: any) {
     return new Response(JSON.stringify({ 
         error: "Keystatic API Handler Error",
         details: error.message,
-        stack: error.stack 
+        stack: error.stack,
+        configDump: "Config created successfully" 
     }, null, 2), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
