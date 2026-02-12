@@ -14,46 +14,6 @@ export const ALL = async (context: any) => {
     const clientId = getVar('GITHUB_CLIENT_ID');
     const clientSecret = getVar('GITHUB_CLIENT_SECRET');
 
-    // DEBUG: Intercept Callback to test credentials against GitHub directly
-    const url = new URL(context.request.url);
-    if (url.pathname.includes('/github/oauth/callback') && url.searchParams.get('code')) {
-        const code = url.searchParams.get('code');
-        const tokenUrl = 'https://github.com/login/oauth/access_token';
-        
-        // Try Keystatic style (query params)
-        const debugUrl = new URL(tokenUrl);
-        debugUrl.searchParams.set('client_id', clientId);
-        debugUrl.searchParams.set('client_secret', clientSecret);
-        debugUrl.searchParams.set('code', code);
-        // ADD REDIRECT_URI explicitely
-        debugUrl.searchParams.set('redirect_uri', 'https://blog.johntime.top/api/keystatic/github/oauth/callback');
-
-        const res = await fetch(debugUrl.toString(), {
-            method: 'POST',
-            headers: { 'Accept': 'application/json' }
-        });
-        
-        const data = await res.json() as any;
-        
-        if (data.error) {
-             return new Response(JSON.stringify({
-                status: "GitHub Error (Manual Check v2)",
-                github_error: data.error,
-                github_desc: data.error_description,
-                debug_info: {
-                    clientIdPrefix: clientId?.substring(0, 5),
-                    redirect_uri_sent: debugUrl.searchParams.get('redirect_uri')
-                }
-            }, null, 2), { headers: { 'Content-Type': 'application/json' }});
-        }
-        
-        return new Response(JSON.stringify({
-            status: "Success! Credentials + Redirect URI are valid.",
-            access_token_prefix: data.access_token?.substring(0, 5),
-            message: "It seems REDIRECT_URI was required. I need to patch the handler."
-        }, null, 2), { headers: { 'Content-Type': 'application/json' }});
-    }
-
     const internalConfig = {
       storage: {
         kind: 'github' as const,
@@ -83,7 +43,35 @@ export const ALL = async (context: any) => {
       slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
     });
 
-    const { body, headers, status } = await apiHandler(context.request);
+    // MONKEY PATCH: Fix missing redirect_uri in Keystatic Core
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input, init) => {
+        try {
+            const urlStr = input.toString();
+            if (urlStr.includes('github.com/login/oauth/access_token')) {
+                // Ensure redirect_uri is present
+                const url = new URL(urlStr);
+                if (!url.searchParams.has('redirect_uri')) {
+                    url.searchParams.set('redirect_uri', 'https://blog.johntime.top/api/keystatic/github/oauth/callback');
+                    // Keystatic passes params in URL, so this works.
+                    return originalFetch(url.toString(), init);
+                }
+            }
+        } catch (e) {
+            // Ignore parse errors, just pass through
+        }
+        return originalFetch(input, init);
+    };
+
+    let result;
+    try {
+        result = await apiHandler(context.request);
+    } finally {
+        // Restore fetch immediately
+        globalThis.fetch = originalFetch;
+    }
+
+    const { body, headers, status } = result;
 
     const responseHeaders = new Headers();
     if (headers) {
@@ -112,7 +100,8 @@ export const ALL = async (context: any) => {
   } catch (error: any) {
     return new Response(JSON.stringify({ 
         error: "Keystatic API Handler Error",
-        details: error.message
+        details: error.message,
+        stack: error.stack
     }, null, 2), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
