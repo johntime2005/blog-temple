@@ -25,6 +25,8 @@ export const ALL = async (context: any) => {
         debugUrl.searchParams.set('client_id', clientId);
         debugUrl.searchParams.set('client_secret', clientSecret);
         debugUrl.searchParams.set('code', code);
+        // ADD REDIRECT_URI explicitely
+        debugUrl.searchParams.set('redirect_uri', 'https://blog.johntime.top/api/keystatic/github/oauth/callback');
 
         const res = await fetch(debugUrl.toString(), {
             method: 'POST',
@@ -35,23 +37,20 @@ export const ALL = async (context: any) => {
         
         if (data.error) {
              return new Response(JSON.stringify({
-                status: "GitHub Error (Manual Check)",
+                status: "GitHub Error (Manual Check v2)",
                 github_error: data.error,
                 github_desc: data.error_description,
-                github_uri: data.error_uri,
                 debug_info: {
                     clientIdPrefix: clientId?.substring(0, 5),
-                    secretLength: clientSecret?.length
+                    redirect_uri_sent: debugUrl.searchParams.get('redirect_uri')
                 }
             }, null, 2), { headers: { 'Content-Type': 'application/json' }});
         }
         
-        // If success, we can't easily proceed because code is one-time use.
-        // So we will fail here but show "Success". User will have to login again.
         return new Response(JSON.stringify({
-            status: "Success! Credentials are valid.",
+            status: "Success! Credentials + Redirect URI are valid.",
             access_token_prefix: data.access_token?.substring(0, 5),
-            message: "Please remove this debug code to login normally."
+            message: "It seems REDIRECT_URI was required. I need to patch the handler."
         }, null, 2), { headers: { 'Content-Type': 'application/json' }});
     }
 
@@ -113,8 +112,7 @@ export const ALL = async (context: any) => {
   } catch (error: any) {
     return new Response(JSON.stringify({ 
         error: "Keystatic API Handler Error",
-        details: error.message,
-        stack: error.stack
+        details: error.message
     }, null, 2), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
