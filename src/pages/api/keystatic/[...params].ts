@@ -4,11 +4,9 @@ export const prerender = false;
 
 export const ALL = async (context: any) => {
   try {
-    // FORCE Production mode for Secure cookies
     if (typeof process !== 'undefined') {
         process.env.NODE_ENV = 'production';
     } else {
-        // Polyfill process if missing in Worker
         (globalThis as any).process = { env: { NODE_ENV: 'production' } };
     }
 
@@ -51,7 +49,6 @@ export const ALL = async (context: any) => {
       slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
     });
 
-    // MONKEY PATCH: Clean URL + Response Polyfill
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input, init) => {
         const urlStr = String(input);
@@ -81,7 +78,6 @@ export const ALL = async (context: any) => {
                          return new Response(JSON.stringify(data), { status: 200 }); 
                      }
                      
-                     // Polyfill missing fields for Keystatic validation
                      if (!data.refresh_token) {
                          data.refresh_token = "dummy_refresh_token_polyfill";
                          data.refresh_token_expires_in = 15552000;
@@ -113,6 +109,28 @@ export const ALL = async (context: any) => {
     }
 
     const { body, headers, status } = result;
+
+    // FIX INFINITE LOOP: Intercept failed refresh caused by dummy token
+    if (status === 401 && context.request.url.includes('refresh-token')) {
+         const cookieHeader = context.request.headers.get('Cookie') || '';
+         const match = cookieHeader.match(/keystatic-gh-access-token=([^;]+)/);
+         const currentAccessToken = match ? match[1] : null;
+
+         if (currentAccessToken) {
+             // Fake a successful refresh using existing token
+             return new Response(JSON.stringify({
+                 access_token: currentAccessToken,
+                 expires_in: 28800,
+                 refresh_token: "dummy_refresh_token_polyfill",
+                 refresh_token_expires_in: 15552000,
+                 scope: "repo,user",
+                 token_type: "bearer"
+             }), {
+                 status: 200,
+                 headers: { 'Content-Type': 'application/json' }
+             });
+         }
+    }
 
     const responseHeaders = new Headers();
     if (headers) {
