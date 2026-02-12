@@ -1,10 +1,8 @@
-import { parse } from 'cookie';
-
 export const prerender = false;
 
 export const GET = async ({ request, locals }) => {
     const cookieHeader = request.headers.get('Cookie') || '';
-    // Manual parsing because 'cookie' package might not be available
+    // Manual parsing
     const match = cookieHeader.match(/keystatic-gh-access-token=([^;]+)/);
     const accessToken = match ? match[1] : null;
     
@@ -26,7 +24,7 @@ export const GET = async ({ request, locals }) => {
     });
     const userData = await res.json();
 
-    // Test GitHub Repo Access (Simulate Keystatic Check)
+    // Test GitHub Repo Access
     const repoRes = await fetch('https://api.github.com/repos/johntime2005/blog', {
         headers: {
             'Authorization': `Bearer ${accessToken}`,
