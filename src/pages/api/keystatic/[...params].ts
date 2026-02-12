@@ -4,6 +4,14 @@ export const prerender = false;
 
 export const ALL = async (context: any) => {
   try {
+    // FORCE Production mode for Secure cookies
+    if (typeof process !== 'undefined') {
+        process.env.NODE_ENV = 'production';
+    } else {
+        // Polyfill process if missing
+        (globalThis as any).process = { env: { NODE_ENV: 'production' } };
+    }
+
     const env = context.locals?.runtime?.env || {};
     const getVar = (k: string) => {
         const val = env[k];
@@ -66,26 +74,20 @@ export const ALL = async (context: any) => {
                      
                      const res = await originalFetch(cleanUrl.toString(), cleanInit);
                      
-                     if (!res.ok) return res; // Let Keystatic handle error
+                     if (!res.ok) return res;
                      
-                     // Polyfill missing fields
                      const data = await res.json() as any;
-                     
-                     // Log internal error if any
                      if (data.error) {
-                         // We can't fix this, pass it through.
-                         // But for debugging, we might want to throw?
-                         // Let's pass it through so Keystatic sees it.
                          return new Response(JSON.stringify(data), { status: 200 }); 
                      }
                      
-                     // Normalize fields
+                     // Polyfill
                      if (!data.refresh_token) {
                          data.refresh_token = "dummy_refresh_token_polyfill";
                          data.refresh_token_expires_in = 15552000;
                      }
                      if (!data.expires_in) {
-                         data.expires_in = 28800; // 8 hours
+                         data.expires_in = 28800; 
                      }
                      if (data.token_type) {
                          data.token_type = data.token_type.toLowerCase();
@@ -111,6 +113,11 @@ export const ALL = async (context: any) => {
     }
 
     const { body, headers, status } = result;
+
+    // DEBUG: Check headers before sending
+    if (status === 307 && context.request.url.includes('callback')) {
+         throw new Error("DEBUG_HEADERS: " + JSON.stringify(headers));
+    }
 
     const responseHeaders = new Headers();
     if (headers) {
