@@ -3,13 +3,14 @@ import { config, fields, collection, singleton } from '@keystatic/core';
 // 复用你现有的环境变量名
 const GITHUB_CLIENT_ID = import.meta.env.GITHUB_CLIENT_ID;
 const GITHUB_CLIENT_SECRET = import.meta.env.GITHUB_CLIENT_SECRET;
+const GITHUB_OWNER_USERNAME = import.meta.env.GITHUB_OWNER_USERNAME || 'johntime2005';
 
 // 强制非 DEV 环境下使用 GitHub 模式
 const storage = import.meta.env.DEV
 	? { kind: "local" as const }
 	: {
 			kind: "github" as const,
-			repo: "johntime2005/blog" as `${string}/${string}`,
+			repo: `${GITHUB_OWNER_USERNAME}/blog` as `${string}/${string}`,
 		};
 
 export default config({
@@ -30,6 +31,7 @@ export default config({
       schema: {
         title: fields.slug({ name: { label: 'Title' } }),
         published: fields.date({ label: 'Published Date', validation: { isRequired: true } }),
+        updated: fields.date({ label: 'Updated Date' }),
         description: fields.text({ label: 'Description', multiline: true }),
         tags: fields.array(fields.text({ label: 'Tag' }), { label: 'Tags' }),
         category: fields.text({ label: 'Category' }),
@@ -49,8 +51,10 @@ export default config({
           }
         }),
         encrypted: fields.checkbox({ label: 'Encrypted', defaultValue: false }),
+        password: fields.text({ label: 'Access Password' }),
         hideFromHome: fields.checkbox({ label: 'Hide from Home', defaultValue: false }),
         pinned: fields.checkbox({ label: 'Pinned', defaultValue: false }),
+        series: fields.text({ label: 'Series' }),
       },
     }),
     categories: collection({
@@ -78,9 +82,12 @@ export default config({
       path: 'src/config/siteConfig',
       format: 'json',
       schema: {
+        initialized: fields.checkbox({ label: 'Initialized', defaultValue: true }),
         title: fields.text({ label: 'Site Title' }),
         subtitle: fields.text({ label: 'Site Subtitle' }),
+        site_url: fields.text({ label: 'Site URL' }),
         description: fields.text({ label: 'Site Description', multiline: true }),
+        keywords: fields.array(fields.text({ label: 'Keyword' }), { label: 'Keywords' }),
         lang: fields.select({
             label: 'Language',
             options: [
@@ -90,19 +97,6 @@ export default config({
             ],
             defaultValue: 'zh_CN'
         }),
-        site_url: fields.text({ label: 'Site URL' }),
-        pages: fields.object({
-            anime: fields.checkbox({ label: 'Enable Anime Page' }),
-            sponsor: fields.checkbox({ label: 'Enable Sponsor Page' }),
-            guestbook: fields.checkbox({ label: 'Enable Guestbook Page' }),
-            bangumi: fields.checkbox({ label: 'Enable Bangumi Page' }),
-            projects: fields.checkbox({ label: 'Enable Projects Page' }),
-            timeline: fields.checkbox({ label: 'Enable Timeline Page' }),
-            skills: fields.checkbox({ label: 'Enable Skills Page' }),
-        }, { label: 'Page Visibility' }),
-        navbar: fields.object({
-             title: fields.text({ label: 'Navbar Title' }),
-        }, { label: 'Navbar Settings' }),
         themeColor: fields.object({
             hue: fields.number({ label: 'Theme Hue (0-360)' }),
             fixed: fields.checkbox({ label: 'Fixed Theme' }),
@@ -116,8 +110,82 @@ export default config({
                 defaultValue: 'system'
             }),
         }, { label: 'Theme Settings' }),
-        initialized: fields.checkbox({ label: 'Initialized', defaultValue: true }),
-        keywords: fields.array(fields.text({ label: 'Keyword' }), { label: 'Keywords' }),
+        
+        // Missing fields added
+        card: fields.object({
+            border: fields.checkbox({ label: 'Show Card Border', defaultValue: true }),
+        }, { label: 'Card Style' }),
+
+        favicon: fields.array(fields.object({
+            src: fields.text({ label: 'Favicon Path' }), // Simple text for now, could be image
+        }), { label: 'Favicons' }),
+
+        navbar: fields.object({
+             logo: fields.object({
+                 type: fields.text({ label: 'Logo Type' }), // image or text
+                 value: fields.text({ label: 'Logo Value' }), // path or text
+                 alt: fields.text({ label: 'Logo Alt' }),
+             }),
+             title: fields.text({ label: 'Navbar Title' }),
+             widthFull: fields.checkbox({ label: 'Full Width', defaultValue: false }),
+             followTheme: fields.checkbox({ label: 'Follow Theme', defaultValue: false }),
+        }, { label: 'Navbar Settings' }),
+
+        siteStartDate: fields.text({ label: 'Site Start Date (YYYY-MM-DD)' }),
+        timezone: fields.text({ label: 'Timezone', defaultValue: 'Asia/Shanghai' }),
+        
+        rehypeCallouts: fields.object({
+            theme: fields.text({ label: 'Callout Theme', defaultValue: 'github' }),
+        }, { label: 'Callout Settings' }),
+
+        showLastModified: fields.checkbox({ label: 'Show Last Modified', defaultValue: true }),
+        outdatedThreshold: fields.number({ label: 'Outdated Threshold (Days)', defaultValue: 30 }),
+        sharePoster: fields.checkbox({ label: 'Enable Share Poster', defaultValue: true }),
+        generateOgImages: fields.checkbox({ label: 'Generate OG Images', defaultValue: false }),
+
+        bangumi: fields.object({
+            userId: fields.text({ label: 'Bangumi User ID' }),
+        }, { label: 'Bangumi Config' }),
+
+        pages: fields.object({
+            anime: fields.checkbox({ label: 'Enable Anime Page' }),
+            sponsor: fields.checkbox({ label: 'Enable Sponsor Page' }),
+            guestbook: fields.checkbox({ label: 'Enable Guestbook Page' }),
+            bangumi: fields.checkbox({ label: 'Enable Bangumi Page' }),
+            projects: fields.checkbox({ label: 'Enable Projects Page' }),
+            timeline: fields.checkbox({ label: 'Enable Timeline Page' }),
+            skills: fields.checkbox({ label: 'Enable Skills Page' }),
+        }, { label: 'Page Visibility' }),
+
+        postListLayout: fields.object({
+            defaultMode: fields.select({
+                label: 'Default Layout',
+                options: [
+                    { label: 'List', value: 'list' },
+                    { label: 'Grid', value: 'grid' },
+                ],
+                defaultValue: 'list'
+            }),
+            allowSwitch: fields.checkbox({ label: 'Allow Switch', defaultValue: true }),
+            grid: fields.object({
+                masonry: fields.checkbox({ label: 'Masonry Grid', defaultValue: false }),
+                columns: fields.number({ label: 'Grid Columns', defaultValue: 3 }),
+            }),
+        }, { label: 'Post List Layout' }),
+
+        pagination: fields.object({
+            postsPerPage: fields.number({ label: 'Posts Per Page', defaultValue: 10 }),
+        }, { label: 'Pagination' }),
+
+        analytics: fields.object({
+            googleAnalyticsId: fields.text({ label: 'Google Analytics ID' }),
+            microsoftClarityId: fields.text({ label: 'Microsoft Clarity ID' }),
+        }, { label: 'Analytics' }),
+
+        toc: fields.object({
+            enable: fields.checkbox({ label: 'Enable TOC', defaultValue: true }),
+            depth: fields.number({ label: 'TOC Depth', defaultValue: 3 }),
+        }, { label: 'Table of Contents' }),
       },
     }),
   },
