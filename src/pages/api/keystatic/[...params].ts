@@ -20,10 +20,14 @@ export const ALL = async (context: any) => {
     const clientId = getVar('GITHUB_CLIENT_ID');
     const clientSecret = getVar('GITHUB_CLIENT_SECRET');
 
+    // Use runtime env if available for repo
+    const owner = getVar('GITHUB_OWNER_USERNAME') || 'johntime2005';
+    const repoName = `${owner}/blog`;
+
     const internalConfig = {
       storage: {
         kind: 'github' as const,
-        repo: 'johntime2005/blog',
+        repo: repoName,
       },
       github: {
         clientId,
@@ -37,26 +41,6 @@ export const ALL = async (context: any) => {
     if (!secret || !clientId || !clientSecret) {
          throw new Error(`Missing vars: secret=${!!secret}, clientId=${!!clientId}, clientSecret=${!!clientSecret}`);
     }
-    
-    // FIX SCOPE: Intercept login to force 'repo' scope and correct redirect_uri
-    if (context.request.url.includes('/github/login')) {
-         const from = new URL(context.request.url).searchParams.get('from') || '/';
-         const state = crypto.randomUUID(); 
-         const params = new URLSearchParams({
-             client_id: clientId,
-             redirect_uri: 'https://blog.johntime.top/api/keystatic/github/oauth/callback',
-             scope: 'repo user', 
-             state: state
-         });
-         
-         return new Response(null, {
-             status: 302,
-             headers: {
-                 'Location': `https://github.com/login/oauth/authorize?${params.toString()}`,
-                 'Set-Cookie': `ks-${state}=${from}; Path=/; Max-Age=3600; Secure; SameSite=Lax`
-             }
-         });
-    }
 
     const handlerOptions = {
         config: internalConfig,
@@ -69,6 +53,7 @@ export const ALL = async (context: any) => {
       slugEnvName: 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG'
     });
 
+    // MONKEY PATCH: Clean URL + Response Polyfill
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input, init) => {
         const urlStr = String(input);
@@ -130,6 +115,7 @@ export const ALL = async (context: any) => {
 
     const { body, headers, status } = result;
 
+    // FIX INFINITE LOOP 1: Intercept failed refresh caused by dummy token
     if (status === 401 && context.request.url.includes('refresh-token')) {
          const cookieHeader = context.request.headers.get('Cookie') || '';
          const match = cookieHeader.match(/keystatic-gh-access-token=([^;]+)/);
@@ -150,25 +136,7 @@ export const ALL = async (context: any) => {
          }
     }
 
-    if (status === 307 && context.request.url.includes('repo-not-found')) {
-        let location = '';
-        if (Array.isArray(headers)) {
-            location = headers.find(h => h[0].toLowerCase() === 'location')?.[1] as string;
-        } else if (headers && typeof headers.entries === 'function') {
-             for (const [k, v] of headers.entries()) {
-                 if (k.toLowerCase() === 'location') location = v as string;
-             }
-        } else if (headers) {
-             location = (headers as any).Location;
-        }
-
-        if (location && location.includes('github.com/login/oauth/authorize')) {
-             return new Response(null, {
-                 status: 307,
-                 headers: { 'Location': '/keystatic/repo-not-found' }
-             });
-        }
-    }
+    // REMOVED repo-not-found interceptor to prevent redirect loops
 
     const responseHeaders = new Headers();
     if (headers) {
