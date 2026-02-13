@@ -4,4 +4,14 @@ import { Keystatic } from '../../components/Keystatic';
 export const prerender = true;
 ---
 
+<!-- Disable Swup on this page to prevent routing conflicts -->
+<script is:inline>
+	document.documentElement.classList.remove('swup-enabled');
+	if (window.swup) {
+		window.swup.destroy();
+	}
+    // Try to break Swup initialization if it hasn't run yet
+    window.Swup = function() { throw new Error("Swup disabled"); };
+</script>
+
 <Keystatic client:only="react" />
