@@ -40,7 +40,7 @@ export default defineConfig({
 	site: siteConfig.site_url,
 
 	base: "/",
-	trailingSlash: "always",
+	trailingSlash: "ignore",
 	adapter: cloudflare({
 		imageService: "passthrough",
 	}),
