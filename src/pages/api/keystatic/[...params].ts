@@ -37,6 +37,26 @@ export const ALL = async (context: any) => {
     if (!secret || !clientId || !clientSecret) {
          throw new Error(`Missing vars: secret=${!!secret}, clientId=${!!clientId}, clientSecret=${!!clientSecret}`);
     }
+    
+    // FIX SCOPE: Intercept login to force 'repo' scope and correct redirect_uri
+    if (context.request.url.includes('/github/login')) {
+         const from = new URL(context.request.url).searchParams.get('from') || '/';
+         const state = crypto.randomUUID(); 
+         const params = new URLSearchParams({
+             client_id: clientId,
+             redirect_uri: 'https://blog.johntime.top/api/keystatic/github/oauth/callback',
+             scope: 'repo user', 
+             state: state
+         });
+         
+         return new Response(null, {
+             status: 302,
+             headers: {
+                 'Location': `https://github.com/login/oauth/authorize?${params.toString()}`,
+                 'Set-Cookie': `ks-${state}=${from}; Path=/; Max-Age=3600; Secure; SameSite=Lax`
+             }
+         });
+    }
 
     const handlerOptions = {
         config: internalConfig,
@@ -110,7 +130,6 @@ export const ALL = async (context: any) => {
 
     const { body, headers, status } = result;
 
-    // FIX INFINITE LOOP 1: Intercept failed refresh caused by dummy token (401)
     if (status === 401 && context.request.url.includes('refresh-token')) {
          const cookieHeader = context.request.headers.get('Cookie') || '';
          const match = cookieHeader.match(/keystatic-gh-access-token=([^;]+)/);
@@ -131,7 +150,6 @@ export const ALL = async (context: any) => {
          }
     }
 
-    // FIX INFINITE LOOP 2: Intercept 'repo-not-found' triggering login redirect
     if (status === 307 && context.request.url.includes('repo-not-found')) {
         let location = '';
         if (Array.isArray(headers)) {
@@ -145,7 +163,6 @@ export const ALL = async (context: any) => {
         }
 
         if (location && location.includes('github.com/login/oauth/authorize')) {
-             // Stop the loop! Go to the error page.
              return new Response(null, {
                  status: 307,
                  headers: { 'Location': '/keystatic/repo-not-found' }
