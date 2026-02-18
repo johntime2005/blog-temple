@@ -45,7 +45,7 @@
 		"@iconify/utils": "^3.1.0",
 		"@keystatic/astro": "^5.0.6",
 		"@keystatic/core": "^0.5.48",
-		"@swup/astro": "^1.7.0",
+		"@swup/astro": "^1.8.0",
 		"@tailwindcss/typography": "^0.5.16",
 		"@types/crypto-js": "^4.2.2",
 		"astro": "5.16.15",
