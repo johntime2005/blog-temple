@@ -2,6 +2,13 @@ import { makeGenericAPIRouteHandler } from "@keystatic/core/api/generic";
 
 export const prerender = false;
 
+const TOKEN_MAX_AGE = 365 * 24 * 60 * 60; // 1 year — GitHub OAuth App tokens don't expire
+
+function serializeCookie(name: string, value: string, maxAge: number): string {
+	const expires = new Date(Date.now() + maxAge * 1000).toUTCString();
+	return `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAge}; Expires=${expires}; SameSite=Lax; Secure`;
+}
+
 export const ALL = async (context: any) => {
 	try {
 		if (typeof process !== "undefined") {
@@ -90,10 +97,10 @@ export const ALL = async (context: any) => {
 
 						if (!data.refresh_token) {
 							data.refresh_token = "dummy_refresh_token_polyfill";
-							data.refresh_token_expires_in = 15552000;
+							data.refresh_token_expires_in = TOKEN_MAX_AGE;
 						}
 						if (!data.expires_in) {
-							data.expires_in = 28800;
+							data.expires_in = TOKEN_MAX_AGE;
 						}
 						if (data.token_type) {
 							data.token_type = data.token_type.toLowerCase();
@@ -120,25 +127,32 @@ export const ALL = async (context: any) => {
 
 		const { body, headers, status } = result;
 
-		// FIX INFINITE LOOP 1: Intercept failed refresh caused by dummy token
 		if (status === 401 && context.request.url.includes("refresh-token")) {
 			const cookieHeader = context.request.headers.get("Cookie") || "";
 			const match = cookieHeader.match(/keystatic-gh-access-token=([^;]+)/);
 			const currentAccessToken = match ? match[1] : null;
 
 			if (currentAccessToken) {
+				const setCookieHeader = serializeCookie(
+					"keystatic-gh-access-token",
+					currentAccessToken,
+					TOKEN_MAX_AGE,
+				);
 				return new Response(
 					JSON.stringify({
 						access_token: currentAccessToken,
-						expires_in: 28800,
+						expires_in: TOKEN_MAX_AGE,
 						refresh_token: "dummy_refresh_token_polyfill",
-						refresh_token_expires_in: 15552000,
+						refresh_token_expires_in: TOKEN_MAX_AGE,
 						scope: "repo,user",
 						token_type: "bearer",
 					}),
 					{
 						status: 200,
-						headers: { "Content-Type": "application/json" },
+						headers: {
+							"Content-Type": "application/json",
+							"Set-Cookie": setCookieHeader,
+						},
 					},
 				);
 			}
