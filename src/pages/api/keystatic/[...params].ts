@@ -29,6 +29,59 @@ function getRouteSegment(url: string): string {
 	}
 }
 
+function bytesToHex(bytes: Uint8Array): string {
+	return Array.from(bytes)
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("");
+}
+
+/**
+ * Custom login handler that adds `scope=repo` to the GitHub OAuth authorize URL.
+ * Keystatic's built-in githubLogin does NOT set any scope, resulting in read-only
+ * public access which is insufficient for CMS operations.
+ */
+async function handleGithubLogin(
+	req: Request,
+	clientId: string,
+): Promise<Response> {
+	const reqUrl = new URL(req.url);
+	const rawFrom = reqUrl.searchParams.get("from");
+	const from =
+		typeof rawFrom === "string" && KEYSTATIC_ROUTE_REGEX.test(rawFrom)
+			? rawFrom
+			: "/";
+
+	const state = bytesToHex(crypto.getRandomValues(new Uint8Array(10)));
+	const authorizeUrl = new URL("https://github.com/login/oauth/authorize");
+	authorizeUrl.searchParams.set("client_id", clientId);
+	authorizeUrl.searchParams.set(
+		"redirect_uri",
+		`${reqUrl.origin}/api/keystatic/github/oauth/callback`,
+	);
+	authorizeUrl.searchParams.set("scope", "repo");
+
+	if (from === "/") {
+		return new Response("Redirecting...", {
+			status: 302,
+			headers: { Location: authorizeUrl.toString() },
+		});
+	}
+
+	authorizeUrl.searchParams.set("state", state);
+
+	const stateCookie = serializeCookie(
+		`ks-${state}`,
+		from,
+		60 * 60 * 24, // 1 day
+		true,
+	);
+
+	const headers = new Headers();
+	headers.set("Location", authorizeUrl.toString());
+	headers.append("Set-Cookie", stateCookie);
+	return new Response("Redirecting...", { status: 302, headers });
+}
+
 async function encryptRefreshToken(
 	value: string,
 	secret: string,
@@ -226,6 +279,10 @@ export const ALL = async (context: any) => {
 		}
 
 		const route = getRouteSegment(context.request.url);
+
+		if (route === "github/login") {
+			return handleGithubLogin(context.request, clientId);
+		}
 
 		if (route === "github/oauth/callback") {
 			return handleOAuthCallback(
