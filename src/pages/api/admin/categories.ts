@@ -117,24 +117,15 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
 					);
 				}
 
-				if (!config[categoryId]) {
-					return jsonResponse(
-						{
-							success: false,
-							message: `类别 "${categoryId}" 不存在`,
-						},
-						404,
-					);
-				}
-
+				// Upsert: 如果 KV 中不存在该分类，自动创建（支持从构建时数据初始化）
 				config[categoryId] = {
-					...config[categoryId],
+					...(config[categoryId] || {}),
 					...category,
 					id: categoryId,
+					slug: category.slug || config[categoryId]?.slug || categoryId,
 				};
 
 				await POST_ENCRYPTION.put(KV_KEYS.CATEGORIES, JSON.stringify(config));
-
 				return jsonResponse<Category>({
 					success: true,
 					message: "类别更新成功",
