@@ -3,6 +3,7 @@
 
 declare global {
 	interface CloudflareKVNamespace {
+		get(key: string): Promise<string | null>;
 		put(
 			key: string,
 			value: string,

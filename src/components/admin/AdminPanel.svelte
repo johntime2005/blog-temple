@@ -402,11 +402,11 @@ const filteredPosts = $derived(() => {
 		<div class="admin-header card-base">
 			<div class="header-content">
 				<h1 class="header-title">
-					<Icon name="material-symbols:lock-outline" />
+					<Icon icon="material-symbols:lock-outline" />
 					<span>文章加密管理</span>
 				</h1>
 				<button onclick={handleLogout} class="logout-button">
-					<Icon name="material-symbols:logout" />
+					<Icon icon="material-symbols:logout" />
 					<span>登出</span>
 				</button>
 			</div>
@@ -414,21 +414,21 @@ const filteredPosts = $derived(() => {
 
 		{#if successMessage}
 			<div class="success-banner">
-				<Icon name="material-symbols:check-circle-outline" />
+				<Icon icon="material-symbols:check-circle-outline" />
 				<span>{successMessage}</span>
 			</div>
 		{/if}
 
 		{#if errorMessage}
 			<div class="error-banner">
-				<Icon name="material-symbols:error-outline" />
+				<Icon icon="material-symbols:error-outline" />
 				<span>{errorMessage}</span>
 			</div>
 		{/if}
 
 		<div class="filters card-base">
 			<div class="search-box">
-				<Icon name="material-symbols:search" class="search-icon" />
+				<Icon icon="material-symbols:search" class="search-icon" />
 				<input
 					type="text"
 					bind:value={searchQuery}
@@ -475,7 +475,7 @@ const filteredPosts = $derived(() => {
 					<div class="post-actions">
 						{#if post.encrypted && post.encryptionId}
 							<div class="encrypted-badge">
-								<Icon name="material-symbols:lock" />
+								<Icon icon="material-symbols:lock" />
 								<span>已加密</span>
 							</div>
 
@@ -484,7 +484,7 @@ const filteredPosts = $derived(() => {
 								class="action-button view-button"
 								disabled={isProcessing}
 							>
-								<Icon name="material-symbols:visibility-outline" />
+								<Icon icon="material-symbols:visibility-outline" />
 								<span>查看密码</span>
 							</button>
 
@@ -498,7 +498,7 @@ const filteredPosts = $derived(() => {
 											class="copy-button"
 											title="复制密码"
 										>
-											<Icon name="material-symbols:content-copy" />
+											<Icon icon="material-symbols:content-copy" />
 										</button>
 									</div>
 								{/if}
@@ -509,7 +509,7 @@ const filteredPosts = $derived(() => {
 								class="action-button danger-button"
 								disabled={isProcessing}
 							>
-								<Icon name="material-symbols:lock-open-outline" />
+								<Icon icon="material-symbols:lock-open-outline" />
 								<span>禁用加密</span>
 							</button>
 						{:else}
@@ -518,7 +518,7 @@ const filteredPosts = $derived(() => {
 								class="action-button primary-button"
 								disabled={isProcessing}
 							>
-								<Icon name="material-symbols:lock-outline" />
+								<Icon icon="material-symbols:lock-outline" />
 								<span>启用加密</span>
 							</button>
 						{/if}
@@ -529,7 +529,7 @@ const filteredPosts = $derived(() => {
 							disabled={isProcessing}
 							title="生成临时访问密码"
 						>
-							<Icon name="material-symbols:share" />
+							<Icon icon="material-symbols:share" />
 							<span>临时分享</span>
 						</button>
 					</div>
@@ -538,7 +538,7 @@ const filteredPosts = $derived(() => {
 
 			{#if filteredPosts().length === 0}
 				<div class="empty-state">
-					<Icon name="material-symbols:article-outline" class="empty-icon" />
+					<Icon icon="material-symbols:article-outline" class="empty-icon" />
 					<p>没有找到匹配的文章</p>
 				</div>
 			{/if}

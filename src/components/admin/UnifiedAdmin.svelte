@@ -384,11 +384,11 @@ const categoryList = $derived(() => {
 										<span>Sveltia CMS 编辑器</span>
 										<Icon icon="material-symbols:open-in-new" class="external-icon" />
 									</a>
-									<a href="/admin/" class="settings-link">
+									<div class="settings-link current">
 										<Icon icon="material-symbols:admin-panel-settings" />
 										<span>统一管理后台</span>
 										<Icon icon="material-symbols:check" class="current-icon" />
-									</a>
+									</div>
 								</div>
 							</div>
 							<div class="settings-section">
@@ -920,6 +920,11 @@ const categoryList = $derived(() => {
 	}
 
 	.settings-link:hover {
+		border-color: var(--primary);
+	}
+	.settings-link.current {
+		opacity: 0.7;
+		cursor: default;
 		border-color: var(--primary);
 	}
 
