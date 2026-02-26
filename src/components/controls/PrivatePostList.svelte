@@ -38,7 +38,9 @@ onMount(async () => {
 
 	// 如果 localStorage 没有，尝试从 Cookie 获取（支持 Keystatic 登录）
 	if (!token) {
-		const cookieMatch = document.cookie.match(/keystatic-gh-access-token=([^;]+)/);
+		const cookieMatch = document.cookie.match(
+			/keystatic-gh-access-token=([^;]+)/,
+		);
 		if (cookieMatch) {
 			token = decodeURIComponent(cookieMatch[1]);
 			// 同步到 localStorage 以便后续使用

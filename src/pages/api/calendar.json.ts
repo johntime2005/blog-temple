@@ -1,6 +1,7 @@
+import type { APIContext } from "astro";
 import { getSortedPosts } from "@/utils/content-utils";
 
-export async function GET() {
+export async function GET(_context: APIContext): Promise<Response> {
 	const posts = await getSortedPosts();
 
 	const allPostsData = posts.map((post) => ({

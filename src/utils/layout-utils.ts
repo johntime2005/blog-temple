@@ -1,7 +1,10 @@
 import { backgroundWallpaper } from "../config";
 
 // 背景图片处理工具函数
-export const getBackgroundImages = () => {
+export const getBackgroundImages = (): {
+	desktop: string | string[];
+	mobile: string | string[];
+} => {
 	const bgSrc = backgroundWallpaper.src;
 
 	if (
@@ -19,10 +22,9 @@ export const getBackgroundImages = () => {
 			mobile: srcObj.mobile || srcObj.desktop || "",
 		};
 	}
-	// 如果是字符串，同时用于桌面端和移动端
 	return {
-		desktop: bgSrc,
-		mobile: bgSrc,
+		desktop: typeof bgSrc === "string" || Array.isArray(bgSrc) ? bgSrc : "",
+		mobile: typeof bgSrc === "string" || Array.isArray(bgSrc) ? bgSrc : "",
 	};
 };
 
@@ -75,7 +77,7 @@ export const isHomePage = (pathname: string): boolean => {
 };
 
 // 获取横幅偏移量
-export const getBannerOffset = (position = "center") => {
+export const getBannerOffset = (position = "center"): string => {
 	const bannerOffsetByPosition = {
 		top: "100vh",
 		center: "50vh",

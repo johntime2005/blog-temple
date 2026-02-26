@@ -1,6 +1,11 @@
+import type { APIContext } from "astro";
+
 export const prerender = false;
 
-export async function GET({ request, redirect }) {
+export async function GET({
+	request,
+	redirect,
+}: APIContext): Promise<Response> {
 	const url = new URL(request.url);
 	const redirectParam = url.searchParams.get("redirect");
 

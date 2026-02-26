@@ -1,3 +1,4 @@
+import type { APIContext } from "astro";
 import { getEnv } from "@/utils/env-utils";
 
 export const prerender = false;
@@ -27,7 +28,8 @@ async function verifyGitHubToken(
 
 		const user = await response.json();
 		return user.login?.toLowerCase() === ownerUsername.toLowerCase();
-	} catch {
+	} catch (error) {
+		console.error("GitHub token verification error:", error);
 		return false;
 	}
 }
@@ -63,7 +65,7 @@ async function hashPassword(password: string): Promise<string> {
 	return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function POST({ request, locals }) {
+export async function POST({ request, locals }: APIContext): Promise<Response> {
 	try {
 		const body = (await request.json()) as ManagePasswordRequest;
 		const { action, token, encryptionId, passwordLength } = body;
@@ -78,8 +80,7 @@ export async function POST({ request, locals }) {
 			);
 		}
 
-		const runtime = locals.runtime as any;
-		const POST_ENCRYPTION = runtime?.env?.POST_ENCRYPTION;
+		const POST_ENCRYPTION = locals.runtime?.env?.POST_ENCRYPTION;
 
 		if (!POST_ENCRYPTION) {
 			if (action === "list") {
@@ -96,9 +97,15 @@ export async function POST({ request, locals }) {
 
 		if (action === "list") {
 			const list = await POST_ENCRYPTION.list({ prefix: "post:" });
-			const passwords = list.keys.map((key: any) => ({
+			const passwords = list.keys.map((key) => ({
 				encryptionId: key.name.replace("post:", ""),
-				createdAt: key.metadata?.createdAt,
+				createdAt: (() => {
+					const metadata = key.metadata;
+					if (!metadata || typeof metadata !== "object") return undefined;
+					if (!("createdAt" in metadata)) return undefined;
+					const value = (metadata as { createdAt?: unknown }).createdAt;
+					return typeof value === "string" ? value : undefined;
+				})(),
 			}));
 			return new Response(JSON.stringify({ success: true, passwords }), {
 				status: 200,

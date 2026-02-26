@@ -1,8 +1,9 @@
+import type { APIContext } from "astro";
 import { getSortedPosts } from "@/utils/content-utils";
 
 export const prerender = false;
 
-export async function GET({ request, locals }) {
+export async function GET({ request, locals }: APIContext): Promise<Response> {
 	const authHeader = request.headers.get("Authorization");
 	const token = authHeader?.replace("Bearer ", "");
 
@@ -28,8 +29,10 @@ export async function GET({ request, locals }) {
 	}
 
 	const user = await ghResponse.json();
-	const runtime = (locals as any).runtime as any;
-	const ownerUsername = runtime?.env?.GITHUB_OWNER_USERNAME;
+	const ownerUsername =
+		typeof locals.runtime?.env?.GITHUB_OWNER_USERNAME === "string"
+			? locals.runtime.env.GITHUB_OWNER_USERNAME
+			: undefined;
 	const isOwner =
 		ownerUsername &&
 		user.login &&

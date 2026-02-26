@@ -6,7 +6,9 @@ import { getCategoryUrl } from "@utils/url-utils";
 /**
  * 获取所有类别配置的映射
  */
-async function getCategoryConfigMap() {
+async function getCategoryConfigMap(): Promise<
+	Map<string, CollectionEntry<"categories">["data"]>
+> {
 	const categories = await getCollection("categories");
 	const map = new Map<string, CollectionEntry<"categories">["data"]>();
 	for (const cat of categories) {
@@ -86,7 +88,7 @@ export function shouldShowPost(
 }
 
 // // Retrieve posts and sort them by publication date
-async function getRawSortedPosts() {
+async function getRawSortedPosts(): Promise<CollectionEntry<"posts">[]> {
 	const allBlogPosts = await getCollection("posts", ({ data }) => {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
@@ -118,7 +120,7 @@ async function getRawSortedPosts() {
 	return sorted;
 }
 
-export async function getSortedPosts() {
+export async function getSortedPosts(): Promise<CollectionEntry<"posts">[]> {
 	const sorted = await getRawSortedPosts();
 
 	for (let i = 1; i < sorted.length; i++) {
@@ -136,7 +138,7 @@ export async function getSortedPosts() {
 /**
  * 获取首页显示的文章列表
  */
-export async function getHomePagePosts() {
+export async function getHomePagePosts(): Promise<CollectionEntry<"posts">[]> {
 	const sorted = await getSortedPosts();
 	const categoriesMap = await getCategoryConfigMap();
 	return sorted.filter((post) => shouldShowPost(post, "home", categoriesMap));
@@ -145,7 +147,9 @@ export async function getHomePagePosts() {
 /**
  * 获取归档页显示的文章列表
  */
-export async function getArchivePagePosts() {
+export async function getArchivePagePosts(): Promise<
+	CollectionEntry<"posts">[]
+> {
 	const sorted = await getSortedPosts();
 	return sorted.filter((post) => shouldShowPost(post, "archive"));
 }
@@ -153,7 +157,9 @@ export async function getArchivePagePosts() {
 /**
  * 获取搜索结果显示的文章列表
  */
-export async function getSearchablePosts() {
+export async function getSearchablePosts(): Promise<
+	CollectionEntry<"posts">[]
+> {
 	const sorted = await getSortedPosts();
 	return sorted.filter((post) => shouldShowPost(post, "search"));
 }
@@ -161,7 +167,7 @@ export async function getSearchablePosts() {
 /**
  * 获取侧边栏组件显示的文章列表
  */
-export async function getWidgetPosts() {
+export async function getWidgetPosts(): Promise<CollectionEntry<"posts">[]> {
 	const sorted = await getSortedPosts();
 	return sorted.filter((post) => shouldShowPost(post, "widget"));
 }
@@ -169,7 +175,9 @@ export async function getWidgetPosts() {
 /**
  * 获取推荐文章（featuredLevel > 0）
  */
-export async function getFeaturedPosts(minLevel = 1) {
+export async function getFeaturedPosts(
+	minLevel = 1,
+): Promise<CollectionEntry<"posts">[]> {
 	const posts = await getWidgetPosts();
 	return posts.filter((post) => (post.data.featuredLevel || 0) >= minLevel);
 }

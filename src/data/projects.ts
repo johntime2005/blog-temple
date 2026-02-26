@@ -37,8 +37,17 @@ export const projectsData: Project[] = [
 	// },
 ];
 
+export interface ProjectStats {
+	total: number;
+	byStatus: {
+		completed: number;
+		inProgress: number;
+		planned: number;
+	};
+}
+
 // 获取项目统计信息
-export const getProjectStats = () => {
+export const getProjectStats = (): ProjectStats => {
 	const total = projectsData.length;
 	const completed = projectsData.filter((p) => p.status === "completed").length;
 	const inProgress = projectsData.filter(
@@ -47,17 +56,19 @@ export const getProjectStats = () => {
 	const planned = projectsData.filter((p) => p.status === "planned").length;
 
 	return {
-		total,
+		total: total,
 		byStatus: {
-			completed,
-			inProgress,
-			planned,
+			completed: completed,
+			inProgress: inProgress,
+			planned: planned,
 		},
 	};
 };
 
 // 根据分类获取项目
-export const getProjectsByCategory = (category?: string) => {
+export const getProjectsByCategory = (
+	category?: Project["category"] | "all",
+): Project[] => {
 	if (!category || category === "all") {
 		return projectsData;
 	}
@@ -65,12 +76,12 @@ export const getProjectsByCategory = (category?: string) => {
 };
 
 // 获取精选项目
-export const getFeaturedProjects = () => {
+export const getFeaturedProjects = (): Project[] => {
 	return projectsData.filter((p) => p.featured);
 };
 
 // 获取所有技术栈
-export const getAllTechStack = () => {
+export const getAllTechStack = (): string[] => {
 	const techSet = new Set<string>();
 	projectsData.forEach((project) => {
 		project.techStack.forEach((tech) => {

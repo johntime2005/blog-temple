@@ -1,9 +1,8 @@
 ---
-import Layout from "@layouts/Layout.astro";
-import UnifiedAdmin from "@components/admin/UnifiedAdmin.svelte";
-
-import { getCategoryConfigFromContent } from "@/config/categoryConfig";
 import { getCollection } from "astro:content";
+import UnifiedAdmin from "@components/admin/UnifiedAdmin.svelte";
+import Layout from "@layouts/Layout.astro";
+import { getCategoryConfigFromContent } from "@/config/categoryConfig";
 
 const categoryConfig = await getCategoryConfigFromContent();
 

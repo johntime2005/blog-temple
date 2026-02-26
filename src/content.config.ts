@@ -92,7 +92,7 @@ const categoriesCollection = defineCollection({
 	}),
 });
 
-export const collections = {
+export const collections: Record<string, unknown> = {
 	posts: postsCollection,
 	spec: specCollection,
 	categories: categoriesCollection,

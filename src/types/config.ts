@@ -133,10 +133,18 @@ export type NavBarLink = {
 
 export enum NavBarSearchMethod {
 	PageFind = 0,
+	MeiliSearch = 1,
 }
 
 export type NavBarSearchConfig = {
 	method: NavBarSearchMethod;
+	meiliSearchConfig?: {
+		INDEX_NAME: string;
+		CONTENT_DIR: string;
+		MEILI_HOST: string;
+		PUBLIC_MEILI_HOST: string;
+		PUBLIC_MEILI_SEARCH_KEY: string;
+	};
 };
 
 export type NavBarConfig = {
@@ -353,6 +361,9 @@ export type WidgetComponentConfig = {
 	type: WidgetComponentType; // 组件类型
 	enable: boolean; // 是否启用该组件
 	position: "top" | "sticky"; // 组件位置：top=固定在顶部，sticky=粘性定位（可滚动）
+	order?: number;
+	class?: string;
+	animationDelay?: number;
 	configId?: string; // 配置ID，用于广告组件指定使用哪个配置
 	showOnPostPage?: boolean; // 是否在文章详情页显示
 	showOnNonPostPage?: boolean; // 是否在非文章详情页显示
@@ -383,6 +394,18 @@ export type SidebarLayoutConfig = {
 	leftComponents: WidgetComponentConfig[]; // 左侧边栏组件配置列表
 	rightComponents: WidgetComponentConfig[]; // 右侧边栏组件配置列表
 	mobileBottomComponents: MobileBottomComponentConfig[]; // 移动端底部组件配置列表（<768px显示）
+	defaultAnimation?: {
+		enable: boolean;
+		baseDelay: number;
+		increment: number;
+	};
+	responsive?: {
+		layout: {
+			mobile: "hidden" | "drawer" | "sidebar";
+			tablet: "hidden" | "drawer" | "sidebar";
+			desktop: "hidden" | "drawer" | "sidebar";
+		};
+	};
 };
 
 export type SakuraConfig = {

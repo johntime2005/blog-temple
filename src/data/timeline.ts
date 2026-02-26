@@ -45,9 +45,17 @@ export const timelineData: TimelineItem[] = [
 ];
 
 // 获取时间线统计信息
-export const getTimelineStats = () => {
+
+export type TimelineType = TimelineItem["type"];
+
+export interface TimelineStats {
+	total: number;
+	byType: Record<TimelineType, number>;
+}
+
+export const getTimelineStats = (): TimelineStats => {
 	const total = timelineData.length;
-	const byType = {
+	const byType: Record<TimelineType, number> = {
 		education: timelineData.filter((item) => item.type === "education").length,
 		work: timelineData.filter((item) => item.type === "work").length,
 		project: timelineData.filter((item) => item.type === "project").length,
@@ -55,11 +63,14 @@ export const getTimelineStats = () => {
 			.length,
 	};
 
-	return { total, byType };
+	return { total: total, byType: byType };
 };
 
 // 根据类型获取时间线项目
-export const getTimelineByType = (type?: string) => {
+
+export const getTimelineByType = (
+	type?: TimelineType | "all",
+): TimelineItem[] => {
 	if (!type || type === "all") {
 		return timelineData.sort(
 			(a, b) =>
@@ -75,7 +86,7 @@ export const getTimelineByType = (type?: string) => {
 };
 
 // 获取精选时间线项目
-export const getFeaturedTimeline = () => {
+export const getFeaturedTimeline = (): TimelineItem[] => {
 	return timelineData
 		.filter((item) => item.featured)
 		.sort(
@@ -85,12 +96,18 @@ export const getFeaturedTimeline = () => {
 };
 
 // 获取当前进行中的项目
-export const getCurrentItems = () => {
+export const getCurrentItems = (): TimelineItem[] => {
 	return timelineData.filter((item) => !item.endDate);
 };
 
 // 计算总工作经验
-export const getTotalWorkExperience = () => {
+
+export interface TotalWorkExperience {
+	years: number;
+	months: number;
+}
+
+export const getTotalWorkExperience = (): TotalWorkExperience => {
 	const workItems = timelineData.filter((item) => item.type === "work");
 	let totalMonths = 0;
 
@@ -102,8 +119,10 @@ export const getTotalWorkExperience = () => {
 		totalMonths += diffMonths;
 	});
 
-	return {
+	const experience: TotalWorkExperience = {
 		years: Math.floor(totalMonths / 12),
 		months: totalMonths % 12,
 	};
+
+	return experience;
 };

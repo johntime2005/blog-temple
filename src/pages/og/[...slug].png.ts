@@ -2,24 +2,65 @@ import type { CollectionEntry } from "astro:content";
 import { getCollection } from "astro:content";
 import * as fs from "node:fs";
 import type { APIContext, GetStaticPaths } from "astro";
-import satori from "satori";
+import type { ReactNode } from "react";
+import satori, { type SatoriOptions } from "satori";
 import sharp from "sharp";
 import { removeFileExtension } from "@/utils/url-utils";
 
 import { profileConfig } from "../../config/profileConfig";
 import { siteConfig } from "../../config/siteConfig";
 
-type Weight = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
-
-type FontStyle = "normal" | "italic";
-interface FontOptions {
-	data: Buffer | ArrayBuffer;
-	name: string;
-	weight?: Weight;
-	style?: FontStyle;
-	lang?: string;
-}
 export const prerender = true;
+
+type SatoriLikeElement = {
+	type: string;
+	key?: string | number | null;
+	props: Record<string, unknown>;
+};
+
+function isSatoriLikeElement(value: unknown): value is SatoriLikeElement {
+	if (!value || typeof value !== "object") return false;
+	if (!("type" in value) || !("props" in value)) return false;
+	return (
+		typeof (value as { type?: unknown }).type === "string" &&
+		!!(value as { props?: unknown }).props &&
+		typeof (value as { props?: unknown }).props === "object"
+	);
+}
+
+function toReactNode(value: unknown): ReactNode {
+	if (
+		value === null ||
+		value === undefined ||
+		typeof value === "string" ||
+		typeof value === "number" ||
+		typeof value === "boolean"
+	) {
+		return value;
+	}
+
+	if (Array.isArray(value)) {
+		return value.map(toReactNode);
+	}
+
+	if (isSatoriLikeElement(value)) {
+		const rawChildren = value.props.children;
+		const nextProps: Record<string, unknown> = { ...value.props };
+		if (rawChildren !== undefined) {
+			nextProps.children = toReactNode(rawChildren);
+		}
+		return {
+			type: value.type,
+			key:
+				value.key === null || value.key === undefined
+					? null
+					: String(value.key),
+			props: nextProps,
+		};
+	}
+
+	return String(value);
+}
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	if (!siteConfig.generateOgImages) {
@@ -97,7 +138,7 @@ async function fetchNotoSansSCFonts() {
 
 export async function GET({
 	props,
-}: APIContext<{ post: CollectionEntry<"posts"> }>) {
+}: APIContext<{ post: CollectionEntry<"posts"> }>): Promise<Response> {
 	const { post } = props;
 
 	// Try to fetch fonts from Google Fonts (woff2) at runtime.
@@ -319,7 +360,7 @@ export async function GET({
 		},
 	};
 
-	const fonts: FontOptions[] = [];
+	const fonts: SatoriOptions["fonts"] = [];
 	if (fontRegular) {
 		fonts.push({
 			name: "Noto Sans SC",
@@ -337,7 +378,7 @@ export async function GET({
 		});
 	}
 
-	const svg = await satori(template, {
+	const svg = await satori(toReactNode(template), {
 		width: 1200,
 		height: 630,
 		fonts,

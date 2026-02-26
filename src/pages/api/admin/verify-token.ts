@@ -1,3 +1,4 @@
+import type { APIContext } from "astro";
 import { getEnv } from "@/utils/env-utils";
 
 export const prerender = false;
@@ -6,7 +7,7 @@ interface VerifyTokenRequest {
 	token: string;
 }
 
-export async function POST({ request, locals }) {
+export async function POST({ request, locals }: APIContext): Promise<Response> {
 	try {
 		const body = (await request.json()) as VerifyTokenRequest;
 		const { token } = body;

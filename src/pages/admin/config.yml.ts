@@ -1,6 +1,8 @@
+import type { APIContext } from "astro";
+
 export const prerender = false;
 
-export async function GET({ url }) {
+export async function GET({ url }: APIContext): Promise<Response> {
 	const origin = url.origin;
 
 	const configTemplate = `# Sveltia CMS 配置文件
