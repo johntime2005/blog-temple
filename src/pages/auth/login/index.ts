@@ -1,5 +1,6 @@
 // OAuth 授权端点 - 使用加密安全的 state 参数
 
+import type { APIContext } from "astro";
 import { getEnv } from "@/utils/env-utils";
 import {
 	generateSecureToken,
@@ -10,10 +11,16 @@ import {
 
 export const prerender = false;
 
-export async function GET({ request, redirect, locals, cookies }) {
+export async function GET({
+	request,
+	redirect,
+	locals,
+	cookies,
+}: APIContext): Promise<Response> {
 	try {
 		const clientId = getEnv(locals, "GITHUB_CLIENT_ID");
 		const clientSecret = getEnv(locals, "GITHUB_CLIENT_SECRET");
+		const explicitRedirectUri = getEnv(locals, "GITHUB_REDIRECT_URI");
 
 		// 详细的环境变量检查
 		if (!clientId) {
@@ -27,6 +34,7 @@ export async function GET({ request, redirect, locals, cookies }) {
 						"2. 进入项目设置 → Environment variables",
 						"3. 添加 GITHUB_CLIENT_ID 和 GITHUB_CLIENT_SECRET",
 						"4. 重新部署项目",
+						"5. 确认 GitHub OAuth App 的 Authorization callback URL 已设置为 https://<你的域名>/auth/callback/",
 					],
 				),
 				{
@@ -63,10 +71,10 @@ export async function GET({ request, redirect, locals, cookies }) {
 			cookies.set("auth_redirect", redirectParam, getSecureCookieOptions(600));
 		}
 
-		const redirectUri = `${url.origin}/auth/callback/`;
-		console.log(`[OAuth] Using redirect_uri: ${redirectUri}`);
-
 		authUrl.searchParams.set("client_id", clientId);
+		// 始终发送 redirect_uri，确保与 GitHub OAuth App 配置匹配
+		const redirectUri = explicitRedirectUri || `${url.origin}/auth/callback/`;
+		console.log(`[OAuth] Using redirect_uri: ${redirectUri}`);
 		authUrl.searchParams.set("redirect_uri", redirectUri);
 		authUrl.searchParams.set("scope", "repo"); // Need full repo access for CMS
 		authUrl.searchParams.set("state", state);
@@ -225,5 +233,5 @@ function buildErrorPage(
   </div>
 </body>
 </html>
-  `;
+	`;
 }
