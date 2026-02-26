@@ -1,6 +1,6 @@
 import cloudflare from "@astrojs/cloudflare";
 import mdx from "@astrojs/mdx";
-import react from "@astrojs/react";
+
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
 import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-sections";
@@ -70,7 +70,7 @@ export default defineConfig({
 				return event.state?.url?.includes("#");
 			},
 		}),
-		react(),
+
 		icon({
 			include: {
 				"material-symbols": ["*"],
@@ -217,16 +217,7 @@ export default defineConfig({
 		],
 	},
 	vite: {
-		define: {
-			// Expose env vars to client-side bundle for Keystatic
-			// Hardcoded to ensure they are present in the build
-			"import.meta.env.GITHUB_CLIENT_ID": JSON.stringify(
-				"Ov23liJaO14SO0HHQVD8",
-			),
-			"import.meta.env.GITHUB_OWNER_USERNAME": JSON.stringify(
-				process.env.GITHUB_OWNER_USERNAME || "johntime2005",
-			),
-		},
+		define: {},
 		plugins: [tailwindcss()],
 		ssr: {
 			external: ["sharp", "satori", "@resvg/resvg-js"],

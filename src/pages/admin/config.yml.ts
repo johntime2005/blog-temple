@@ -3,9 +3,8 @@ export const prerender = false;
 export async function GET({ url }) {
 	const origin = url.origin;
 
-	// Embedded config template to avoid file system access issues in Cloudflare Pages Functions
-	const configTemplate = `# Decap CMS 配置文件
-# 文档: https://decapcms.org/docs/configuration-options/
+	const configTemplate = `# Sveltia CMS 配置文件
+# 文档: https://sveltiacms.app/en/docs/config-basics
 
 backend:
   name: github
@@ -14,24 +13,24 @@ backend:
   base_url: ${origin}
   auth_endpoint: /auth/login/
 
-# 本地开发模式 (仅在开发环境启用)
-${import.meta.env.DEV ? "local_backend: true" : ""}
-
 # 媒体文件配置
 media_folder: "public/assets/images"
 public_folder: "/assets/images"
 media_library:
-  name: ''
   max_file_size: 10240000
   folder_support: true
-
-# 发布模式
-publish_mode: editorial_workflow
 
 # 站点配置
 site_url: ${origin}
 display_url: ${origin}
-logo_url: /favicon/favicon-light-128.png
+
+# Sveltia CMS 自定义选项
+logo:
+  src: /favicon/favicon-light-128.png
+
+
+# 省略空的可选字段，防止 Astro content collection 验证问题
+omit_empty_optional_fields: true
 
 collections:
   # 博客文章集合
@@ -40,21 +39,77 @@ collections:
     label_singular: "文章"
     folder: "src/content/posts"
     create: true
-    slug: "{{category}}/{{slug}}"
+    slug: "{{slug}}"
     preview_path: "posts/{{slug}}"
+    summary: "{{title}} ({{published}})"
     fields:
+      # === 基础信息 ===
       - { label: "标题", name: "title", widget: "string", required: true }
       - { label: "发布日期", name: "published", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: true }
-      - { label: "置顶", name: "pinned", widget: "boolean", default: false, required: false }
-      - { label: "简介", name: "description", widget: "text", required: true }
-      - { label: "标签", name: "tags", widget: "list", allow_add: true, default: ["博客"], required: true }
-      - { label: "分类", name: "category", widget: "relation", collection: "categories", value_field: "title", search_fields: ["title"], display_fields: ["title"], default: "默认分类", required: true }
-      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: true }
-      - { label: "从主页隐藏", name: "hideFromHome", widget: "boolean", default: false, required: false, hint: "开启后文章不会在主页显示，但可通过直接链接访问" }
-      - { label: "加密文章", name: "encrypted", widget: "boolean", default: false, required: false }
-      - { label: "加密密码/ID", name: "encryptionId", widget: "string", required: false, hint: "输入密码或加密ID，启用上方开关后生效" }
+      - { label: "更新日期", name: "updated", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: false }
+      - { label: "简介", name: "description", widget: "text", required: false, default: "" }
       - { label: "封面图", name: "image", widget: "image", required: false, hint: "可选：文章封面图片" }
       - { label: "正文", name: "body", widget: "markdown", required: true }
+
+      # === 分类与标签 ===
+      - { label: "分类", name: "category", widget: "relation", collection: "categories", value_field: "title", search_fields: ["title"], display_fields: ["title"], required: false }
+      - { label: "标签", name: "tags", widget: "list", allow_add: true, default: [], required: false }
+
+      # === 文章状态 ===
+      - { label: "草稿", name: "draft", widget: "boolean", default: false }
+      - { label: "置顶", name: "pinned", widget: "boolean", default: false }
+
+      # === 可见性控制 ===
+      - label: "可见性"
+        name: "visibility"
+        widget: "select"
+        options: ["public", "unlisted", "private"]
+        default: "public"
+        hint: "public=公开, unlisted=不列出但可直接访问, private=私有"
+        required: false
+      - { label: "从主页隐藏", name: "hideFromHome", widget: "boolean", default: false, required: false, hint: "开启后文章不会在主页显示" }
+      - { label: "从归档隐藏", name: "hideFromArchive", widget: "boolean", default: false, required: false, hint: "开启后文章不会在归档页显示" }
+      - { label: "从搜索隐藏", name: "hideFromSearch", widget: "boolean", default: false, required: false, hint: "开启后文章不会出现在搜索结果中" }
+      - { label: "在侧边栏显示", name: "showInWidget", widget: "boolean", default: true, required: false }
+
+      # === 排序与推荐 ===
+      - { label: "自定义排序", name: "customOrder", widget: "number", required: false, hint: "数字越小越靠前" }
+      - { label: "推荐级别", name: "featuredLevel", widget: "number", default: 0, required: false, hint: "0-5, 0为不推荐" }
+
+      # === 布局控制 ===
+      - label: "文章布局"
+        name: "postLayout"
+        widget: "select"
+        options: ["default", "wide", "fullscreen", "no-sidebar"]
+        default: "default"
+        required: false
+
+      # === SEO 控制 ===
+      - { label: "禁止搜索引擎索引", name: "seoNoIndex", widget: "boolean", default: false, required: false }
+      - { label: "禁止搜索引擎跟踪链接", name: "seoNoFollow", widget: "boolean", default: false, required: false }
+
+      # === 访问控制 ===
+      - label: "访问级别"
+        name: "accessLevel"
+        widget: "select"
+        options: ["public", "members-only", "restricted"]
+        default: "public"
+        required: false
+        hint: "public=公开, members-only=仅登录用户, restricted=受限"
+
+      # === 加密 ===
+      - { label: "加密文章", name: "encrypted", widget: "boolean", default: false, required: false }
+      - { label: "加密密码/ID", name: "encryptionId", widget: "string", required: false, hint: "输入密码或加密ID，启用上方开关后生效" }
+
+      # === 多语言与作者 ===
+      - { label: "文章语言", name: "lang", widget: "string", required: false, default: "", hint: "留空继承站点语言" }
+      - { label: "作者", name: "author", widget: "string", required: false, default: "" }
+      - { label: "允许评论", name: "comment", widget: "boolean", default: true, required: false }
+
+      # === 许可证 ===
+      - { label: "来源链接", name: "sourceLink", widget: "string", required: false, default: "" }
+      - { label: "许可证名称", name: "licenseName", widget: "string", required: false, default: "" }
+      - { label: "许可证链接", name: "licenseUrl", widget: "string", required: false, default: "" }
 
     view_groups:
       - label: "按分类"
@@ -64,6 +119,8 @@ collections:
         pattern: "\\\\d{4}"
       - label: "草稿状态"
         field: "draft"
+      - label: "可见性"
+        field: "visibility"
 
     view_filters:
       - label: "仅草稿"
@@ -72,6 +129,12 @@ collections:
       - label: "仅已发布"
         field: "draft"
         pattern: false
+      - label: "已加密"
+        field: "encrypted"
+        pattern: true
+      - label: "已置顶"
+        field: "pinned"
+        pattern: true
 
   # 全局设置
   - name: "settings"
@@ -86,45 +149,6 @@ collections:
             widget: "list"
             hint: "输入需要同步到公共仓库的分类名称（区分大小写，英文）。只有在此列表中的分类文件夹才会被公开。"
             default: ["tutorials"]
-
-  # WordPress迁移文章
-  - name: "wordpress-posts"
-    label: "WordPress文章"
-    label_singular: "WordPress文章"
-    folder: "src/content/posts/wordpress-import"
-    create: true
-    slug: "{{slug}}"
-    preview_path: "posts/{{slug}}"
-    fields:
-      - { label: "标题", name: "title", widget: "string", required: true }
-      - { label: "发布日期", name: "published", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: true }
-      - { label: "置顶", name: "pinned", widget: "boolean", default: false, required: false }
-      - { label: "简介", name: "description", widget: "text", required: true }
-      - { label: "标签", name: "tags", widget: "list", allow_add: true, default: ["WordPress迁移"], required: true }
-      - { label: "分类", name: "category", widget: "string", default: "博客", required: true }
-      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: true }
-      - { label: "从主页隐藏", name: "hideFromHome", widget: "boolean", default: false, required: false }
-      - { label: "封面图", name: "image", widget: "image", required: false }
-      - { label: "正文", name: "body", widget: "markdown", required: true }
-
-  # 教程文章
-  - name: "tutorials"
-    label: "教程文章"
-    label_singular: "教程"
-    folder: "src/content/posts/tutorials"
-    create: true
-    slug: "{{slug}}"
-    preview_path: "posts/tutorials/{{slug}}"
-    fields:
-      - { label: "标题", name: "title", widget: "string", required: true }
-      - { label: "发布日期", name: "published", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: true }
-      - { label: "简介", name: "description", widget: "text", required: true }
-      - { label: "标签", name: "tags", widget: "list", allow_add: true, default: ["Firefly", "教程"], required: true }
-      - { label: "分类", name: "category", widget: "string", default: "博客教程", required: true }
-      - { label: "草稿", name: "draft", widget: "boolean", default: false, required: true }
-      - { label: "从主页隐藏", name: "hideFromHome", widget: "boolean", default: true, required: false }
-      - { label: "封面图", name: "image", widget: "image", required: false }
-      - { label: "正文", name: "body", widget: "markdown", required: true }
 
   # 友链管理
   - name: "friends"

@@ -1,267 +1,62 @@
 ---
-import "../../scripts/cms-preview.tsx";
+import Layout from "@layouts/Layout.astro";
+import UnifiedAdmin from "@components/admin/UnifiedAdmin.svelte";
+
+import { getCategoryConfigFromContent } from "@/config/categoryConfig";
+import { getCollection } from "astro:content";
+
+const categoryConfig = await getCategoryConfigFromContent();
+
+const allPosts = await getCollection("posts", ({ data }) => {
+	return import.meta.env.PROD ? data.draft !== true : true;
+});
+
+const postCountMap: Record<string, number> = {};
+for (const post of allPosts) {
+	const category = post.data.category?.trim() || "未分类";
+	postCountMap[category] = (postCountMap[category] || 0) + 1;
+}
+
+const categoriesWithStats = Object.values(categoryConfig).map((cat) => ({
+	id: cat.id,
+	name: cat.name,
+	slug: cat.slug,
+	icon: cat.icon,
+	description: cat.description,
+	showInHome: cat.showInHome,
+	showInNavbar: cat.showInNavbar || false,
+	syncToPublic: cat.syncToPublic || false,
+	encrypted: cat.encrypted || false,
+	order: cat.order,
+	color: cat.color,
+	customLink: cat.customLink,
+	postCount: postCountMap[cat.name] || 0,
+}));
+
+const postsData = allPosts.map((post) => ({
+	slug: post.id,
+	title: post.data.title,
+	published: post.data.published.toISOString(),
+	encrypted: post.data.encrypted || false,
+	encryptionId: post.data.encryptionId || "",
+	category: post.data.category || "",
+	tags: post.data.tags || [],
+}));
 ---
 
-<!doctype html>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="robots" content="noindex" />
-        <style>
-            /* 弹窗提示样式 */
-            .popup-notice {
-                display: none;
-                position: fixed;
-                top: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 15px 25px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                z-index: 10000;
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-                font-size: 14px;
-                max-width: 90%;
-                text-align: center;
-            }
-            .popup-notice.show {
-                display: block;
-                animation: slideDown 0.3s ease-out;
-            }
-            @keyframes slideDown {
-                from {
-                    transform: translateX(-50%) translateY(-20px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(-50%) translateY(0);
-                    opacity: 1;
-                }
-            }
-            .popup-notice button {
-                margin-top: 10px;
-                background: white;
-                color: #667eea;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: 600;
-                transition: all 0.2s;
-            }
-            .popup-notice button:hover {
-                background: #f0f0f0;
-                transform: scale(1.05);
-            }
+<Layout title="管理后台" description="统一管理后台">
+	<div class="admin-container">
+		<UnifiedAdmin
+			client:load
+			categories={categoriesWithStats}
+			posts={postsData}
+		/>
+	</div>
+</Layout>
 
-            /* 加载指示器 */
-            #cms-loader {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: #fff;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                z-index: 9999;
-                font-family: -apple-system, system-ui, sans-serif;
-            }
-            .spinner {
-                width: 40px;
-                height: 40px;
-                border: 4px solid #f3f3f3;
-                border-top: 4px solid #667eea;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-                margin-bottom: 20px;
-            }
-            @keyframes spin {
-                0% {
-                    transform: rotate(0deg);
-                }
-                100% {
-                    transform: rotate(360deg);
-                }
-            }
-            #error-message {
-                display: none;
-                color: #e53e3e;
-                margin-top: 20px;
-                text-align: center;
-                max-width: 80%;
-            }
-        </style>
-        <title>博客管理后台 - Content Manager</title>
-        <link
-            rel="icon"
-            type="image/png"
-            href="/favicon/favicon-light-32.png"
-        />
-    </head>
-    <body>
-        <!-- 本地开发环境自动修复配置：拦截 config.yml 请求并动态替换 base_url -->
-        <script is:inline>
-            if (
-                window.location.hostname === "localhost" ||
-                window.location.hostname === "127.0.0.1"
-            ) {
-                const originalFetch = window.fetch;
-                window.fetch = async function (url, options) {
-                    // 转换为字符串以处理 URL 对象
-                    const urlStr = url.toString();
-                    if (urlStr.endsWith("config.yml")) {
-                        console.log(
-                            "[Dev Fix] Intercepting config.yml fetch to patch base_url for localhost",
-                        );
-                        try {
-                            const response = await originalFetch(url, options);
-                            if (!response.ok) return response;
-                            const text = await response.text();
-                            // 将生产环境 base_url 替换为当前本地地址
-                            const newText = text.replace(
-                                /base_url:\s*https:\/\/blog\.johntime\.top/g,
-                                `base_url: ${window.location.origin}`,
-                            );
-                            return new Response(newText, {
-                                status: 200,
-                                headers: response.headers,
-                            });
-                        } catch (e) {
-                            console.error("[Dev Fix] Failed to patch config.yml", e);
-                            throw e;
-                        }
-                    }
-                    return originalFetch(url, options);
-                };
-            }
-        </script>
-
-        <!-- 加载状态 -->
-        <div id="cms-loader">
-            <div class="spinner"></div>
-            <div>正在加载管理后台...</div>
-            <div id="error-message">
-                加载时间过长，请检查网络连接或刷新页面。<br />
-                如果一直显示此消息，请尝试清除浏览器缓存。
-            </div>
-        </div>
-
-        <!-- 弹窗阻止提示 -->
-        <div id="popupNotice" class="popup-notice">
-            ⚠️ 浏览器阻止了登录弹窗！<br />
-            请在地址栏右侧点击弹窗图标，允许弹窗后重试<br />
-            或者<br />
-            <button onclick="window.location.href='/auth'">直接跳转登录</button>
-        </div>
-
-        <!-- Decap CMS 挂载点 -->
-        <div id="nc-root"></div>
-
-        <!-- React 环境 (已由 Decap CMS 内置，无需重复加载) -->
-        <!-- <script is:inline src="/admin/scripts/react.production.min.js"></script> -->
-        <!-- <script is:inline src="/admin/scripts/react-dom.production.min.js"></script> -->
-
-        <!-- Decap CMS 核心脚本 - 本地托管 (Cloudflare CDN 加速) -->
-        <script is:inline data-cfasync="false" src="/admin/scripts/decap-cms.js"
-        ></script>
-
-        <!-- 自定义预览模板 (React + Katex) -->
-
-        <script is:inline data-cfasync="false">
-            // --- 调试脚本：监听消息和检查登录状态 ---
-            console.log("Admin Page Loaded. Checking environment...");
-
-            // 监听 postMessage
-            window.addEventListener("message", (event) => {
-                console.log("[Admin Debug] Received message:", event);
-                console.log("[Admin Debug] Message data:", event.data);
-                console.log("[Admin Debug] Message origin:", event.origin);
-
-                // 尝试手动通过 Decap CMS 的内部机制登录 (如果暴露了 API)
-                // 目前只能被动接收
-            });
-
-            // 检查 LocalStorage
-            function checkLoginState() {
-                const lsKey = "netlify-cms-user";
-                const user = localStorage.getItem(lsKey);
-                console.log(
-                    "[Admin Debug] LocalStorage '" + lsKey + "':",
-                    user ? "Existent" : "Missing",
-                );
-                if (user) {
-                    console.log("[Admin Debug] User data:", JSON.parse(user));
-                }
-            }
-            checkLoginState();
-        </script>
-
-        <script is:inline data-cfasync="false">
-            // 错误超时检测 - 延长到 20 秒
-            const loaderTimeout = setTimeout(() => {
-                const errorMsg = document.getElementById("error-message");
-                if (errorMsg && !window.CMS) {
-                    errorMsg.style.display = "block";
-                }
-            }, 30000);
-
-            // 加载器隐藏逻辑移到这里，或者等待 CMS 初始化后自动隐藏
-            const interval = setInterval(() => {
-                if (window.CMS) {
-                    clearInterval(interval);
-                    clearTimeout(loaderTimeout);
-                    const loader = document.getElementById("cms-loader");
-                    if (loader) loader.style.display = "none";
-                }
-            }, 100);
-        </script>
-
-        <script is:inline data-cfasync="false">
-            // 弹窗拦截：修正 OAuth URL 尾斜杠 + 弹窗阻止检测
-            (() => {
-                const originalOpen = window.open;
-                window.open = function (...args) {
-                    // 修正 Decap CMS 生成的 OAuth URL：
-                    // CMS 内部会 trim auth_endpoint 的尾斜杠，导致 /auth/login?... 而非 /auth/login/?...
-                    // Astro trailingSlash:"always" 要求带尾斜杠，否则返回 404
-                    if (typeof args[0] === "string" && args[0].includes("/auth/login")) {
-                        try {
-                            const url = new URL(args[0], window.location.origin);
-                            if (!url.pathname.endsWith("/")) {
-                                url.pathname = url.pathname + "/";
-                                args[0] = url.toString();
-                                console.log("[Admin] Fixed OAuth URL trailing slash:", args[0]);
-                            }
-                        } catch (e) {
-                            console.error("[Admin] Failed to fix OAuth URL:", e);
-                        }
-                    }
-
-                    const popup = originalOpen.apply(this, args);
-                    if (
-                        !popup ||
-                        popup.closed ||
-                        typeof popup.closed === "undefined"
-                    ) {
-                        const notice = document.getElementById("popupNotice");
-                        if (notice) {
-                            notice.classList.add("show");
-                            setTimeout(
-                                () => notice.classList.remove("show"),
-                                10000,
-                            );
-                        }
-                    }
-                    return popup;
-                };
-            })();
-        </script>
-    </body>
-</html>
+<style>
+	.admin-container {
+		min-height: 100vh;
+		background: var(--page-bg);
+	}
+</style>
