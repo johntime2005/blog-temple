@@ -437,7 +437,7 @@ function getIconColor(color: string) {
 							<button
 								class="toggle-switch"
 								class:active={draft.showInHome}
-								onclick={() => isEditing ? (editDraft.showInHome = !editDraft.showInHome) : toggleField(category, "showInHome")}
+							onclick={() => isEditing && editDraft ? (editDraft.showInHome = !editDraft.showInHome) : toggleField(category, "showInHome")}
 								type="button"
 							>
 								<span class="toggle-knob"></span>
@@ -451,7 +451,7 @@ function getIconColor(color: string) {
 							<button
 								class="toggle-switch"
 								class:active={draft.showInNavbar}
-								onclick={() => isEditing ? (editDraft.showInNavbar = !editDraft.showInNavbar) : toggleField(category, "showInNavbar")}
+							onclick={() => isEditing && editDraft ? (editDraft.showInNavbar = !editDraft.showInNavbar) : toggleField(category, "showInNavbar")}
 								type="button"
 							>
 								<span class="toggle-knob"></span>
@@ -465,7 +465,7 @@ function getIconColor(color: string) {
 							<button
 								class="toggle-switch"
 								class:active={draft.syncToPublic}
-								onclick={() => isEditing ? (editDraft.syncToPublic = !editDraft.syncToPublic) : toggleField(category, "syncToPublic")}
+							onclick={() => isEditing && editDraft ? (editDraft.syncToPublic = !editDraft.syncToPublic) : toggleField(category, "syncToPublic")}
 								type="button"
 							>
 								<span class="toggle-knob"></span>
@@ -479,7 +479,7 @@ function getIconColor(color: string) {
 							<button
 								class="toggle-switch"
 								class:active={draft.encrypted}
-								onclick={() => isEditing ? (editDraft.encrypted = !editDraft.encrypted) : toggleField(category, "encrypted")}
+							onclick={() => isEditing && editDraft ? (editDraft.encrypted = !editDraft.encrypted) : toggleField(category, "encrypted")}
 								type="button"
 							>
 								<span class="toggle-knob"></span>

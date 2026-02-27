@@ -166,11 +166,11 @@ function sortColumnPosts(
 		// 3. 全局自定义排序
 		const aCustomOrder = a.data.customOrder;
 		const bCustomOrder = b.data.customOrder;
-		if (aCustomOrder !== undefined && bCustomOrder !== undefined) {
+		if (aCustomOrder != null && bCustomOrder != null) {
 			return aCustomOrder - bCustomOrder;
 		}
-		if (aCustomOrder !== undefined) return -1;
-		if (bCustomOrder !== undefined) return 1;
+		if (aCustomOrder != null) return -1;
+		if (bCustomOrder != null) return 1;
 
 		// 4. 全局推荐级别
 		const aFeaturedLevel = a.data.featuredLevel || 0;

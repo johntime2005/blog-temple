@@ -95,11 +95,11 @@ async function getRawSortedPosts(): Promise<CollectionEntry<"posts">[]> {
 
 	const sorted = allBlogPosts.sort((a, b) => {
 		// 1. 首先按自定义排序优先级（如果设置）
-		if (a.data.customOrder !== undefined && b.data.customOrder !== undefined) {
+		if (a.data.customOrder != null && b.data.customOrder != null) {
 			return a.data.customOrder - b.data.customOrder;
 		}
-		if (a.data.customOrder !== undefined) return -1;
-		if (b.data.customOrder !== undefined) return 1;
+		if (a.data.customOrder != null) return -1;
+		if (b.data.customOrder != null) return 1;
 
 		// 2. 然后按推荐级别排序（级别越高越靠前）
 		const aFeatured = a.data.featuredLevel || 0;

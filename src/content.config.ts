@@ -32,7 +32,7 @@ const postsCollection = defineCollection({
 		showInWidget: z.boolean().optional().default(true),
 
 		/* Advanced features */
-		customOrder: z.number().optional(),
+		customOrder: z.number().nullable().optional(),
 		featuredLevel: z.number().min(0).max(5).optional().default(0),
 		postLayout: z
 			.enum(["default", "wide", "fullscreen", "no-sidebar"])

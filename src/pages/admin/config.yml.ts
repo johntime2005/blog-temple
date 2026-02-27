@@ -87,7 +87,7 @@ export async function GET({ url }: APIContext): Promise<Response> {
       - { label: "在侧边栏显示", name: "showInWidget", widget: "boolean", default: true, required: false }
 
       # === 排序与推荐 ===
-      - { label: "自定义排序", name: "customOrder", widget: "number", required: false, hint: "数字越小越靠前" }
+      - { label: "自定义排序", name: "customOrder", widget: "number", value_type: "int", required: false, hint: "数字越小越靠前，留空则按默认排序" }
       - { label: "推荐级别", name: "featuredLevel", widget: "number", default: 0, required: false, hint: "0-5, 0为不推荐" }
 
       # === 布局控制 ===
