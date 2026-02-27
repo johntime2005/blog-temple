@@ -12,14 +12,11 @@ interface DirConfig {
 	create: boolean;
 }
 
+// Git submodule 目录无法通过主仓库的 GitHub API 管理，必须排除
+const SUBMODULE_DIRS = ["diary"];
+
 const knownDirs: Record<string, DirConfig> = {
-	diary: { label: "📓 日记", singular: "日记", create: true },
 	tutorials: { label: "📖 教程文章", singular: "教程", create: true },
-	"diary/wordpress-import": {
-		label: "📦 WordPress 迁移",
-		singular: "迁移文章",
-		create: false,
-	},
 };
 
 function discoverSubdirs(): string[] {
@@ -28,7 +25,14 @@ function discoverSubdirs(): string[] {
 		const rel = filePath.replace("/src/content/posts/", "");
 		const segments = rel.split("/");
 		if (segments.length > 1) {
-			dirs.add(segments.slice(0, -1).join("/"));
+			const dir = segments.slice(0, -1).join("/");
+			// 跳过 submodule 目录（它们属于不同的 Git 仓库）
+			const isSubmodule = SUBMODULE_DIRS.some(
+				(sm) => dir === sm || dir.startsWith(`${sm}/`),
+			);
+			if (!isSubmodule) {
+				dirs.add(dir);
+			}
 		}
 	}
 	return Array.from(dirs).sort();
