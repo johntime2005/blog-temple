@@ -2,56 +2,64 @@ import type { APIContext } from "astro";
 
 export const prerender = false;
 
+const postModules = import.meta.glob("/src/content/posts/**/*.{md,mdx}", {
+	eager: false,
+});
+
+interface DirConfig {
+	label: string;
+	singular: string;
+	create: boolean;
+}
+
+const knownDirs: Record<string, DirConfig> = {
+	diary: { label: "📓 日记", singular: "日记", create: true },
+	tutorials: { label: "📖 教程文章", singular: "教程", create: true },
+	"diary/wordpress-import": {
+		label: "📦 WordPress 迁移",
+		singular: "迁移文章",
+		create: false,
+	},
+};
+
+function discoverSubdirs(): string[] {
+	const dirs = new Set<string>();
+	for (const filePath of Object.keys(postModules)) {
+		const rel = filePath.replace("/src/content/posts/", "");
+		const segments = rel.split("/");
+		if (segments.length > 1) {
+			dirs.add(segments.slice(0, -1).join("/"));
+		}
+	}
+	return Array.from(dirs).sort();
+}
+
+function getDirConfig(dir: string): DirConfig {
+	if (knownDirs[dir]) return knownDirs[dir];
+	const name = dir.split("/").pop() || dir;
+	return {
+		label: `📁 ${name.charAt(0).toUpperCase() + name.slice(1)}`,
+		singular: name,
+		create: true,
+	};
+}
+
+function toCollectionName(dir: string): string {
+	return dir.replace(/\//g, "-");
+}
+
 export async function GET({ url }: APIContext): Promise<Response> {
 	const origin = url.origin;
+	const subdirs = discoverSubdirs();
 
-	const configTemplate = `# Sveltia CMS 配置文件
-# 文档: https://sveltiacms.app/en/docs/config-basics
-
-backend:
-  name: github
-  repo: johntime2005/blog
-  branch: main
-  base_url: ${origin}
-  auth_endpoint: /auth/login/
-
-# 媒体文件配置
-media_folder: "public/assets/images"
-public_folder: "/assets/images"
-media_library:
-  max_file_size: 10240000
-  folder_support: true
-
-# 站点配置
-site_url: ${origin}
-display_url: ${origin}
-
-# Sveltia CMS 自定义选项
-logo:
-  src: /favicon/favicon-light-128.png
-
-
-# 省略空的可选字段，防止 Astro content collection 验证问题
-omit_empty_optional_fields: true
-
-collections:
-  # 博客文章集合
-  - name: "posts"
-    label: "博客文章"
-    label_singular: "文章"
-    folder: "src/content/posts"
-    create: true
-    slug: "{{slug}}"
-    preview_path: "posts/{{slug}}"
-    summary: "{{title}} ({{published}})"
-    fields:
+	const postFields = `    fields:
       # === 基础信息 ===
       - { label: "标题", name: "title", widget: "string", required: true }
       - { label: "发布日期", name: "published", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: true }
       - { label: "更新日期", name: "updated", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: false }
       - { label: "简介", name: "description", widget: "text", required: false, default: "" }
       - { label: "封面图", name: "image", widget: "image", required: false, hint: "可选：文章封面图片" }
-      - { label: "正文", name: "body", widget: "markdown", required: true }
+      - { label: "正文", name: "body", widget: "markdown", required: true, modes: [raw, rich_text], editor_components: [code-block, image] }
 
       # === 分类与标签 ===
       - { label: "分类", name: "category", widget: "relation", collection: "categories", value_field: "title", search_fields: ["title"], display_fields: ["title"], required: false }
@@ -111,9 +119,9 @@ collections:
       # === 许可证 ===
       - { label: "来源链接", name: "sourceLink", widget: "string", required: false, default: "" }
       - { label: "许可证名称", name: "licenseName", widget: "string", required: false, default: "" }
-      - { label: "许可证链接", name: "licenseUrl", widget: "string", required: false, default: "" }
+      - { label: "许可证链接", name: "licenseUrl", widget: "string", required: false, default: "" }`;
 
-    view_groups:
+	const viewConfig = `    view_groups:
       - label: "按分类"
         field: "category"
       - label: "按年份"
@@ -136,7 +144,69 @@ collections:
         pattern: true
       - label: "已置顶"
         field: "pinned"
-        pattern: true
+        pattern: true`;
+
+	const dirCollections = subdirs
+		.map((dir) => {
+			const cfg = getDirConfig(dir);
+			const name = toCollectionName(dir);
+			return `  - name: "${name}"
+    label: "${cfg.label}"
+    label_singular: "${cfg.singular}"
+    folder: "src/content/posts/${dir}"
+    create: ${cfg.create}
+    slug: "{{slug}}"
+    preview_path: "posts/{{slug}}"
+    summary: "{{title}} ({{published}})"
+${postFields}
+
+${viewConfig}`;
+		})
+		.join("\n\n");
+
+	const rootCollection = `  - name: "posts"
+    label: "📝 其他文章"
+    label_singular: "文章"
+    folder: "src/content/posts"
+    create: true
+    slug: "{{slug}}"
+    preview_path: "posts/{{slug}}"
+    summary: "{{title}} ({{published}})"
+${postFields}
+
+${viewConfig}`;
+
+	const configTemplate = `# Sveltia CMS 配置文件
+# 文档: https://sveltiacms.app/en/docs/config-basics
+
+backend:
+  name: github
+  repo: johntime2005/blog
+  branch: main
+  base_url: ${origin}
+  auth_endpoint: /auth/login/
+
+# 媒体文件配置
+media_folder: "public/assets/images"
+public_folder: "/assets/images"
+media_library:
+  max_file_size: 10240000
+  folder_support: true
+
+# 站点配置
+site_url: ${origin}
+display_url: ${origin}
+
+# Sveltia CMS 自定义选项
+logo:
+  src: /favicon/favicon-light-128.png
+
+omit_empty_optional_fields: true
+
+collections:
+${dirCollections}
+
+${rootCollection}
 
   # 全局设置
   - name: "settings"
@@ -162,7 +232,7 @@ collections:
         fields:
           - { label: "标题", name: "title", widget: "string", default: "友情链接" }
           - { label: "描述", name: "description", widget: "string", default: "与优秀的朋友们一起成长" }
-          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑友链页面的 Markdown 内容" }
+          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑友链页面的 Markdown 内容", modes: [raw, rich_text] }
 
   # 关于页面
   - name: "about"
@@ -172,7 +242,7 @@ collections:
         name: "about"
         file: "src/content/spec/about.md"
         fields:
-          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑关于页面的 Markdown 内容" }
+          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑关于页面的 Markdown 内容", modes: [raw, rich_text] }
 
   # 类别管理
   - name: "categories"
