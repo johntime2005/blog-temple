@@ -24,13 +24,13 @@ const style = Astro.props.style;
 >
   <div>
     <!-- 公告栏内容 -->
-    <div class="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-3">
+    <div id="announcement-content" class="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-3">
       {config.content}
     </div>
 
     <!-- 可选链接和关闭按钮 -->
     <div class="flex items-center justify-between gap-3">
-      <div>
+      <div id="announcement-link-wrapper">
         {
           config.link && config.link.enable !== false && (
             <a
@@ -62,17 +62,53 @@ const style = Astro.props.style;
 
 <script>
   function closeAnnouncement() {
-    // 通过data-id属性找到整个widget-layout元素
     const widgetLayout = document.querySelector(
       'widget-layout[data-id="announcement"]'
     ) as HTMLElement | null;
     if (widgetLayout) {
-      // 隐藏整个widget-layout元素
       widgetLayout.style.display = "none";
-     
     }
   }
 
   // 使公告栏函数全局可用
   window.closeAnnouncement = closeAnnouncement;
+
+  // 动态加载 KV 中的公告覆盖
+  (async function loadDynamicAnnouncement() {
+    try {
+      const res = await fetch('/api/config/announcement', {
+        headers: { Accept: 'application/json' },
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (!json.data || json.source === 'default') return;
+
+      const data = json.data;
+
+      // 覆盖公告内容
+      const contentEl = document.getElementById('announcement-content');
+      if (contentEl && data.content) {
+        contentEl.textContent = data.content;
+      }
+
+      // 覆盖公告标题
+      const titleEl = document.querySelector('widget-layout[data-id="announcement"] .widget-title');
+      if (titleEl && data.title) {
+        titleEl.textContent = data.title;
+      }
+
+      // 覆盖链接
+      const linkWrapper = document.getElementById('announcement-link-wrapper');
+      if (linkWrapper && data.link) {
+        if (data.link.enable === false) {
+          linkWrapper.innerHTML = '';
+        } else if (data.link.url && data.link.text) {
+          const isExternal = data.link.external ?? false;
+          linkWrapper.innerHTML = `<a href="${data.link.url}" target="${isExternal ? '_blank' : '_self'}" ${isExternal ? 'rel="noopener noreferrer"' : ''} class="btn-regular rounded-lg px-3 py-1.5 text-sm font-medium active:scale-95 transition-transform">${data.link.text}</a>`;
+        }
+      }
+    } catch {
+      // API 不可用时静默降级，使用构建时静态内容
+    }
+  })();
 </script>

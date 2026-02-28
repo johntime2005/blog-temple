@@ -1,432 +1,1121 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex">
-  <title>管理仪表板 - 博客管理后台</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>博客管理后台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: "#f5f3ff",
+              100: "#ede9fe",
+              200: "#ddd6fe",
+              300: "#c4b5fd",
+              400: "#a78bfa",
+              500: "#8b5cf6",
+              600: "#7c3aed",
+              700: "#6d28d9",
+              800: "#5b21b6",
+              900: "#4c1d95"
+            }
+          }
+        }
+      }
+    };
+  </script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
+      background: linear-gradient(140deg, #5b21b6 0%, #7c3aed 45%, #8b5cf6 100%);
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
+    .glass {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
     }
 
-    header {
-      text-align: center;
-      color: white;
-      margin-bottom: 30px;
-    }
-
-    header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    header p {
-      opacity: 0.9;
-      font-size: 1.1rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-    }
-
-    .card h2 {
-      font-size: 1.25rem;
-      color: #333;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card h2 .icon {
-      font-size: 1.5rem;
-    }
-
-    /* 统计卡片 */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .stat-item {
-      background: #f8f9fa;
-      padding: 16px;
-      border-radius: 8px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #667eea;
-    }
-
-    .stat-label {
-      font-size: 0.85rem;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    /* 快捷操作 */
-    .quick-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .action-btn {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      background: #f8f9fa;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      color: #333;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-
-    .action-btn:hover {
-      background: #667eea;
-      color: white;
-      transform: translateX(5px);
-    }
-
-    .action-btn .icon {
-      font-size: 1.2rem;
-    }
-
-    /* 状态检查 */
-    .status-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .status-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-    }
-
-    .status-item .label {
-      font-size: 0.9rem;
-      color: #555;
-    }
-
-    .status-badge {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .status-badge.success {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .status-badge.warning {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .status-badge.error {
-      background: #f8d7da;
-      color: #721c24;
-    }
-
-    .status-badge.loading {
-      background: #e2e3e5;
-      color: #383d41;
-    }
-
-    /* 最近活动 */
-    .activity-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
-    .activity-item {
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border-left: 3px solid #667eea;
-    }
-
-    .activity-item .title {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 4px;
-    }
-
-    .activity-item .meta {
-      font-size: 0.8rem;
-      color: #888;
-    }
-
-    /* 帮助卡片 */
-    .help-links {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .help-link {
-      color: #667eea;
-      text-decoration: none;
-      font-size: 0.9rem;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-      transition: color 0.2s;
-    }
-
-    .help-link:hover {
-      color: #5568d3;
-    }
-
-    .help-link:last-child {
-      border-bottom: none;
-    }
-
-    /* 页脚 */
-    footer {
-      text-align: center;
-      color: rgba(255,255,255,0.8);
-      margin-top: 30px;
-      font-size: 0.85rem;
-    }
-
-    footer a {
-      color: white;
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    /* 响应式 */
-    @media (max-width: 768px) {
-      header h1 {
-        font-size: 1.8rem;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
   </style>
 </head>
-<body>
-  <div class="container">
-    <header>
-      <h1>📊 管理仪表板</h1>
-      <p>欢迎回来！查看博客状态和快速管理内容</p>
-    </header>
+<body class="min-h-screen text-slate-800 antialiased">
+  <div id="toastContainer" class="pointer-events-none fixed right-4 top-4 z-[100] flex w-[min(92vw,360px)] flex-col gap-2"></div>
 
-    <div class="grid">
-      <!-- 统计概览 -->
-      <div class="card">
-        <h2><span class="icon">📈</span> 内容统计</h2>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-value" id="postCount">-</div>
-            <div class="stat-label">文章总数</div>
+  <main class="min-h-screen p-4 md:p-6">
+    <section id="loginScreen" class="mx-auto flex min-h-[calc(100vh-2rem)] max-w-md items-center justify-center md:min-h-[calc(100vh-3rem)]">
+      <div class="glass w-full rounded-3xl border border-white/70 p-7 shadow-2xl">
+        <div class="mb-6 text-center">
+          <p class="text-sm font-semibold tracking-widest text-brand-700">FIRE FLY ADMIN</p>
+          <h1 class="mt-2 text-2xl font-bold text-slate-900">博客管理后台登录</h1>
+          <p class="mt-2 text-sm text-slate-600">请输入管理员密码以继续</p>
+        </div>
+
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label for="loginPassword" class="mb-1.5 block text-sm font-medium text-slate-700">管理员密码</label>
+            <input id="loginPassword" type="password" class="w-full rounded-xl border border-purple-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200" placeholder="请输入密码" required />
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="draftCount">-</div>
-            <div class="stat-label">草稿</div>
+          <button id="loginButton" type="submit" class="w-full rounded-xl bg-gradient-to-r from-brand-700 to-brand-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-purple-400/40 transition hover:brightness-110 active:scale-[0.99]">登录管理后台</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="appScreen" class="hidden">
+      <div id="mobileMask" class="fixed inset-0 z-30 hidden bg-slate-950/45 md:hidden"></div>
+
+      <div class="glass relative mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1400px] overflow-hidden rounded-3xl border border-white/70 shadow-2xl md:min-h-[calc(100vh-3rem)]">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 -translate-x-full border-r border-purple-100 bg-white/95 p-4 transition-transform duration-300 md:static md:z-auto md:translate-x-0">
+          <div class="mb-4 flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold tracking-widest text-brand-700">管理面板</p>
+              <h2 class="text-lg font-bold">Firefly 后台</h2>
+            </div>
+            <button id="closeSidebarBtn" class="rounded-lg border border-slate-200 px-2 py-1 text-sm md:hidden">关闭</button>
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="categoryCount">-</div>
-            <div class="stat-label">分类</div>
+
+          <div class="mb-4 rounded-xl bg-purple-50 px-3 py-2 text-xs text-purple-800">
+            登录状态：<span class="font-semibold" id="tokenStatus">已登录</span>
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="tagCount">-</div>
-            <div class="stat-label">标签</div>
+
+          <nav class="space-y-1.5">
+            <button class="nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium" data-view="dashboard">仪表板首页</button>
+            <button class="nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium" data-view="posts">文章管理</button>
+            <button class="nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium" data-view="announcement">公告管理</button>
+            <button class="nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium" data-view="friends">友链管理</button>
+            <button class="nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium" data-view="profile">个人资料</button>
+            <button class="nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium" data-view="siteConfig">站点配置</button>
+            <button class="nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium" data-view="navbar">导航栏配置</button>
+            <button class="nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium" data-view="categories">分类管理</button>
+            <button class="nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium" data-view="deploy">部署控制</button>
+          </nav>
+
+          <div class="mt-6 border-t border-slate-200 pt-4">
+            <button id="logoutButton" class="w-full rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100">退出登录</button>
           </div>
+        </aside>
+
+        <div class="flex min-w-0 flex-1 flex-col">
+          <header class="flex items-center justify-between border-b border-purple-100 bg-white/80 px-4 py-3 md:px-6">
+            <div class="flex items-center gap-3">
+              <button id="openSidebarBtn" class="rounded-lg border border-slate-200 px-2 py-1 text-sm md:hidden">菜单</button>
+              <h1 id="pageTitle" class="text-base font-bold md:text-lg">仪表板首页</h1>
+            </div>
+            <div class="text-xs text-slate-500">所有请求 token 均放在 body 中</div>
+          </header>
+
+          <div class="flex-1 overflow-y-auto p-4 md:p-6">
+            <section id="view-dashboard" class="view space-y-5">
+              <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                  <p class="text-xs text-slate-500">最近获取文章数</p>
+                  <p id="statPosts" class="mt-1 text-2xl font-bold text-brand-700">0</p>
+                </div>
+                <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                  <p class="text-xs text-slate-500">友链总数</p>
+                  <p id="statFriends" class="mt-1 text-2xl font-bold text-brand-700">0</p>
+                </div>
+                <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                  <p class="text-xs text-slate-500">分类总数</p>
+                  <p id="statCategories" class="mt-1 text-2xl font-bold text-brand-700">0</p>
+                </div>
+                <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                  <p class="text-xs text-slate-500">最近部署时间</p>
+                  <p id="statDeploy" class="mt-1 truncate text-sm font-semibold text-brand-700">暂无</p>
+                </div>
+              </div>
+
+              <div class="grid gap-5 xl:grid-cols-2">
+                <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                  <h2 class="text-base font-semibold">快捷操作</h2>
+                  <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                    <button class="quick-nav rounded-xl border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-800" data-target="posts">管理文章</button>
+                    <button class="quick-nav rounded-xl border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-800" data-target="announcement">编辑公告</button>
+                    <button class="quick-nav rounded-xl border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-800" data-target="friends">维护友链</button>
+                    <button class="quick-nav rounded-xl border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-800" data-target="deploy">触发部署</button>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                  <h2 class="text-base font-semibold">系统状态</h2>
+                  <ul class="mt-3 space-y-2 text-sm">
+                    <li class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"><span>登录状态</span><span id="statusAuth" class="font-semibold text-emerald-600">已登录</span></li>
+                    <li class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"><span>API 连通性</span><span id="statusApi" class="font-semibold text-slate-500">待检测</span></li>
+                    <li class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"><span>最近操作</span><span id="statusLastAction" class="max-w-[180px] truncate text-xs text-slate-500">暂无</span></li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section id="view-posts" class="view hidden space-y-5">
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h2 class="text-base font-semibold">文章列表（GitHub）</h2>
+                <p class="mt-1 text-xs text-slate-500">
+                  注意：静态前端无法直接完整遍历仓库文件，已提供“尝试列表”接口和“按 slug 获取”模式。
+                </p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <button id="btnPostList" class="rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white">尝试获取文章列表</button>
+                  <button id="btnRefreshPostStats" class="rounded-xl border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-semibold text-purple-700">刷新文章统计</button>
+                </div>
+                <pre id="postListOutput" class="mt-3 max-h-56 overflow-auto rounded-xl bg-slate-900 p-3 text-xs text-slate-100">暂无数据</pre>
+              </div>
+
+              <div class="grid gap-5 xl:grid-cols-2">
+                <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                  <h3 class="text-sm font-semibold">按 Slug 获取文章</h3>
+                  <div class="mt-3 space-y-3">
+                    <input id="getSlug" class="w-full rounded-xl border border-purple-200 px-3 py-2 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200" placeholder="例如：tutorials/my-post" />
+                    <button id="btnPostGet" class="w-full rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white">获取文章内容</button>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                  <h3 class="text-sm font-semibold">删除文章</h3>
+                  <div class="mt-3 space-y-3">
+                    <input id="deleteSlug" class="w-full rounded-xl border border-red-200 px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200" placeholder="输入要删除的 slug" />
+                    <button id="btnPostDelete" class="w-full rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white">删除文章</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h3 class="text-sm font-semibold">新建文章</h3>
+                <div class="mt-3 grid gap-3 md:grid-cols-2">
+                  <input id="createSlug" class="rounded-xl border border-purple-200 px-3 py-2 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200" placeholder="slug（必填）" />
+                  <input id="createTitle" class="rounded-xl border border-purple-200 px-3 py-2 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200" placeholder="标题（必填）" />
+                  <input id="createCategory" class="rounded-xl border border-purple-200 px-3 py-2 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200" placeholder="分类" />
+                  <input id="createTags" class="rounded-xl border border-purple-200 px-3 py-2 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200" placeholder="标签（逗号分隔）" />
+                </div>
+                <textarea id="createContent" class="mt-3 h-44 w-full rounded-xl border border-purple-200 px-3 py-2 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200" placeholder="Markdown 内容（必填）"></textarea>
+                <button id="btnPostCreate" class="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">创建文章</button>
+              </div>
+
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h3 class="text-sm font-semibold">编辑文章（Markdown）</h3>
+                <div class="mt-3 grid gap-3 md:grid-cols-2">
+                  <input id="editSlug" class="rounded-xl border border-purple-200 px-3 py-2 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200" placeholder="slug（必填）" />
+                  <button id="btnPostUpdate" class="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white">更新文章内容</button>
+                </div>
+                <textarea id="editContent" class="mt-3 h-72 w-full rounded-xl border border-purple-200 px-3 py-2 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200" placeholder="这里显示完整 Markdown 内容"></textarea>
+              </div>
+            </section>
+
+            <section id="view-announcement" class="view hidden space-y-5">
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h2 class="text-base font-semibold">公告配置</h2>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <button id="btnAnnouncementGet" class="rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white">获取公告</button>
+                  <button id="btnAnnouncementReset" class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">重置公告</button>
+                </div>
+
+                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                  <input id="announcementTitle" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="公告标题（必填）" />
+                  <label class="flex items-center gap-2 rounded-xl border border-purple-200 px-3 py-2 text-sm"><input id="announcementClosable" type="checkbox" class="h-4 w-4" /> 可关闭</label>
+                </div>
+                <textarea id="announcementContent" class="mt-3 h-28 w-full rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="公告内容（必填）"></textarea>
+
+                <div class="mt-3 grid gap-3 md:grid-cols-4">
+                  <label class="flex items-center gap-2 rounded-xl border border-purple-200 px-3 py-2 text-sm"><input id="announcementLinkEnable" type="checkbox" class="h-4 w-4" /> 启用链接</label>
+                  <input id="announcementLinkText" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="链接文字" />
+                  <input id="announcementLinkUrl" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="链接地址" />
+                  <label class="flex items-center gap-2 rounded-xl border border-purple-200 px-3 py-2 text-sm"><input id="announcementLinkExternal" type="checkbox" class="h-4 w-4" /> 新窗口打开</label>
+                </div>
+
+                <button id="btnAnnouncementUpdate" class="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">更新公告配置</button>
+              </div>
+            </section>
+
+            <section id="view-friends" class="view hidden space-y-5">
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <h2 class="text-base font-semibold">友链列表</h2>
+                  <button id="btnFriendsGet" class="rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white">获取友链</button>
+                </div>
+                <div id="friendsTable" class="mt-3 overflow-x-auto rounded-xl border border-slate-200">
+                  <table class="min-w-full text-left text-xs md:text-sm">
+                    <thead class="bg-slate-100 text-slate-700"><tr><th class="px-3 py-2">索引</th><th class="px-3 py-2">名称</th><th class="px-3 py-2">地址</th><th class="px-3 py-2">状态</th><th class="px-3 py-2">操作</th></tr></thead>
+                    <tbody id="friendsRows"><tr><td colspan="5" class="px-3 py-5 text-center text-slate-500">暂无数据</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h3 class="text-sm font-semibold">添加友链</h3>
+                <div class="mt-3 grid gap-3 md:grid-cols-2">
+                  <input id="friendTitle" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="名称（必填）" />
+                  <input id="friendSiteUrl" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="站点地址（必填）" />
+                  <input id="friendImgurl" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="头像 URL" />
+                  <input id="friendDesc" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="简介" />
+                  <input id="friendTags" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="标签（逗号分隔）" />
+                  <input id="friendWeight" type="number" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="权重" value="0" />
+                </div>
+                <label class="mt-3 flex items-center gap-2 text-sm"><input id="friendEnabled" type="checkbox" class="h-4 w-4" checked /> 启用</label>
+                <button id="btnFriendAdd" class="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">添加友链</button>
+              </div>
+
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h3 class="text-sm font-semibold">整体更新友链（JSON）</h3>
+                <textarea id="friendsJson" class="mt-3 h-48 w-full rounded-xl border border-purple-200 px-3 py-2 font-mono text-xs" placeholder="请粘贴 friends 数组 JSON"></textarea>
+                <button id="btnFriendsUpdate" class="mt-3 rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white">更新友链数组</button>
+              </div>
+            </section>
+
+            <section id="view-profile" class="view hidden space-y-5">
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h2 class="text-base font-semibold">个人资料配置</h2>
+                <div class="mt-3 flex gap-2">
+                  <button id="btnProfileGet" class="rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white">获取资料</button>
+                </div>
+                <div class="mt-3 grid gap-3 md:grid-cols-2">
+                  <input id="profileName" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="昵称（必填）" />
+                  <input id="profileAvatar" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="头像 URL" />
+                </div>
+                <textarea id="profileBio" class="mt-3 h-28 w-full rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="个人简介"></textarea>
+                <button id="btnProfileUpdate" class="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">更新资料</button>
+              </div>
+            </section>
+
+            <section id="view-siteConfig" class="view hidden space-y-5">
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h2 class="text-base font-semibold">站点配置</h2>
+                <div class="mt-3 flex gap-2">
+                  <button id="btnSiteConfigGet" class="rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white">获取站点配置</button>
+                </div>
+                <div class="mt-3 grid gap-3 md:grid-cols-2">
+                  <input id="siteTitle" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="站点标题（必填）" />
+                  <input id="siteSubtitle" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="站点副标题" />
+                </div>
+                <textarea id="siteDescription" class="mt-3 h-28 w-full rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="站点描述"></textarea>
+                <button id="btnSiteConfigUpdate" class="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">更新站点配置</button>
+              </div>
+            </section>
+
+            <section id="view-navbar" class="view hidden space-y-5">
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h2 class="text-base font-semibold">导航栏配置</h2>
+                <div class="mt-3 flex gap-2">
+                  <button id="btnNavbarGet" class="rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white">获取导航栏</button>
+                </div>
+                <textarea id="navbarLinks" class="mt-3 h-64 w-full rounded-xl border border-purple-200 px-3 py-2 font-mono text-xs" placeholder='links 数组 JSON，如 [{"name":"首页","url":"/"}]'></textarea>
+                <button id="btnNavbarUpdate" class="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">更新导航栏</button>
+              </div>
+            </section>
+
+            <section id="view-categories" class="view hidden space-y-5">
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <h2 class="text-base font-semibold">分类列表</h2>
+                  <button id="btnCategoriesList" class="rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white">获取分类</button>
+                </div>
+                <div class="mt-3 overflow-x-auto rounded-xl border border-slate-200">
+                  <table class="min-w-full text-left text-xs md:text-sm">
+                    <thead class="bg-slate-100 text-slate-700"><tr><th class="px-3 py-2">ID</th><th class="px-3 py-2">名称</th><th class="px-3 py-2">图标</th><th class="px-3 py-2">排序</th><th class="px-3 py-2">操作</th></tr></thead>
+                    <tbody id="categoriesRows"><tr><td colspan="5" class="px-3 py-5 text-center text-slate-500">暂无数据</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h3 class="text-sm font-semibold">创建分类</h3>
+                <div class="mt-3 grid gap-3 md:grid-cols-2">
+                  <input id="categoryId" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="ID（必填）" />
+                  <input id="categoryName" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="名称（必填）" />
+                  <input id="categoryIcon" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="图标" />
+                  <input id="categoryOrder" type="number" class="rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="排序" value="0" />
+                </div>
+                <textarea id="categoryDesc" class="mt-3 h-24 w-full rounded-xl border border-purple-200 px-3 py-2 text-sm" placeholder="分类描述"></textarea>
+                <label class="mt-3 flex items-center gap-2 text-sm"><input id="categoryShowInHome" type="checkbox" class="h-4 w-4" checked /> 首页展示</label>
+                <button id="btnCategoryCreate" class="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">创建分类</button>
+              </div>
+
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h3 class="text-sm font-semibold">删除分类</h3>
+                <div class="mt-3 flex flex-col gap-3 sm:flex-row">
+                  <input id="categoryDeleteId" class="w-full rounded-xl border border-red-200 px-3 py-2 text-sm" placeholder="输入要删除的分类 ID" />
+                  <button id="btnCategoryDelete" class="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white">删除分类</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="view-deploy" class="view hidden space-y-5">
+              <div class="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                <h2 class="text-base font-semibold">Cloudflare Pages 部署控制</h2>
+                <p class="mt-1 text-sm text-slate-500">点击后将调用 <code>POST /api/admin/deploy</code> 触发部署。</p>
+                <button id="btnDeployMain" class="mt-3 rounded-xl bg-gradient-to-r from-brand-700 to-brand-500 px-4 py-2 text-sm font-semibold text-white">立即触发部署</button>
+                <pre id="deployOutput" class="mt-3 max-h-56 overflow-auto rounded-xl bg-slate-900 p-3 text-xs text-slate-100">暂无部署记录</pre>
+              </div>
+            </section>
+          </div>
+
+          <footer class="border-t border-purple-100 bg-white/80 p-3 text-center text-xs text-slate-500">
+            Firefly 管理后台 · <a href="/" class="text-brand-700 hover:underline" target="_blank" rel="noopener">查看站点</a>
+          </footer>
         </div>
       </div>
 
-      <!-- 快捷操作 -->
-      <div class="card">
-        <h2><span class="icon">⚡</span> 快捷操作</h2>
-        <div class="quick-actions">
-          <a href="/admin/#/collections/posts/new" class="action-btn">
-            <span class="icon">✏️</span>
-            <span>写新文章</span>
-          </a>
-          <a href="/admin/#/collections/posts" class="action-btn">
-            <span class="icon">📝</span>
-            <span>管理文章</span>
-          </a>
-          <a href="/admin/#/collections/tutorials" class="action-btn">
-            <span class="icon">📚</span>
-            <span>管理教程</span>
-          </a>
-          <a href="/admin/#/collections/friends" class="action-btn">
-            <span class="icon">🔗</span>
-            <span>管理友链</span>
-          </a>
-          <a href="/" target="_blank" class="action-btn">
-            <span class="icon">🌐</span>
-            <span>访问博客</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- 系统状态 -->
-      <div class="card">
-        <h2><span class="icon">🔒</span> 系统状态</h2>
-        <div class="status-list">
-          <div class="status-item">
-            <span class="label">OAuth 认证</span>
-            <span class="status-badge loading" id="oauthStatus">检查中...</span>
-          </div>
-          <div class="status-item">
-            <span class="label">GitHub 连接</span>
-            <span class="status-badge loading" id="githubStatus">检查中...</span>
-          </div>
-          <div class="status-item">
-            <span class="label">CMS 状态</span>
-            <span class="status-badge success" id="cmsStatus">正常</span>
-          </div>
-          <div class="status-item">
-            <span class="label">构建状态</span>
-            <span class="status-badge loading" id="buildStatus">检查中...</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 帮助与文档 -->
-      <div class="card">
-        <h2><span class="icon">📖</span> 帮助与文档</h2>
-        <div class="help-links">
-          <a href="/admin/welcome.html" class="help-link">🚀 快速入门指南</a>
-          <a href="/admin/status.html" class="help-link">🔧 系统诊断工具</a>
-          <a href="https://decapcms.org/docs/" target="_blank" class="help-link">📚 Decap CMS 文档</a>
-          <a href="https://github.com/johntime2005/blog" target="_blank" class="help-link">💻 项目 GitHub</a>
-          <a href="https://github.com/johntime2005/blog/issues" target="_blank" class="help-link">🐛 报告问题</a>
-        </div>
-      </div>
-    </div>
-
-    <footer>
-      <p>
-        Firefly 博客管理系统 ·
-        <a href="/admin/">进入 CMS</a> ·
-        <a href="/">返回博客</a>
-      </p>
-    </footer>
-  </div>
+      <button id="btnDeployFloating" class="fixed bottom-4 right-4 z-20 rounded-full bg-gradient-to-r from-brand-700 to-brand-500 px-5 py-3 text-sm font-semibold text-white shadow-xl shadow-purple-500/40">触发部署</button>
+    </section>
+  </main>
 
   <script>
-    // 检查系统状态
-    async function checkSystemStatus() {
-      // 检查 OAuth 状态
+    const TOKEN_KEY = "firefly_admin_token";
+    const VIEW_TITLES = {
+      dashboard: "仪表板首页",
+      posts: "文章管理",
+      announcement: "公告管理",
+      friends: "友链管理",
+      profile: "个人资料",
+      siteConfig: "站点配置",
+      navbar: "导航栏配置",
+      categories: "分类管理",
+      deploy: "部署控制"
+    };
+
+    const state = {
+      token: null,
+      currentView: "dashboard",
+      stats: {
+        posts: 0,
+        friends: 0,
+        categories: 0,
+        deploy: "暂无",
+        lastAction: "暂无"
+      },
+      friends: [],
+      categories: []
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function showToast(message, type = "info") {
+      const box = document.createElement("div");
+      const colorMap = {
+        success: "bg-emerald-600",
+        error: "bg-red-600",
+        warning: "bg-amber-500",
+        info: "bg-slate-800"
+      };
+      box.className = `${colorMap[type] || colorMap.info} pointer-events-auto rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg`;
+      box.textContent = message;
+      $("toastContainer").appendChild(box);
+      setTimeout(() => {
+        box.classList.add("opacity-0", "transition", "duration-300");
+        setTimeout(() => box.remove(), 320);
+      }, 2200);
+    }
+
+    function setButtonLoading(button, loading, loadingText = "处理中...") {
+      if (!button) return;
+      if (loading) {
+        button.dataset.originText = button.textContent;
+        button.disabled = true;
+        button.textContent = loadingText;
+        button.classList.add("opacity-60", "cursor-not-allowed");
+      } else {
+        button.disabled = false;
+        button.textContent = button.dataset.originText || button.textContent;
+        button.classList.remove("opacity-60", "cursor-not-allowed");
+      }
+    }
+
+    async function runAction(button, fn, loadingText) {
       try {
-        const token = localStorage.getItem('netlify-cms-user');
-        const oauthBadge = document.getElementById('oauthStatus');
-        if (token) {
-          oauthBadge.textContent = '已登录';
-          oauthBadge.className = 'status-badge success';
-        } else {
-          oauthBadge.textContent = '未登录';
-          oauthBadge.className = 'status-badge warning';
+        setButtonLoading(button, true, loadingText);
+        await fn();
+      } catch (error) {
+        showToast(error.message || "操作失败", "error");
+      } finally {
+        setButtonLoading(button, false);
+      }
+    }
+
+    function parseTags(value) {
+      return String(value || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function requireFields(fields) {
+      for (const [value, label] of fields) {
+        if (!String(value || "").trim()) {
+          showToast(`${label}不能为空`, "warning");
+          return false;
         }
-      } catch (e) {
-        console.error('检查 OAuth 状态失败:', e);
+      }
+      return true;
+    }
+
+    function setToken(token) {
+      state.token = token || null;
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token);
+      } else {
+        localStorage.removeItem(TOKEN_KEY);
+      }
+    }
+
+    function unauthorized(data, status) {
+      const text = JSON.stringify(data || {}).toLowerCase();
+      return (
+        status === 401 ||
+        text.includes("unauthorized") ||
+        text.includes("invalid token") ||
+        text.includes("token 无效") ||
+        text.includes("token无效") ||
+        text.includes("未授权") ||
+        text.includes("认证失败")
+      );
+    }
+
+    function logout(withToast = true) {
+      setToken(null);
+      $("appScreen").classList.add("hidden");
+      $("loginScreen").classList.remove("hidden");
+      $("loginPassword").value = "";
+      if (withToast) showToast("已退出登录", "info");
+    }
+
+    function updateStats() {
+      $("statPosts").textContent = String(state.stats.posts);
+      $("statFriends").textContent = String(state.stats.friends);
+      $("statCategories").textContent = String(state.stats.categories);
+      $("statDeploy").textContent = state.stats.deploy;
+      $("statusLastAction").textContent = state.stats.lastAction;
+      $("statusAuth").textContent = state.token ? "已登录" : "未登录";
+      $("statusAuth").className = state.token ? "font-semibold text-emerald-600" : "font-semibold text-red-600";
+      $("tokenStatus").textContent = state.token ? "已登录" : "未登录";
+    }
+
+    function recordAction(name) {
+      state.stats.lastAction = `${new Date().toLocaleString()} · ${name}`;
+      updateStats();
+    }
+
+    function toApp() {
+      $("loginScreen").classList.add("hidden");
+      $("appScreen").classList.remove("hidden");
+      switchView("dashboard");
+      updateStats();
+    }
+
+    function switchView(view) {
+      state.currentView = view;
+      document.querySelectorAll(".view").forEach((el) => {
+        el.classList.add("hidden");
+      });
+      const current = document.getElementById(`view-${view}`);
+      if (current) current.classList.remove("hidden");
+      $("pageTitle").textContent = VIEW_TITLES[view] || "管理后台";
+
+      document.querySelectorAll(".nav-btn").forEach((btn) => {
+        const active = btn.dataset.view === view;
+        btn.className = `nav-btn w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition ${
+          active ? "bg-brand-600 text-white shadow" : "text-slate-700 hover:bg-purple-50"
+        }`;
+      });
+
+      closeSidebar();
+    }
+
+    function openSidebar() {
+      $("sidebar").classList.remove("-translate-x-full");
+      $("mobileMask").classList.remove("hidden");
+    }
+
+    function closeSidebar() {
+      $("sidebar").classList.add("-translate-x-full");
+      $("mobileMask").classList.add("hidden");
+      if (window.innerWidth >= 768) {
+        $("sidebar").classList.remove("-translate-x-full");
+        $("mobileMask").classList.add("hidden");
+      }
+    }
+
+    function extractArray(data, possibleKeys = []) {
+      for (const key of possibleKeys) {
+        if (Array.isArray(data?.[key])) return data[key];
+        if (Array.isArray(data?.data?.[key])) return data.data[key];
+      }
+      if (Array.isArray(data?.data)) return data.data;
+      if (Array.isArray(data)) return data;
+      return [];
+    }
+
+    function extractObject(data, possibleKeys = []) {
+      for (const key of possibleKeys) {
+        if (data?.[key] && typeof data[key] === "object") return data[key];
+        if (data?.data?.[key] && typeof data.data[key] === "object") return data.data[key];
+      }
+      if (data?.data && typeof data.data === "object") return data.data;
+      if (data && typeof data === "object") return data;
+      return {};
+    }
+
+    async function apiPost(endpoint, body = {}, options = { withAuth: true }) {
+      const payload = { ...body };
+      if (options.withAuth !== false) {
+        if (!state.token) {
+          logout(false);
+          throw new Error("未登录，请先登录");
+        }
+        payload.token = state.token;
       }
 
-      // 检查 GitHub 连接
+      let res;
       try {
-        const response = await fetch('https://api.github.com/repos/johntime2005/blog', {
-          method: 'HEAD'
+        res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
-        const githubBadge = document.getElementById('githubStatus');
-        if (response.ok) {
-          githubBadge.textContent = '已连接';
-          githubBadge.className = 'status-badge success';
-        } else {
-          githubBadge.textContent = '连接失败';
-          githubBadge.className = 'status-badge error';
+      } catch {
+        throw new Error("网络异常，请稍后重试");
+      }
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+
+      if (unauthorized(data, res.status)) {
+        logout(false);
+        showToast("登录已失效，请重新登录", "warning");
+        throw new Error("登录已失效");
+      }
+
+      if (!res.ok || data.success === false || data.ok === false) {
+        throw new Error(data.message || data.error || `请求失败（${res.status}）`);
+      }
+
+      $("statusApi").textContent = "正常";
+      $("statusApi").className = "font-semibold text-emerald-600";
+      return data;
+    }
+
+    function renderFriendsRows() {
+      const tbody = $("friendsRows");
+      if (!state.friends.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-5 text-center text-slate-500">暂无友链数据</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = state.friends
+        .map(
+          (item, index) => `
+            <tr class="border-t border-slate-100">
+              <td class="px-3 py-2">${index}</td>
+              <td class="px-3 py-2">${item?.title || "-"}</td>
+              <td class="px-3 py-2 truncate max-w-[220px]">${item?.siteurl || "-"}</td>
+              <td class="px-3 py-2">${item?.enabled === false ? "禁用" : "启用"}</td>
+              <td class="px-3 py-2">
+                <button class="friend-remove rounded-lg bg-red-600 px-2 py-1 text-xs font-semibold text-white" data-index="${index}">删除</button>
+              </td>
+            </tr>`
+        )
+        .join("");
+
+      document.querySelectorAll(".friend-remove").forEach((button) => {
+        button.addEventListener("click", () => {
+          runAction(button, async () => {
+            const index = Number(button.dataset.index);
+            await apiPost("/api/admin/friends", { action: "remove", index });
+            showToast("友链删除成功", "success");
+            await fetchFriends();
+            recordAction("删除友链");
+          }, "删除中...");
+        });
+      });
+    }
+
+    function renderCategoriesRows() {
+      const tbody = $("categoriesRows");
+      if (!state.categories.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-5 text-center text-slate-500">暂无分类数据</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = state.categories
+        .map(
+          (item) => `
+            <tr class="border-t border-slate-100">
+              <td class="px-3 py-2">${item?.id || "-"}</td>
+              <td class="px-3 py-2">${item?.name || "-"}</td>
+              <td class="px-3 py-2">${item?.icon || "-"}</td>
+              <td class="px-3 py-2">${item?.order ?? 0}</td>
+              <td class="px-3 py-2">
+                <button class="category-remove rounded-lg bg-red-600 px-2 py-1 text-xs font-semibold text-white" data-id="${item?.id || ""}">删除</button>
+              </td>
+            </tr>`
+        )
+        .join("");
+
+      document.querySelectorAll(".category-remove").forEach((button) => {
+        button.addEventListener("click", () => {
+          const categoryId = button.dataset.id;
+          if (!categoryId) return;
+          runAction(button, async () => {
+            await deleteCategoryById(categoryId);
+          }, "删除中...");
+        });
+      });
+    }
+
+    async function fetchFriends() {
+      const data = await apiPost("/api/admin/friends", { action: "get" });
+      const friends = extractArray(data, ["friends"]);
+      state.friends = friends;
+      state.stats.friends = friends.length;
+      $("friendsJson").value = JSON.stringify(friends, null, 2);
+      renderFriendsRows();
+      updateStats();
+      return friends;
+    }
+
+    async function fetchCategories() {
+      const data = await apiPost("/api/admin/categories", { action: "list" });
+      const categories = extractArray(data, ["categories", "list"]);
+      state.categories = categories;
+      state.stats.categories = categories.length;
+      renderCategoriesRows();
+      updateStats();
+      return categories;
+    }
+
+    async function deleteCategoryById(categoryId) {
+      await apiPost("/api/admin/categories", { action: "delete", categoryId });
+      showToast("分类删除成功", "success");
+      $("categoryDeleteId").value = "";
+      await fetchCategories();
+      recordAction("删除分类");
+    }
+
+    async function triggerDeploy(outputNode) {
+      const data = await apiPost("/api/admin/deploy", {});
+      state.stats.deploy = new Date().toLocaleString();
+      updateStats();
+      const pretty = JSON.stringify(data, null, 2);
+      if (outputNode) outputNode.textContent = pretty;
+      showToast("部署触发成功", "success");
+      recordAction("触发部署");
+    }
+
+    async function refreshSystemStatus() {
+      try {
+        await apiPost("/api/admin/site-config", { action: "get" });
+        $("statusApi").textContent = "正常";
+        $("statusApi").className = "font-semibold text-emerald-600";
+      } catch {
+        $("statusApi").textContent = "异常";
+        $("statusApi").className = "font-semibold text-red-600";
+      }
+    }
+
+    function bindEvents() {
+      $("openSidebarBtn").addEventListener("click", openSidebar);
+      $("closeSidebarBtn").addEventListener("click", closeSidebar);
+      $("mobileMask").addEventListener("click", closeSidebar);
+      window.addEventListener("resize", closeSidebar);
+
+      document.querySelectorAll(".nav-btn").forEach((btn) => {
+        btn.addEventListener("click", () => switchView(btn.dataset.view));
+      });
+
+      document.querySelectorAll(".quick-nav").forEach((btn) => {
+        btn.addEventListener("click", () => switchView(btn.dataset.target));
+      });
+
+      $("logoutButton").addEventListener("click", () => logout(true));
+
+      $("loginForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = $("loginButton");
+        const password = $("loginPassword").value.trim();
+        if (!password) {
+          showToast("请输入管理员密码", "warning");
+          return;
         }
-      } catch (e) {
-        const githubBadge = document.getElementById('githubStatus');
-        githubBadge.textContent = '网络错误';
-        githubBadge.className = 'status-badge error';
-      }
 
-      // 模拟构建状态
-      setTimeout(() => {
-        const buildBadge = document.getElementById('buildStatus');
-        buildBadge.textContent = '正常';
-        buildBadge.className = 'status-badge success';
-      }, 1000);
+        await runAction(button, async () => {
+          const data = await apiPost("/api/admin/login", { password }, { withAuth: false });
+          const token = data.token || data?.data?.token;
+          if (!token) throw new Error("登录成功但未返回 token");
+          setToken(token);
+          toApp();
+          showToast("登录成功", "success");
+          recordAction("登录系统");
+          await refreshSystemStatus();
+        }, "登录中...");
+      });
+
+      $("btnPostList").addEventListener("click", () => {
+        const btn = $("btnPostList");
+        runAction(btn, async () => {
+          const data = await apiPost("/api/admin/posts", { action: "list", posts: [] });
+          const posts = extractArray(data, ["posts", "list"]);
+          state.stats.posts = posts.length;
+          updateStats();
+          $("postListOutput").textContent = JSON.stringify(data, null, 2);
+          showToast(posts.length ? `获取到 ${posts.length} 篇文章` : "列表返回为空，可使用 slug 单篇获取", "info");
+          recordAction("获取文章列表");
+        }, "获取中...");
+      });
+
+      $("btnRefreshPostStats").addEventListener("click", () => {
+        const btn = $("btnRefreshPostStats");
+        runAction(btn, async () => {
+          const data = await apiPost("/api/admin/posts", { action: "list", posts: [] });
+          const posts = extractArray(data, ["posts", "list"]);
+          state.stats.posts = posts.length;
+          updateStats();
+          showToast("文章统计已刷新", "success");
+          recordAction("刷新文章统计");
+        }, "刷新中...");
+      });
+
+      $("btnPostGet").addEventListener("click", () => {
+        const btn = $("btnPostGet");
+        runAction(btn, async () => {
+          const slug = $("getSlug").value.trim();
+          if (!requireFields([[slug, "Slug"]])) return;
+          const data = await apiPost("/api/admin/posts", { action: "get", slug });
+          const post = extractObject(data, ["post"]);
+          const content = post.content || data.content || data?.data?.content || "";
+          $("editSlug").value = post.slug || slug;
+          $("deleteSlug").value = post.slug || slug;
+          $("editContent").value = content;
+          $("postListOutput").textContent = JSON.stringify(data, null, 2);
+          showToast("文章获取成功，已填充到编辑器", "success");
+          recordAction(`获取文章 ${slug}`);
+        }, "获取中...");
+      });
+
+      $("btnPostCreate").addEventListener("click", () => {
+        const btn = $("btnPostCreate");
+        runAction(btn, async () => {
+          const slug = $("createSlug").value.trim();
+          const title = $("createTitle").value.trim();
+          const category = $("createCategory").value.trim();
+          const content = $("createContent").value;
+          const tags = parseTags($("createTags").value);
+
+          if (!requireFields([[slug, "Slug"], [title, "标题"], [content, "文章内容"]])) return;
+
+          const frontmatter = {
+            title,
+            category,
+            tags,
+            published: new Date().toISOString().slice(0, 10),
+            draft: false
+          };
+
+          const data = await apiPost("/api/admin/posts", { action: "create", slug, frontmatter, content });
+          $("editSlug").value = slug;
+          $("editContent").value = content;
+          $("postListOutput").textContent = JSON.stringify(data, null, 2);
+          showToast("文章创建成功", "success");
+          recordAction(`创建文章 ${slug}`);
+        }, "创建中...");
+      });
+
+      $("btnPostUpdate").addEventListener("click", () => {
+        const btn = $("btnPostUpdate");
+        runAction(btn, async () => {
+          const slug = $("editSlug").value.trim();
+          const content = $("editContent").value;
+          if (!requireFields([[slug, "Slug"], [content, "Markdown 内容"]])) return;
+          const data = await apiPost("/api/admin/posts", { action: "update", slug, content });
+          $("postListOutput").textContent = JSON.stringify(data, null, 2);
+          showToast("文章更新成功", "success");
+          recordAction(`更新文章 ${slug}`);
+        }, "更新中...");
+      });
+
+      $("btnPostDelete").addEventListener("click", () => {
+        const btn = $("btnPostDelete");
+        runAction(btn, async () => {
+          const slug = $("deleteSlug").value.trim();
+          if (!requireFields([[slug, "Slug"]])) return;
+          if (!window.confirm(`确认删除文章 “${slug}”？`)) return;
+          const data = await apiPost("/api/admin/posts", { action: "delete", slug });
+          $("postListOutput").textContent = JSON.stringify(data, null, 2);
+          showToast("文章删除成功", "success");
+          recordAction(`删除文章 ${slug}`);
+        }, "删除中...");
+      });
+
+      $("btnAnnouncementGet").addEventListener("click", () => {
+        const btn = $("btnAnnouncementGet");
+        runAction(btn, async () => {
+          const data = await apiPost("/api/admin/announcement", { action: "get" });
+          const config = extractObject(data, ["config", "announcement"]);
+          $("announcementTitle").value = config.title || "";
+          $("announcementContent").value = config.content || "";
+          $("announcementClosable").checked = Boolean(config.closable);
+          $("announcementLinkEnable").checked = Boolean(config?.link?.enable);
+          $("announcementLinkText").value = config?.link?.text || "";
+          $("announcementLinkUrl").value = config?.link?.url || "";
+          $("announcementLinkExternal").checked = Boolean(config?.link?.external);
+          showToast("公告获取成功", "success");
+          recordAction("获取公告");
+        }, "获取中...");
+      });
+
+      $("btnAnnouncementUpdate").addEventListener("click", () => {
+        const btn = $("btnAnnouncementUpdate");
+        runAction(btn, async () => {
+          const title = $("announcementTitle").value.trim();
+          const content = $("announcementContent").value.trim();
+          if (!requireFields([[title, "公告标题"], [content, "公告内容"]])) return;
+
+          const config = {
+            title,
+            content,
+            closable: $("announcementClosable").checked,
+            link: {
+              enable: $("announcementLinkEnable").checked,
+              text: $("announcementLinkText").value.trim(),
+              url: $("announcementLinkUrl").value.trim(),
+              external: $("announcementLinkExternal").checked
+            }
+          };
+
+          await apiPost("/api/admin/announcement", { action: "update", config });
+          showToast("公告更新成功", "success");
+          recordAction("更新公告");
+        }, "更新中...");
+      });
+
+      $("btnAnnouncementReset").addEventListener("click", () => {
+        const btn = $("btnAnnouncementReset");
+        runAction(btn, async () => {
+          if (!window.confirm("确认重置公告配置？")) return;
+          await apiPost("/api/admin/announcement", { action: "reset" });
+          showToast("公告已重置", "success");
+          recordAction("重置公告");
+        }, "重置中...");
+      });
+
+      $("btnFriendsGet").addEventListener("click", () => {
+        const btn = $("btnFriendsGet");
+        runAction(btn, async () => {
+          await fetchFriends();
+          showToast("友链获取成功", "success");
+          recordAction("获取友链");
+        }, "获取中...");
+      });
+
+      $("btnFriendAdd").addEventListener("click", () => {
+        const btn = $("btnFriendAdd");
+        runAction(btn, async () => {
+          const title = $("friendTitle").value.trim();
+          const siteurl = $("friendSiteUrl").value.trim();
+          if (!requireFields([[title, "友链名称"], [siteurl, "站点地址"]])) return;
+
+          const friend = {
+            title,
+            imgurl: $("friendImgurl").value.trim(),
+            desc: $("friendDesc").value.trim(),
+            siteurl,
+            tags: parseTags($("friendTags").value),
+            weight: Number($("friendWeight").value || 0),
+            enabled: $("friendEnabled").checked
+          };
+
+          await apiPost("/api/admin/friends", { action: "add", friend });
+          showToast("友链添加成功", "success");
+          await fetchFriends();
+          recordAction("添加友链");
+        }, "添加中...");
+      });
+
+      $("btnFriendsUpdate").addEventListener("click", () => {
+        const btn = $("btnFriendsUpdate");
+        runAction(btn, async () => {
+          const text = $("friendsJson").value.trim();
+          if (!requireFields([[text, "友链 JSON"]])) return;
+          let friends;
+          try {
+            friends = JSON.parse(text);
+          } catch {
+            throw new Error("友链 JSON 格式错误");
+          }
+          if (!Array.isArray(friends)) throw new Error("friends 必须是数组");
+
+          await apiPost("/api/admin/friends", { action: "update", friends });
+          state.friends = friends;
+          state.stats.friends = friends.length;
+          renderFriendsRows();
+          updateStats();
+          showToast("友链更新成功", "success");
+          recordAction("整体更新友链");
+        }, "更新中...");
+      });
+
+      $("btnProfileGet").addEventListener("click", () => {
+        const btn = $("btnProfileGet");
+        runAction(btn, async () => {
+          const data = await apiPost("/api/admin/profile", { action: "get" });
+          const config = extractObject(data, ["config", "profile"]);
+          $("profileName").value = config.name || "";
+          $("profileAvatar").value = config.avatar || "";
+          $("profileBio").value = config.bio || "";
+          showToast("资料获取成功", "success");
+          recordAction("获取资料");
+        }, "获取中...");
+      });
+
+      $("btnProfileUpdate").addEventListener("click", () => {
+        const btn = $("btnProfileUpdate");
+        runAction(btn, async () => {
+          const name = $("profileName").value.trim();
+          if (!requireFields([[name, "昵称"]])) return;
+          const config = {
+            name,
+            avatar: $("profileAvatar").value.trim(),
+            bio: $("profileBio").value.trim()
+          };
+          await apiPost("/api/admin/profile", { action: "update", config });
+          showToast("资料更新成功", "success");
+          recordAction("更新资料");
+        }, "更新中...");
+      });
+
+      $("btnSiteConfigGet").addEventListener("click", () => {
+        const btn = $("btnSiteConfigGet");
+        runAction(btn, async () => {
+          const data = await apiPost("/api/admin/site-config", { action: "get" });
+          const config = extractObject(data, ["config", "siteConfig"]);
+          $("siteTitle").value = config.title || "";
+          $("siteSubtitle").value = config.subtitle || "";
+          $("siteDescription").value = config.description || "";
+          showToast("站点配置获取成功", "success");
+          recordAction("获取站点配置");
+        }, "获取中...");
+      });
+
+      $("btnSiteConfigUpdate").addEventListener("click", () => {
+        const btn = $("btnSiteConfigUpdate");
+        runAction(btn, async () => {
+          const title = $("siteTitle").value.trim();
+          if (!requireFields([[title, "站点标题"]])) return;
+          const config = {
+            title,
+            subtitle: $("siteSubtitle").value.trim(),
+            description: $("siteDescription").value.trim()
+          };
+          await apiPost("/api/admin/site-config", { action: "update", config });
+          showToast("站点配置更新成功", "success");
+          recordAction("更新站点配置");
+        }, "更新中...");
+      });
+
+      $("btnNavbarGet").addEventListener("click", () => {
+        const btn = $("btnNavbarGet");
+        runAction(btn, async () => {
+          const data = await apiPost("/api/admin/navbar", { action: "get" });
+          const config = extractObject(data, ["config", "navbar"]);
+          const links = Array.isArray(config.links) ? config.links : extractArray(data, ["links"]);
+          $("navbarLinks").value = JSON.stringify(links, null, 2);
+          showToast("导航栏配置获取成功", "success");
+          recordAction("获取导航栏");
+        }, "获取中...");
+      });
+
+      $("btnNavbarUpdate").addEventListener("click", () => {
+        const btn = $("btnNavbarUpdate");
+        runAction(btn, async () => {
+          const text = $("navbarLinks").value.trim();
+          if (!requireFields([[text, "导航 links JSON"]])) return;
+          let links;
+          try {
+            links = JSON.parse(text);
+          } catch {
+            throw new Error("导航 links JSON 格式错误");
+          }
+          if (!Array.isArray(links)) throw new Error("links 必须是数组");
+          await apiPost("/api/admin/navbar", { action: "update", config: { links } });
+          showToast("导航栏更新成功", "success");
+          recordAction("更新导航栏");
+        }, "更新中...");
+      });
+
+      $("btnCategoriesList").addEventListener("click", () => {
+        const btn = $("btnCategoriesList");
+        runAction(btn, async () => {
+          await fetchCategories();
+          showToast("分类获取成功", "success");
+          recordAction("获取分类");
+        }, "获取中...");
+      });
+
+      $("btnCategoryCreate").addEventListener("click", () => {
+        const btn = $("btnCategoryCreate");
+        runAction(btn, async () => {
+          const id = $("categoryId").value.trim();
+          const name = $("categoryName").value.trim();
+          if (!requireFields([[id, "分类 ID"], [name, "分类名称"]])) return;
+
+          const category = {
+            id,
+            name,
+            icon: $("categoryIcon").value.trim(),
+            description: $("categoryDesc").value.trim(),
+            showInHome: $("categoryShowInHome").checked,
+            order: Number($("categoryOrder").value || 0)
+          };
+
+          await apiPost("/api/admin/categories", { action: "create", category });
+          showToast("分类创建成功", "success");
+          await fetchCategories();
+          recordAction("创建分类");
+        }, "创建中...");
+      });
+
+      $("btnCategoryDelete").addEventListener("click", () => {
+        const btn = $("btnCategoryDelete");
+        runAction(btn, async () => {
+          const categoryId = $("categoryDeleteId").value.trim();
+          if (!requireFields([[categoryId, "分类 ID"]])) return;
+          await deleteCategoryById(categoryId);
+        }, "删除中...");
+      });
+
+      $("btnDeployMain").addEventListener("click", () => {
+        const btn = $("btnDeployMain");
+        runAction(btn, async () => triggerDeploy($("deployOutput")), "触发中...");
+      });
+
+      $("btnDeployFloating").addEventListener("click", () => {
+        const btn = $("btnDeployFloating");
+        runAction(btn, async () => triggerDeploy($("deployOutput")), "触发中...");
+      });
     }
 
-    // 获取统计数据（模拟）
-    function loadStats() {
-      // 这里可以通过 GitHub API 获取真实数据
-      // 目前使用占位符
-      setTimeout(() => {
-        document.getElementById('postCount').textContent = '...';
-        document.getElementById('draftCount').textContent = '...';
-        document.getElementById('categoryCount').textContent = '...';
-        document.getElementById('tagCount').textContent = '...';
-      }, 500);
-
-      // 提示用户需要登录后才能获取详细统计
-      const token = localStorage.getItem('netlify-cms-user');
+    async function bootstrap() {
+      bindEvents();
+      const token = localStorage.getItem(TOKEN_KEY);
       if (!token) {
-        console.log('登录后可查看详细统计数据');
+        logout(false);
+        return;
+      }
+
+      setToken(token);
+      toApp();
+      updateStats();
+
+      try {
+        await Promise.allSettled([fetchFriends(), fetchCategories(), refreshSystemStatus()]);
+        recordAction("自动加载基础数据");
+      } catch {
+        // 忽略自动加载异常，交互阶段会继续提示
       }
     }
 
-    // 页面加载时执行
-    document.addEventListener('DOMContentLoaded', () => {
-      checkSystemStatus();
-      loadStats();
-    });
+    bootstrap();
   </script>
 </body>
 </html>

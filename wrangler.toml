@@ -18,3 +18,12 @@ id = "6d96dd6d603049cba7e123dc7691331e"
 # 注意：敏感值应在 Cloudflare Dashboard 中设置，不要在此文件中写明文
 [env.production.vars]
 # ADMIN_PASSWORD = "" # ⚠️ 不要在这里设置！在 Cloudflare Dashboard 中配置
+
+# GitHub 仓库配置（用于管理后台通过 GitHub API 操作文章）
+GITHUB_OWNER = "johntime2005"
+GITHUB_REPO = "blog"
+GITHUB_BRANCH = "main"
+# 注意：以下变量必须在 Cloudflare Dashboard 中设置（Secrets）：
+# ADMIN_PASSWORD - 管理员登录密码
+# GITHUB_PAT - GitHub Fine-grained PAT（需要 Contents: Read and Write 权限）
+# DEPLOY_HOOK_URL - Cloudflare Pages Deploy Hook URL
