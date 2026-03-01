@@ -230,13 +230,37 @@ ${rootCollection}
   - name: "friends"
     label: "友链管理"
     files:
-      - label: "友情链接"
-        name: "friends"
+      - label: "友情链接页面说明"
+        name: "friends_page"
         file: "src/content/spec/friends.md"
         fields:
           - { label: "标题", name: "title", widget: "string", default: "友情链接" }
           - { label: "描述", name: "description", widget: "string", default: "与优秀的朋友们一起成长" }
           - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑友链页面的 Markdown 内容", modes: [raw, rich_text] }
+      - label: "友链配置"
+        name: "friends_config"
+        file: "src/data/friends.json"
+        fields:
+          - label: "展示列数"
+            name: "columns"
+            widget: "select"
+            options: [2, 3]
+            default: 2
+            value_type: "int"
+            hint: "设置在友情链接页面显示为几列"
+          - label: "链接列表"
+            name: "friends"
+            widget: "list"
+            summary: "{{fields.title}} - {{fields.siteurl}}"
+            hint: "由于博客程序本身构建为静态网页方案，且为避免开发环境下的一些编译依赖错误，当你要在下方列表新建一条友情链接时，建议先填写完“标题”和“链接”再提供其他信息。另外，添加、修改友链等配置都需要重新打包部署。"
+            fields:
+              - { label: "标题", name: "title", widget: "string", required: true, hint: "友链名称" }
+              - { label: "头像链接", name: "imgurl", widget: "string", required: true, hint: "建议使用 HTTPS 链接" }
+              - { label: "一句话描述", name: "desc", widget: "string", required: true }
+              - { label: "站点链接", name: "siteurl", widget: "string", required: true, hint: "站点的完整 URL，例如 https://example.com" }
+              - { label: "标签", name: "tags", widget: "list", required: false, default: ["Blog"], hint: "可选的标签列表" }
+              - { label: "权重", name: "weight", widget: "number", value_type: "int", default: 10, hint: "排序权重，数字越大排序越靠前" }
+              - { label: "启用", name: "enabled", widget: "boolean", default: true, hint: "取消勾选可以暂时隐藏该友链，而无需删除" }
 
   # 关于页面
   - name: "about"

@@ -1,0 +1,14 @@
+{
+  "columns": 2,
+  "friends": [
+    {
+      "title": "Misaka Network",
+      "imgurl": "https://blog.misaka-net.top/favicon.svg",
+      "desc": "科学实验日志与技术观测站",
+      "siteurl": "https://blog.misaka-net.top",
+      "tags": ["Blog", "Tech"],
+      "weight": 10,
+      "enabled": true
+    }
+  ]
+}
