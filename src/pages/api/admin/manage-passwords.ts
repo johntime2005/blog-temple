@@ -8,6 +8,114 @@ interface ManagePasswordRequest {
 	token: string;
 	encryptionId?: string;
 	passwordLength?: number;
+	slug?: string;
+}
+
+function utf8ToBase64(str: string): string {
+	const encoder = new TextEncoder();
+	const bytes = encoder.encode(str);
+	let binary = "";
+	const len = bytes.byteLength;
+	for (let i = 0; i < len; i++) {
+		binary += String.fromCharCode(bytes[i]);
+	}
+	return btoa(binary);
+}
+
+function base64ToUtf8(str: string): string {
+	const binary = atob(str);
+	const bytes = new Uint8Array(binary.length);
+	for (let i = 0; i < binary.length; i++) {
+		bytes[i] = binary.charCodeAt(i);
+	}
+	const decoder = new TextDecoder("utf-8");
+	return decoder.decode(bytes);
+}
+
+function updateFrontmatter(
+	content: string,
+	isEncrypted: boolean,
+	encryptionId?: string,
+): string {
+	const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+	const match = content.match(frontmatterRegex);
+	if (!match) return content;
+
+	let frontmatter = match[1];
+
+	if (isEncrypted) {
+		if (!frontmatter.includes("encrypted:")) {
+			frontmatter += "\nencrypted: true";
+		} else {
+			frontmatter = frontmatter.replace(
+				/encrypted:\s*(true|false)/,
+				"encrypted: true",
+			);
+		}
+
+		if (encryptionId) {
+			if (!frontmatter.includes("encryptionId:")) {
+				frontmatter += `\nencryptionId: "${encryptionId}"`;
+			} else {
+				frontmatter = frontmatter.replace(
+					/encryptionId:\s*['"]?[^'"\n]*['"]?/,
+					`encryptionId: "${encryptionId}"`,
+				);
+			}
+		}
+	} else {
+		if (frontmatter.includes("encrypted:")) {
+			frontmatter = frontmatter.replace(
+				/encrypted:\s*(true|false)/,
+				"encrypted: false",
+			);
+		} else {
+			frontmatter += "\nencrypted: false";
+		}
+	}
+
+	return content.replace(frontmatterRegex, `---\n${frontmatter}\n---`);
+}
+
+async function updateGitHubFile(
+	token: string,
+	owner: string,
+	repo: string,
+	path: string,
+	isEncrypted: boolean,
+	encryptionId?: string,
+) {
+	const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+	const headers = {
+		Authorization: `Bearer ${token}`,
+		"User-Agent": "Astro-Blog",
+		Accept: "application/vnd.github.v3+json",
+	};
+
+	const res = await fetch(url, { headers });
+	if (!res.ok) {
+		throw new Error(`GitHub get file failed: ${res.statusText}`);
+	}
+
+	const data = await res.json();
+	const currentSha = data.sha;
+	const contentStr = base64ToUtf8(data.content.replace(/\n/g, ""));
+	const newContent = updateFrontmatter(contentStr, isEncrypted, encryptionId);
+	const newBase64 = utf8ToBase64(newContent);
+
+	const updateRes = await fetch(url, {
+		method: "PUT",
+		headers,
+		body: JSON.stringify({
+			message: `Update encryption status (${isEncrypted ? "lock" : "unlock"}) for ${path}`,
+			content: newBase64,
+			sha: currentSha,
+		}),
+	});
+
+	if (!updateRes.ok) {
+		throw new Error(`GitHub update file failed: ${updateRes.statusText}`);
+	}
 }
 
 async function verifyGitHubToken(
@@ -68,10 +176,15 @@ async function hashPassword(password: string): Promise<string> {
 export async function POST({ request, locals }: APIContext): Promise<Response> {
 	try {
 		const body = (await request.json()) as ManagePasswordRequest;
-		const { action, token, encryptionId, passwordLength } = body;
+		const { action, token, encryptionId, passwordLength, slug } = body;
 
 		const ownerUsername = getEnv(locals, "GITHUB_OWNER_USERNAME");
 		const isOwner = await verifyGitHubToken(token, ownerUsername || "");
+
+		const GITHUB_REPO =
+			getEnv(locals, "GITHUB_REPO") ||
+			locals.runtime?.env?.GITHUB_REPO ||
+			"blog";
 
 		if (!isOwner) {
 			return new Response(
@@ -128,6 +241,29 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
 				metadata: { createdAt: new Date().toISOString() },
 			});
 
+			if (slug) {
+				try {
+					await updateGitHubFile(
+						token,
+						ownerUsername || "",
+						GITHUB_REPO as string,
+						`src/content/posts/${slug}`,
+						true,
+						encryptionId,
+					);
+				} catch (ghError) {
+					console.error("GitHub update file error on generate:", ghError);
+					return new Response(
+						JSON.stringify({
+							success: true,
+							password,
+							message: "密码已生成，但更新 Git 失败，请手动修改 frontmatter",
+						}),
+						{ status: 200, headers: { "Content-Type": "application/json" } },
+					);
+				}
+			}
+
 			return new Response(JSON.stringify({ success: true, password }), {
 				status: 200,
 				headers: { "Content-Type": "application/json" },
@@ -143,6 +279,28 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
 			}
 
 			await POST_ENCRYPTION.delete(`post:${encryptionId}`);
+
+			if (slug) {
+				try {
+					await updateGitHubFile(
+						token,
+						ownerUsername || "",
+						GITHUB_REPO as string,
+						`src/content/posts/${slug}`,
+						false,
+					);
+				} catch (ghError) {
+					console.error("GitHub update file error on delete:", ghError);
+					return new Response(
+						JSON.stringify({
+							success: true,
+							message: "密码已删除，但更新 Git 失败，请手动修改 frontmatter",
+						}),
+						{ status: 200, headers: { "Content-Type": "application/json" } },
+					);
+				}
+			}
+
 			return new Response(JSON.stringify({ success: true }), {
 				status: 200,
 				headers: { "Content-Type": "application/json" },

@@ -179,6 +179,7 @@ async function enableEncryption(slug: string) {
 				token: adminToken,
 				encryptionId,
 				passwordLength: 16,
+				slug,
 			}),
 		});
 
@@ -191,13 +192,11 @@ async function enableEncryption(slug: string) {
 				createdAt: new Date().toISOString(),
 			});
 
-			// 提示用户需要手动更新文章 frontmatter
 			alert(
-				"✅ 密码已生成并永久保存！\n\n" +
-					`📝 请在文章 ${slug} 的 frontmatter 中添加：\n\n` +
-					"encrypted: true\n" +
-					`encryptionId: "${encryptionId}"\n\n` +
-					`🔑 密码：${data.password}\n\n` +
+				"✅ 密码已生成并保存在系统！\n\n" +
+					"📝 系统正自动将您的配置推送到 Git 仓库...\n" +
+					"等待几分钟的重新编译后，您的文章加密即将在前台生效。\n" +
+					`🔑 生成密码：${data.password}\n\n` +
 					"💡 密码已保存到后台，遗失时可随时查看",
 			);
 		} else {
@@ -212,10 +211,10 @@ async function enableEncryption(slug: string) {
 }
 
 // 禁用加密（删除密码）
-async function disableEncryption(encryptionId: string) {
+async function disableEncryption(encryptionId: string, slug: string) {
 	if (
 		!confirm(
-			`确定要删除文章 "${encryptionId}" 的密码吗？用户将无法访问该文章。`,
+			`确定要删除文章 "${encryptionId}" 的密码吗？用户将无法访问加密内容。`,
 		)
 	) {
 		return;
@@ -233,16 +232,17 @@ async function disableEncryption(encryptionId: string) {
 				action: "delete",
 				token: adminToken,
 				encryptionId,
+				slug,
 			}),
 		});
 
 		const data = await response.json();
 
 		if (data.success) {
-			successMessage = "密码已删除";
+			successMessage = "密码已删除，Git 已更新";
 			encryptedPasswords.delete(encryptionId);
 			alert(
-				"密码已删除！请同时在文章 frontmatter 中设置：\n\nencrypted: false",
+				"密码已删除！系统正自动撤销文章的 Git 加密标签，请等待几分钟以重新编译前台页面。",
 			);
 		} else {
 			errorMessage = data.message || "删除失败";
@@ -505,7 +505,7 @@ const filteredPosts = $derived(() => {
 							{/if}
 
 							<button
-								onclick={() => disableEncryption(post.encryptionId)}
+								onclick={() => disableEncryption(post.encryptionId, post.slug)}
 								class="action-button danger-button"
 								disabled={isProcessing}
 							>
