@@ -2,10 +2,59 @@ import type { APIContext } from "astro";
 
 export const prerender = false;
 
+const postModules = import.meta.glob("/src/content/posts/**/*.{md,mdx}", {
+	eager: false,
+});
 
+interface DirConfig {
+	label: string;
+	singular: string;
+	create: boolean;
+}
+
+// Git submodule 目录无法通过主仓库的 GitHub API 管理，必须排除
+const SUBMODULE_DIRS = ["diary"];
+
+const knownDirs: Record<string, DirConfig> = {
+	tutorials: { label: "📖 教程文章", singular: "教程", create: true },
+};
+
+function discoverSubdirs(): string[] {
+	const dirs = new Set<string>();
+	for (const filePath of Object.keys(postModules)) {
+		const rel = filePath.replace("/src/content/posts/", "");
+		const segments = rel.split("/");
+		if (segments.length > 1) {
+			const dir = segments.slice(0, -1).join("/");
+			// 跳过 submodule 目录（它们属于不同的 Git 仓库）
+			const isSubmodule = SUBMODULE_DIRS.some(
+				(sm) => dir === sm || dir.startsWith(`${sm}/`),
+			);
+			if (!isSubmodule) {
+				dirs.add(dir);
+			}
+		}
+	}
+	return Array.from(dirs).sort();
+}
+
+function getDirConfig(dir: string): DirConfig {
+	if (knownDirs[dir]) return knownDirs[dir];
+	const name = dir.split("/").pop() || dir;
+	return {
+		label: `📁 ${name.charAt(0).toUpperCase() + name.slice(1)}`,
+		singular: name,
+		create: true,
+	};
+}
+
+function toCollectionName(dir: string): string {
+	return dir.replace(/\//g, "-");
+}
 
 export async function GET({ url }: APIContext): Promise<Response> {
 	const origin = url.origin;
+	const subdirs = discoverSubdirs();
 
 	const postFields = `    fields:
       # === 基础信息 ===
@@ -101,22 +150,32 @@ export async function GET({ url }: APIContext): Promise<Response> {
         field: "pinned"
         pattern: true`;
 
+	const dirCollections = subdirs
+		.map((dir) => {
+			const cfg = getDirConfig(dir);
+			const name = toCollectionName(dir);
+			return `  - name: "${name}"
+    label: "${cfg.label}"
+    label_singular: "${cfg.singular}"
+    folder: "src/content/posts/${dir}"
+    create: ${cfg.create}
+    slug: "{{slug}}"
+    preview_path: "posts/{{slug}}"
+    summary: "{{title}} ({{published}})"
+${postFields}
+
+${viewConfig}`;
+		})
+		.join("\n\n");
+
 	const rootCollection = `  - name: "posts"
-    label: "📝 全部文章"
+    label: "📝 其他文章"
     label_singular: "文章"
     folder: "src/content/posts"
     create: true
     slug: "{{slug}}"
     preview_path: "posts/{{slug}}"
     summary: "{{title}} ({{published}})"
-    nested:
-      depth: 100
-      summary: "{{title}}"
-    meta:
-      path:
-        widget: string
-        label: "文件路径"
-        index_file: "index"
 ${postFields}
 
 ${viewConfig}`;
@@ -149,6 +208,8 @@ logo:
 omit_empty_optional_fields: true
 
 collections:
+${dirCollections}
+
 ${rootCollection}
 
   # 全局设置
