@@ -2,8 +2,7 @@ import type { APIContext } from "astro";
 
 export const prerender = false;
 
-// Git submodule 目录无法通过主仓库的 GitHub API 管理，必须排除
-const SUBMODULE_DIRS = ["diary"];
+
 
 export async function GET({ url }: APIContext): Promise<Response> {
 	const origin = url.origin;
@@ -113,9 +112,6 @@ export async function GET({ url }: APIContext): Promise<Response> {
     nested:
       depth: 100
       summary: "{{title}}"
-    filter:
-      field: "__filename"
-      value_regex: "^(?!${SUBMODULE_DIRS.map((d) => `(${d})`).join("|")}).+"
     meta:
       path:
         widget: string
