@@ -21,3 +21,7 @@
 ### 📚 想了解如何使用 Firefly？
 
 访问 [使用教程](/about/tutorials/) 页面，查看完整的 Firefly 使用指南和示例文章。
+
+---
+
+本站代码主要使用claude code编写，欢迎光临我的claude code镜像站 [](https://cc.autobits.cc/)
