@@ -5,16 +5,22 @@ import type { FriendLink, FriendsPageConfig } from "../types/config";
 
 // 友链页面配置
 export const friendsPageConfig: FriendsPageConfig = {
-	// 显示列数：2列或3列
-	columns: friendsData.columns as 2 | 3,
+	title: "",
+	description: "",
+	showCustomContent: true,
+	randomizeSort: false,
 };
 
 // 友链配置
 export const friendsConfig: FriendLink[] = friendsData.friends;
 
-// 获取启用的友链并按权重排序
+// 获取启用的友链并进行排序
 export const getEnabledFriends = (): FriendLink[] => {
-	return friendsConfig
-		.filter((friend) => friend.enabled)
-		.sort((a, b) => b.weight - a.weight);
+	const friends = friendsConfig.filter((friend) => friend.enabled);
+
+	if (friendsPageConfig.randomizeSort) {
+		return friends.sort(() => Math.random() - 0.5);
+	}
+
+	return friends.sort((a, b) => b.weight - a.weight);
 };

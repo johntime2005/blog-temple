@@ -14,7 +14,49 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		LinkPreset.Archive,
 	];
 
-	// 支持自定义导航栏链接,并且支持多级菜单
+	// 友链
+	links.push(LinkPreset.Friends);
+
+	// 留言板
+	if (siteConfig.pages.guestbook) {
+		links.push(LinkPreset.Guestbook);
+	}
+
+	// 我的及其子菜单
+	links.push({
+		name: "我的",
+		url: "/my/",
+		icon: "material-symbols:person",
+		children: [
+			// 相册
+			...(siteConfig.pages.gallery ? [LinkPreset.Gallery] : []),
+		],
+	});
+
+	// 关于及其子菜单
+	links.push({
+		name: "关于",
+		url: "/content/",
+		icon: "material-symbols:info",
+		children: [
+			// 追番 (自定义)
+			...(siteConfig.pages.anime
+				? [
+						{
+							name: "追番",
+							url: "/anime/",
+							icon: "material-symbols:tv",
+							external: false,
+						},
+				  ]
+				: []),
+			...(siteConfig.pages.sponsor ? [LinkPreset.Sponsor] : []),
+			LinkPreset.About,
+			...(siteConfig.pages.bangumi ? [LinkPreset.Bangumi] : []),
+		],
+	});
+
+	// 自定义导航栏链接,并且支持多级菜单
 	links.push({
 		name: "链接",
 		url: "/links/",
@@ -32,36 +74,21 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 				external: true,
 				icon: "fa6-brands:bilibili",
 			},
+			{
+				name: "Gitee",
+				url: "https://gitee.com/CuteLeaf/Firefly",
+				external: true,
+				icon: "fa7-brands:gitee",
+			},
+			{
+				name: "QQ交流群",
+				url: "https://qm.qq.com/q/ZGsFa8qX2G",
+				external: true,
+				icon: "fa7-brands:qq",
+			},
 		],
 	});
 
-	links.push(LinkPreset.Friends);
-
-	// 根据配置决定是否添加留言板页面
-	if (siteConfig.pages.guestbook) {
-		links.push(LinkPreset.Guestbook);
-	}
-
-	links.push({
-		name: "关于",
-		url: "/content/",
-		icon: "material-symbols:info",
-		children: [
-			...(siteConfig.pages.anime
-				? [
-						{
-							name: "追番",
-							url: "/anime/",
-							icon: "material-symbols:tv",
-							external: false,
-						},
-					]
-				: []), // 根据配置决定是否添加追番页面
-			...(siteConfig.pages.sponsor ? [LinkPreset.Sponsor] : []), // 根据配置决定是否添加赞助页面
-			LinkPreset.About,
-			...(siteConfig.pages.bangumi ? [LinkPreset.Bangumi] : []), // 根据配置决定是否添加番组计划页面
-		],
-	});
 	// 仅返回链接，其它导航搜索相关配置在模块顶层常量中独立导出
 	return { links } as NavBarConfig;
 };

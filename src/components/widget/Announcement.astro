@@ -8,8 +8,8 @@ import { i18n } from "@/i18n/translation";
 const config = announcementConfig;
 
 interface Props {
-	class?: string;
-	style?: string;
+  class?: string;
+  style?: string;
 }
 const className = Astro.props.class;
 const style = Astro.props.style;
@@ -24,7 +24,10 @@ const style = Astro.props.style;
 >
   <div>
     <!-- 公告栏内容 -->
-    <div id="announcement-content" class="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-3">
+    <div
+      id="announcement-content"
+      class="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-3"
+    >
       {config.content}
     </div>
 
@@ -49,7 +52,7 @@ const style = Astro.props.style;
         config.closable && (
           <button
             class="btn-regular rounded-lg h-8 w-8 text-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-            onclick="closeAnnouncement()"
+            onclick="this.closest('widget-layout').style.display='none'"
             aria-label={i18n(I18nKey.announcementClose)}
           >
             <Icon name="fa7-solid:xmark" class="text-sm" />
@@ -59,11 +62,10 @@ const style = Astro.props.style;
     </div>
   </div>
 </WidgetLayout>
-
 <script>
   function closeAnnouncement() {
     const widgetLayout = document.querySelector(
-      'widget-layout[data-id="announcement"]'
+      'widget-layout[data-id="announcement"]',
     ) as HTMLElement | null;
     if (widgetLayout) {
       widgetLayout.style.display = "none";
@@ -76,35 +78,37 @@ const style = Astro.props.style;
   // 动态加载 KV 中的公告覆盖
   (async function loadDynamicAnnouncement() {
     try {
-      const res = await fetch('/api/config/announcement', {
-        headers: { Accept: 'application/json' },
+      const res = await fetch("/api/config/announcement", {
+        headers: { Accept: "application/json" },
       });
       if (!res.ok) return;
       const json = await res.json();
-      if (!json.data || json.source === 'default') return;
+      if (!json.data || json.source === "default") return;
 
       const data = json.data;
 
       // 覆盖公告内容
-      const contentEl = document.getElementById('announcement-content');
+      const contentEl = document.getElementById("announcement-content");
       if (contentEl && data.content) {
         contentEl.textContent = data.content;
       }
 
       // 覆盖公告标题
-      const titleEl = document.querySelector('widget-layout[data-id="announcement"] .widget-title');
+      const titleEl = document.querySelector(
+        'widget-layout[data-id="announcement"] .widget-title',
+      );
       if (titleEl && data.title) {
         titleEl.textContent = data.title;
       }
 
       // 覆盖链接
-      const linkWrapper = document.getElementById('announcement-link-wrapper');
+      const linkWrapper = document.getElementById("announcement-link-wrapper");
       if (linkWrapper && data.link) {
         if (data.link.enable === false) {
-          linkWrapper.innerHTML = '';
+          linkWrapper.innerHTML = "";
         } else if (data.link.url && data.link.text) {
           const isExternal = data.link.external ?? false;
-          linkWrapper.innerHTML = `<a href="${data.link.url}" target="${isExternal ? '_blank' : '_self'}" ${isExternal ? 'rel="noopener noreferrer"' : ''} class="btn-regular rounded-lg px-3 py-1.5 text-sm font-medium active:scale-95 transition-transform">${data.link.text}</a>`;
+          linkWrapper.innerHTML = `<a href="${data.link.url}" target="${isExternal ? "_blank" : "_self"}" ${isExternal ? 'rel="noopener noreferrer"' : ""} class="btn-regular rounded-lg px-3 py-1.5 text-sm font-medium active:scale-95 transition-transform">${data.link.text}</a>`;
         }
       }
     } catch {

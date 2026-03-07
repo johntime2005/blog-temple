@@ -45,4 +45,9 @@ export const LinkPresets: { [key in LinkPreset]: NavBarLink } = {
 		icon: "material-symbols:movie",
 		external: false,
 	},
+	[LinkPreset.Gallery]: {
+		name: i18n(I18nKey.gallery),
+		url: "/gallery/",
+		icon: "material-symbols:photo-library",
+	},
 };
