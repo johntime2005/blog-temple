@@ -7,47 +7,47 @@ import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { processCoverImageSync } from "../utils/image-utils";
 import { getDir, getTagUrl } from "../utils/url-utils";
-import RandomCoverImage from "./common/RandomCoverImage.astro";
+import CoverImage from "./common/CoverImage.astro";
 import PostMetadata from "./PostMeta.astro";
 
 interface Props {
-	class?: string;
-	entry: CollectionEntry<"posts">;
-	title: string;
-	url: string;
-	published: Date;
-	updated?: Date;
-	tags: string[];
-	category: string | null;
-	image: string;
-	description: string;
-	draft: boolean;
-	pinned?: boolean;
-	featured?: boolean;
-	style?: string;
+  class?: string;
+  entry: CollectionEntry<"posts">;
+  title: string;
+  url: string;
+  published: Date;
+  updated?: Date;
+  tags: string[];
+  category: string | null;
+  image: string;
+  description: string;
+  draft: boolean;
+  pinned?: boolean;
+  featured?: boolean;
+  style?: string;
 }
 const {
-	entry,
-	title,
-	url,
-	published,
-	updated,
-	tags,
-	category,
-	image,
-	description,
-	pinned,
-	featured,
-	style,
+  entry,
+  title,
+  url,
+  published,
+  updated,
+  tags,
+  category,
+  image,
+  description,
+  pinned,
+  featured,
+  style,
 } = Astro.props;
 const className = Astro.props.class;
 
 // 处理封面图片（支持随机封面）
 const processedImage = processCoverImageSync(image, entry.id);
 const hasCover =
-	processedImage !== undefined &&
-	processedImage !== null &&
-	processedImage !== "";
+  processedImage !== undefined &&
+  processedImage !== null &&
+  processedImage !== "";
 
 const coverWidth = "28%";
 
@@ -184,12 +184,11 @@ const { remarkPluginFrontmatter } = await render(entry);
             class="transition opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 text-white text-5xl"
           />
         </div>
-        <RandomCoverImage
+        <CoverImage
           src={processedImage}
           basePath={path.join("content/posts/", getDir(entry.id))}
           alt="Cover Image of the Post"
           class="w-full h-full"
-          seed={entry.id}
           preview={true}
           position="center 35%"
         />
