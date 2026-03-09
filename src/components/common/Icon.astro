@@ -1,12 +1,92 @@
 ---
+import { getIconSvg, hasIcon } from "@/constants/icons";
+
 interface Props {
-	name: string;
+	name?: string; // 为了向后兼容，保留 name 属性，不过最好统一叫 icon
+	icon?: string; // 追加 icon，与 Svelte 组件保持一致
 	class?: string;
 	style?: string;
+	size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+	color?: string;
 	[key: string]: any;
 }
-const { name, class: className, style, ...rest } = Astro.props;
+
+const {
+	name,
+	icon,
+	class: className = "",
+	style = "",
+	size = "md",
+	color,
+	...rest
+} = Astro.props;
+
+// 优先使用 icon 属性，降级使用 name 属性
+const iconName = icon || name || "";
+
+// 尺寸映射
+const sizeClasses: Record<string, string> = {
+	xs: "text-xs",
+	sm: "text-sm",
+	md: "text-base",
+	lg: "text-lg",
+	xl: "text-xl",
+	"2xl": "text-2xl",
+};
+
+const sizeClass = sizeClasses[size] || sizeClasses.md;
+const colorStyle = color ? `color: ${color};` : "";
+const combinedStyle = `${colorStyle}${style}`;
+const combinedClass = `${sizeClass} ${className}`.trim();
+
+// 获取内联 SVG
+const svgContent = getIconSvg(iconName);
+const iconExists = hasIcon(iconName);
 ---
 
-<iconify-icon icon={name} class={className} style={style} {...rest}
-></iconify-icon>
+{
+	iconExists && svgContent ? (
+		<span
+			class={`inline-icon inline-flex items-center justify-center ${combinedClass}`}
+			style={combinedStyle}
+			aria-hidden="true"
+			set:html={svgContent}
+			{...rest}
+		/>
+	) : (
+		<span
+			class={`inline-icon inline-flex items-center justify-center ${combinedClass}`}
+			style={combinedStyle}
+			aria-hidden="true"
+			title={`Icon not found: ${iconName}`}
+			{...rest}
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="1em"
+				height="1em"
+				viewBox="0 0 24 24"
+			>
+				<circle
+					cx="12"
+					cy="12"
+					r="10"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					opacity="0.3"
+				/>
+			</svg>
+		</span>
+	)
+}
+
+<style is:global>
+	.inline-icon svg {
+		width: 1em;
+		height: 1em;
+		display: inline-block;
+		vertical-align: middle;
+		fill: currentColor;
+	}
+</style>

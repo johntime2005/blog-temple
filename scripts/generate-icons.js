@@ -21,6 +21,10 @@ const ICON_SETS = {
 	"fa7-solid": "@iconify-json/fa7-solid",
 	"fa7-brands": "@iconify-json/fa7-brands",
 	"fa7-regular": "@iconify-json/fa7-regular",
+	"fa6-solid": "@iconify-json/fa6-solid",
+	"fa6-brands": "@iconify-json/fa6-brands",
+	"eos-icons": "@iconify-json/eos-icons",
+	mingcute: "@iconify-json/mingcute",
 	mdi: "@iconify-json/mdi",
 	"simple-icons": "@iconify-json/simple-icons",
 	"svg-spinners": "@iconify-json/svg-spinners",
@@ -32,7 +36,7 @@ const iconSetCache = new Map();
 /**
  * 递归获取目录下所有文件
  */
-function getAllFiles(dir, extensions = [".svelte"]) {
+function getAllFiles(dir, extensions = [".svelte", ".astro", ".ts"]) {
 	const files = [];
 
 	function walk(currentDir) {
