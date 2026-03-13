@@ -18,6 +18,11 @@ const config = {
 <!-- 使用自编译的 Twikoo 文件，避免点赞等按钮导致页面触发滚动回顶部 https://github.com/twikoojs/twikoo/issues/721 -->
 <script is:inline src={url("/assets/js/firefly-twikoo-1.6.44.all.min.js")}></script>
 <script is:inline define:vars={{ config }}>
+  const TWIKOO_RETRY_INTERVAL = 500;
+  const TWIKOO_MAX_RETRIES = 20;
+  let twikooRetryCount = 0;
+  const GLOBAL_KEY = "__fireflyTwikooListenersBound";
+
   // 获取当前页面路径
   function getCurrentPath() {
     const pathname = window.location.pathname;
@@ -35,55 +40,108 @@ const config = {
     };
   }
 
+  // 构建管理提示（仅当 envId 是 URL 时）
+  function getManageHint() {
+    if (!config?.envId || typeof config.envId !== "string") {
+      return "";
+    }
+    try {
+      const parsedUrl = new URL(config.envId);
+      return parsedUrl.origin;
+    } catch {
+      return "";
+    }
+  }
+
+  // 渲染失败提示，避免“看起来没反应”
+  function renderErrorHint(errorMessage) {
+    const commentEl = document.getElementById("tcomment");
+    if (!commentEl) return;
+
+    const manageHint = getManageHint();
+    commentEl.innerHTML = `
+      <div style="padding: 14px 16px; border: 1px solid var(--line-divider); border-radius: 12px; color: var(--content-meta); font-size: 14px; line-height: 1.7;">
+        <div style="font-weight: 600; margin-bottom: 6px; color: var(--btn-content);">评论系统加载失败</div>
+        <div>请检查 Twikoo 后端地址、跨域白名单以及管理员配置。</div>
+        ${manageHint ? `<div>后端地址：<a href="${manageHint}" target="_blank" rel="noopener noreferrer">${manageHint}</a></div>` : ""}
+        ${errorMessage ? `<div style="margin-top: 4px;">错误信息：${String(errorMessage)}</div>` : ""}
+      </div>
+    `;
+  }
+
   // 初始化 Twikoo
   function initTwikoo() {
+    const commentEl = document.getElementById("tcomment");
+    if (!commentEl) return;
+
     if (typeof twikoo !== "undefined") {
+      commentEl.innerHTML = "";
+
+      const dynamicConfig = createTwikooConfig();
+      twikooRetryCount = 0;
+      console.log("[Twikoo] 初始化配置:", dynamicConfig);
+
+      twikoo
+        .init(dynamicConfig)
+        .then(() => {
+          console.log("[Twikoo] 初始化完成");
+        })
+        .catch((error) => {
+          console.error("[Twikoo] 初始化失败:", error);
+          renderErrorHint(error?.message || error);
+        });
+    } else {
+      // 如果 Twikoo 未加载，有限重试
+      if (twikooRetryCount >= TWIKOO_MAX_RETRIES) {
+        renderErrorHint("Twikoo 前端脚本加载超时");
+        return;
+      }
+      twikooRetryCount += 1;
+      setTimeout(initTwikoo, TWIKOO_RETRY_INTERVAL);
+    }
+  }
+
+  // 页面加载时初始化（处理脚本注入时机差异）
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initTwikoo, { once: true });
+  } else {
+    initTwikoo();
+  }
+
+  function bindGlobalListenersOnce() {
+    if (window[GLOBAL_KEY]) return;
+
+    // Astro 页面加载后重新初始化
+    document.addEventListener("astro:page-load", initTwikoo);
+
+    // Swup 内容替换后重新初始化（DOM 事件）
+    document.addEventListener("swup:contentReplaced", initTwikoo);
+
+    // Swup 页面切换后重新初始化（实例 hooks）
+    if (window.swup && window.swup.hooks) {
+      window.swup.hooks.on("content:replace", function () {
+        setTimeout(initTwikoo, 200);
+      });
+    } else {
+      document.addEventListener("swup:enable", function () {
+        if (window.swup && window.swup.hooks) {
+          window.swup.hooks.on("content:replace", function () {
+            setTimeout(initTwikoo, 200);
+          });
+        }
+      });
+    }
+
+    // 自定义事件监听
+    document.addEventListener("firefly:page:loaded", function () {
       const commentEl = document.getElementById("tcomment");
       if (commentEl) {
-        commentEl.innerHTML = "";
-
-        const dynamicConfig = createTwikooConfig();
-        console.log("[Twikoo] 初始化配置:", dynamicConfig);
-
-        twikoo
-          .init(dynamicConfig)
-          .then(() => {
-            console.log("[Twikoo] 初始化完成");
-          })
-          .catch((error) => {
-            console.error("[Twikoo] 初始化失败:", error);
-          });
-      }
-    } else {
-      // 如果 Twikoo 未加载，稍后重试
-      setTimeout(initTwikoo, 500);
-    }
-  }
-
-  // 页面加载时初始化
-  document.addEventListener("DOMContentLoaded", initTwikoo);
-
-  // Swup 页面切换后重新初始化
-  if (window.swup && window.swup.hooks) {
-    window.swup.hooks.on("content:replace", function () {
-      setTimeout(initTwikoo, 200);
-    });
-  } else {
-    document.addEventListener("swup:enable", function () {
-      if (window.swup && window.swup.hooks) {
-        window.swup.hooks.on("content:replace", function () {
-          setTimeout(initTwikoo, 200);
-        });
+        initTwikoo();
       }
     });
+
+    window[GLOBAL_KEY] = true;
   }
 
-  // 自定义事件监听
-  document.addEventListener("firefly:page:loaded", function () {
-    const commentEl = document.getElementById("tcomment");
-    if (commentEl) {
-      console.log("[Twikoo] 通过自定义事件重新初始化");
-      initTwikoo();
-    }
-  });
+  bindGlobalListenersOnce();
 </script>
