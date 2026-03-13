@@ -70,12 +70,16 @@ function extractIconNames(content) {
 	const patterns = [
 		// icon="xxx:yyy" 或 icon='xxx:yyy'
 		/icon=["']([a-z0-9-]+:[a-z0-9-]+)["']/gi,
+		// name="xxx:yyy" 或 name='xxx:yyy' (Astro Icon 组件)
+		/name=["']([a-z0-9-]+:[a-z0-9-]+)["']/gi,
 		// icon={`xxx:yyy`}
 		/icon=\{[`"']([a-z0-9-]+:[a-z0-9-]+)[`"']\}/gi,
 		// getIconSvg("xxx:yyy") 或 getIconSvg('xxx:yyy')
 		/getIconSvg\(["']([a-z0-9-]+:[a-z0-9-]+)["']\)/gi,
 		// hasIcon("xxx:yyy")
 		/hasIcon\(["']([a-z0-9-]+:[a-z0-9-]+)["']\)/gi,
+		// icon: "xxx:yyy" (TS/JS 对象属性)
+		/icon:\s*["']([a-z0-9-]+:[a-z0-9-]+)["']/gi,
 	];
 
 	for (const pattern of patterns) {
