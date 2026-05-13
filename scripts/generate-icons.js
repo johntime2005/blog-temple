@@ -65,15 +65,18 @@ function getAllFiles(dir, extensions = [".svelte", ".astro", ".ts"]) {
  */
 function extractIconNames(content) {
 	const icons = new Set();
+	const sanitizedContent = content
+		.replace(/\/\*[\s\S]*?\*\//g, "")
+		.replace(/(^|\s)\/\/.*$/gm, "");
 
-	// 匹配各种图标使用模式
+	// 匹配各种图标使用模式，尽量限制在真实的 Icon 组件与配置对象上
 	const patterns = [
-		// icon="xxx:yyy" 或 icon='xxx:yyy'
-		/icon=["']([a-z0-9-]+:[a-z0-9-]+)["']/gi,
-		// name="xxx:yyy" 或 name='xxx:yyy' (Astro Icon 组件)
-		/name=["']([a-z0-9-]+:[a-z0-9-]+)["']/gi,
-		// icon={`xxx:yyy`}
-		/icon=\{[`"']([a-z0-9-]+:[a-z0-9-]+)[`"']\}/gi,
+		// <Icon icon="xxx:yyy"> 或 <Icon icon='xxx:yyy'>
+		/<Icon[^>]*\bicon=["']([a-z0-9-]+:[a-z0-9-]+)["']/gi,
+		// <Icon name="xxx:yyy"> 或 <Icon name='xxx:yyy'> (Astro Icon 组件)
+		/<Icon[^>]*\bname=["']([a-z0-9-]+:[a-z0-9-]+)["']/gi,
+		// <Icon icon={`xxx:yyy`}> 或 <Icon name={`xxx:yyy`}>
+		/<Icon[^>]*\b(?:icon|name)=\{[`"']([a-z0-9-]+:[a-z0-9-]+)[`"']\}/gi,
 		// getIconSvg("xxx:yyy") 或 getIconSvg('xxx:yyy')
 		/getIconSvg\(["']([a-z0-9-]+:[a-z0-9-]+)["']\)/gi,
 		// hasIcon("xxx:yyy")
@@ -84,7 +87,7 @@ function extractIconNames(content) {
 
 	for (const pattern of patterns) {
 		let match;
-		while ((match = pattern.exec(content)) !== null) {
+		while ((match = pattern.exec(sanitizedContent)) !== null) {
 			icons.add(match[1]);
 		}
 	}

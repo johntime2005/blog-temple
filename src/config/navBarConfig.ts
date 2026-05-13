@@ -14,8 +14,10 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		LinkPreset.Archive,
 	];
 
-	// 友链
-	links.push(LinkPreset.Friends);
+	// 根据配置决定是否添加友链，在siteConfig关闭pages.friends时导航栏不显示友链
+	if (siteConfig.pages.friends) {
+		links.push(LinkPreset.Friends);
+	}
 
 	// 留言板
 	if (siteConfig.pages.guestbook) {
