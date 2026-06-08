@@ -9,39 +9,38 @@ import { siteConfig } from "./siteConfig";
 
 // 根据页面开关动态生成导航栏配置
 const getDynamicNavBarConfig = (): NavBarConfig => {
-	const links: (NavBarLink | LinkPreset)[] = [
-		LinkPreset.Home,
-		LinkPreset.Archive,
-	];
+	const links: (NavBarLink | LinkPreset)[] = [LinkPreset.Home];
 
-	// 根据配置决定是否添加友链，在siteConfig关闭pages.friends时导航栏不显示友链
+	links.push({
+		name: "文章",
+		url: "/post/",
+		icon: "material-symbols:article-rounded",
+		children: [LinkPreset.Archive, LinkPreset.Categories, LinkPreset.Tags],
+	});
+
 	if (siteConfig.pages.friends) {
 		links.push(LinkPreset.Friends);
 	}
 
-	// 留言板
 	if (siteConfig.pages.guestbook) {
 		links.push(LinkPreset.Guestbook);
 	}
 
-	// 我的及其子菜单
 	links.push({
 		name: "我的",
 		url: "/my/",
 		icon: "material-symbols:person",
 		children: [
-			// 相册
 			...(siteConfig.pages.gallery ? [LinkPreset.Gallery] : []),
+			...(siteConfig.pages.bangumi ? [LinkPreset.Bangumi] : []),
 		],
 	});
 
-	// 关于及其子菜单
 	links.push({
 		name: "关于",
 		url: "/content/",
 		icon: "material-symbols:info",
 		children: [
-			// 追番 (自定义)
 			...(siteConfig.pages.anime
 				? [
 						{
@@ -50,15 +49,13 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 							icon: "material-symbols:tv",
 							external: false,
 						},
-				  ]
+					]
 				: []),
 			...(siteConfig.pages.sponsor ? [LinkPreset.Sponsor] : []),
 			LinkPreset.About,
-			...(siteConfig.pages.bangumi ? [LinkPreset.Bangumi] : []),
 		],
 	});
 
-	// 自定义导航栏链接,并且支持多级菜单
 	links.push({
 		name: "链接",
 		url: "/links/",
@@ -68,7 +65,7 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 				name: "GitHub",
 				url: "https://github.com/johntime2005",
 				external: true,
-				icon: "fa6-brands:github",
+				icon: "fa7-brands:github",
 			},
 			{
 				name: "Bilibili",
@@ -91,25 +88,12 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		],
 	});
 
-	// 仅返回链接，其它导航搜索相关配置在模块顶层常量中独立导出
 	return { links } as NavBarConfig;
 };
 
 // 导航搜索配置
 export const navBarSearchConfig: NavBarSearchConfig = {
-	// 可选：PageFind， MeiliSearch
-	// 选择PageFind时：NavBarSearchMethod.PageFind,
-	// 选择MeiliSearch时：NavBarSearchMethod.MeiliSearch,
 	method: NavBarSearchMethod.PageFind,
-	// 当选择 MeiliSearch 时的配置
-	meiliSearchConfig: {
-		INDEX_NAME: "posts",
-		CONTENT_DIR: "src/content/posts",
-		MEILI_HOST: "http://localhost:7700",
-		PUBLIC_MEILI_HOST: "http://localhost:7700",
-		PUBLIC_MEILI_SEARCH_KEY:
-			"41134b15079da66ca545375edbea848a9b7173dff13be2028318fefa41ae8f2b",
-	},
 };
 
 export const navBarConfig: NavBarConfig = getDynamicNavBarConfig();

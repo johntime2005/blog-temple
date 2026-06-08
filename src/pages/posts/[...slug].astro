@@ -12,9 +12,9 @@ import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getRelatedPosts, getSortedPosts } from "@utils/content-utils";
 import { encryptContent, hmacSha256 } from "@utils/security";
 import {
-  getFileDirFromPath,
-  getPostUrlBySlug,
-  removeFileExtension,
+	getFileDirFromPath,
+	getPostUrlBySlug,
+	removeFileExtension,
 } from "@utils/url-utils";
 import { Icon } from "astro-icon/components";
 import dayjs from "dayjs";
@@ -30,21 +30,20 @@ import { coverImageConfig } from "@/config/coverImageConfig";
 import { licenseConfig } from "@/config/licenseConfig";
 import { profileConfig } from "@/config/profileConfig";
 import { siteConfig } from "@/config/siteConfig";
-import { sponsorConfig } from "@/config/sponsorConfig";
 import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { getApiUrlList, processCoverImageSync } from "@/utils/image-utils";
 import { url } from "@/utils/url-utils";
 
 export async function getStaticPaths() {
-  const blogEntries = await getSortedPosts();
-  return blogEntries.map((entry) => {
-    // 将 id 转换为 slug（移除扩展名）以匹配路由参数
-    const slug = removeFileExtension(entry.id);
-    return {
-      params: { slug },
-      props: { entry },
-    };
-  });
+	const blogEntries = await getSortedPosts();
+	return blogEntries.map((entry) => {
+		// 将 id 转换为 slug（移除扩展名）以匹配路由参数
+		const slug = removeFileExtension(entry.id);
+		return {
+			params: { slug },
+			props: { entry },
+		};
+	});
 }
 
 const { entry } = Astro.props;
@@ -58,27 +57,27 @@ const isEncrypted = entry.data.encrypted && entry.data.encryptionId;
 const isMembersOnly = entry.data.accessLevel === "members-only";
 
 if (isEncrypted || isMembersOnly) {
-  const SITE_SECRET =
-    import.meta.env.SITE_SECRET ||
-    import.meta.env.GITHUB_CLIENT_SECRET ||
-    "default-secret-please-change";
+	const SITE_SECRET =
+		import.meta.env.SITE_SECRET ||
+		import.meta.env.GITHUB_CLIENT_SECRET ||
+		"default-secret-please-change";
 
-  // Derive key
-  const key = await hmacSha256(SITE_SECRET, entry.id); // entry.id is unique slug
+	// Derive key
+	const key = await hmacSha256(SITE_SECRET, entry.id); // entry.id is unique slug
 
-  // Render content to HTML string (Standard Markdown only)
-  const htmlContent = await marked.parse(entry.body || "");
+	// Render content to HTML string (Standard Markdown only)
+	const htmlContent = await marked.parse(entry.body || "");
 
-  // Encrypt
-  encryptedContent = encryptContent(htmlContent, key);
+	// Encrypt
+	encryptedContent = encryptContent(htmlContent, key);
 }
 
 const bannerPostMeta = {
-  title: entry.data.title,
-  published: entry.data.published,
-  updated: entry.data.updated,
-  words: remarkPluginFrontmatter.words,
-  minutes: remarkPluginFrontmatter.minutes,
+	title: entry.data.title,
+	published: entry.data.published,
+	updated: entry.data.updated,
+	words: remarkPluginFrontmatter.words,
+	minutes: remarkPluginFrontmatter.minutes,
 };
 
 // 处理随机图：如果image为"api"，则从配置的API获取随机图
@@ -87,70 +86,70 @@ const apiUrls = getApiUrlList(entry.data.image, entry.id);
 
 let posterCoverUrl = processedImage;
 if (processedImage) {
-  const isLocal = !(
-    processedImage.startsWith("/") ||
-    processedImage.startsWith("http") ||
-    processedImage.startsWith("https") ||
-    processedImage.startsWith("data:")
-  );
-  if (isLocal) {
-    const basePath = getFileDirFromPath(entry.filePath || "");
-    const files = import.meta.glob<ImageMetadata>("../../**", {
-      import: "default",
-    });
-    let normalizedPath = path
-      .normalize(path.join("../../", basePath, processedImage))
-      .replace(/\\/g, "/");
-    const file = files[normalizedPath];
-    if (file) {
-      const img = await file();
-      posterCoverUrl = img.src;
-    }
-  }
+	const isLocal = !(
+		processedImage.startsWith("/") ||
+		processedImage.startsWith("http") ||
+		processedImage.startsWith("https") ||
+		processedImage.startsWith("data:")
+	);
+	if (isLocal) {
+		const basePath = getFileDirFromPath(entry.filePath || "");
+		const files = import.meta.glob<ImageMetadata>("../../**", {
+			import: "default",
+		});
+		let normalizedPath = path
+			.normalize(path.join("../../", basePath, processedImage))
+			.replace(/\\/g, "/");
+		const file = files[normalizedPath];
+		if (file) {
+			const img = await file();
+			posterCoverUrl = img.src;
+		}
+	}
 }
 
 // 处理头像URL
 let posterAvatarUrl: string | null = profileConfig.avatar || null;
 if (posterAvatarUrl) {
-  const isLocalAvatar = !(
-    posterAvatarUrl.startsWith("/") ||
-    posterAvatarUrl.startsWith("http") ||
-    posterAvatarUrl.startsWith("https") ||
-    posterAvatarUrl.startsWith("data:")
-  );
-  if (isLocalAvatar) {
-    const files = import.meta.glob<ImageMetadata>("../../**", {
-      import: "default",
-    });
-    const normalizedPath = path
-      .normalize(path.join("../../", posterAvatarUrl))
-      .replace(/\\/g, "/");
-    const file = files[normalizedPath];
-    if (file) {
-      const img = await file();
-      posterAvatarUrl = img.src;
-    }
-  }
+	const isLocalAvatar = !(
+		posterAvatarUrl.startsWith("/") ||
+		posterAvatarUrl.startsWith("http") ||
+		posterAvatarUrl.startsWith("https") ||
+		posterAvatarUrl.startsWith("data:")
+	);
+	if (isLocalAvatar) {
+		const files = import.meta.glob<ImageMetadata>("../../**", {
+			import: "default",
+		});
+		const normalizedPath = path
+			.normalize(path.join("../../", posterAvatarUrl))
+			.replace(/\\/g, "/");
+		const file = files[normalizedPath];
+		if (file) {
+			const img = await file();
+			posterAvatarUrl = img.src;
+		}
+	}
 }
 
 dayjs.extend(utc);
 
 const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  headline: entry.data.title,
-  description: entry.data.description || entry.data.title,
-  keywords: entry.data.tags,
-  author: {
-    "@type": "Person",
-    name: profileConfig.name,
-    url: Astro.site,
-  },
-  datePublished: formatDateToYYYYMMDD(entry.data.published),
-  inLanguage: entry.data.lang
-    ? entry.data.lang.replace("_", "-")
-    : siteConfig.lang.replace("_", "-"),
-  // TODO include cover image here
+	"@context": "https://schema.org",
+	"@type": "BlogPosting",
+	headline: entry.data.title,
+	description: entry.data.description || entry.data.title,
+	keywords: entry.data.tags,
+	author: {
+		"@type": "Person",
+		name: profileConfig.name,
+		url: Astro.site,
+	},
+	datePublished: formatDateToYYYYMMDD(entry.data.published),
+	inLanguage: entry.data.lang
+		? entry.data.lang.replace("_", "-")
+		: siteConfig.lang.replace("_", "-"),
+	// TODO include cover image here
 };
 
 const relatedPosts = await getRelatedPosts(entry, 5);
@@ -305,37 +304,22 @@ const relatedPosts = await getRelatedPosts(entry, 5);
         )
       }
 
-      {/* 赞助按钮 & 分享按钮 */}
+      {/* 分享按钮 */}
       {
-        (siteConfig.sharePoster ||
-          (sponsorConfig.showButtonInPost && siteConfig.pages.sponsor)) && (
+        siteConfig.sharePoster && (
           <div class="mb-6 rounded-xl onload-animation">
             <div class="p-6 bg-(--license-block-bg) rounded-xl">
               <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3 flex-1">
                   <div class="h-12 w-12 rounded-lg bg-(--primary) flex items-center justify-center text-white dark:text-black/70 shrink-0">
-                    <Icon
-                      name={
-                        sponsorConfig.showButtonInPost &&
-                        siteConfig.pages.sponsor
-                          ? "material-symbols:favorite"
-                          : "material-symbols:share"
-                      }
-                      class="text-2xl"
-                    />
+                    <Icon name="material-symbols:share" class="text-2xl" />
                   </div>
                   <div>
                     <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
-                      {sponsorConfig.showButtonInPost &&
-                      siteConfig.pages.sponsor
-                        ? i18n(I18nKey.sponsorButton)
-                        : i18n(I18nKey.shareOnSocial)}
+                      {i18n(I18nKey.shareOnSocial)}
                     </h3>
                     <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                      {sponsorConfig.showButtonInPost &&
-                      siteConfig.pages.sponsor
-                        ? i18n(I18nKey.sponsorButtonText)
-                        : i18n(I18nKey.shareOnSocialDescription)}
+                      {i18n(I18nKey.shareOnSocialDescription)}
                     </p>
                   </div>
                 </div>
@@ -353,16 +337,6 @@ const relatedPosts = await getRelatedPosts(entry, 5);
                       avatar={posterAvatarUrl}
                     />
                   )}
-                  {sponsorConfig.showButtonInPost &&
-                    siteConfig.pages.sponsor && (
-                      <a
-                        href={url("/sponsor/")}
-                        class="inline-flex items-center gap-2 px-6 py-3 bg-(--primary) text-white dark:text-black/70 rounded-lg font-medium hover:bg-(--primary)/80 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
-                      >
-                        <span>{i18n(I18nKey.sponsor)}</span>
-                        <Icon name="fa7-solid:arrow-right" class="text-sm" />
-                      </a>
-                    )}
                 </div>
               </div>
             </div>
@@ -394,7 +368,7 @@ const relatedPosts = await getRelatedPosts(entry, 5);
       const dateStr = lastModified.format("YYYY-MM-DD");
       const outdatedThreshold = siteConfig.outdatedThreshold ?? 1;
 
-      // 1. 預設加上 hidden 隱藏，並把時間與閾值綁在 data-* 屬性
+      // 默认隐藏，由客户端按访问当天时间判断是否展示
       return (
         <div
           id="outdated-card"
@@ -429,14 +403,14 @@ const relatedPosts = await getRelatedPosts(entry, 5);
     import dayjs from "dayjs";
 
     const card = document.getElementById('outdated-card');
-    
+
     if (card) {
-      // 讀取伺服器給的日期，並用 dayjs 直接算出差異天數
+      // 读取服务端给出的日期，并用访问当天时间计算差异天数
       const lastModified = dayjs(card.dataset.date);
       const daysDiff = dayjs().diff(lastModified, "day");
       const threshold = Number(card.dataset.threshold);
 
-      // 如果超過閾值，就顯示卡片與提示文字
+      // 如果超过阈值，就显示卡片与提示文字
       if (daysDiff >= threshold) {
         card.classList.remove('hidden');
 
@@ -445,7 +419,7 @@ const relatedPosts = await getRelatedPosts(entry, 5);
           if (textEl && textEl.dataset.template) {
             textEl.textContent = `，${textEl.dataset.template.replace("{days}", daysDiff.toString())}`;
           }
-          
+
           const warningEl = document.getElementById('outdated-warning');
           if (warningEl) {
             warningEl.classList.remove('hidden');

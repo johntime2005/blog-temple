@@ -1,6 +1,3 @@
-import { loadRenderers } from "astro:container";
-import { render } from "astro:content";
-import { getContainerRenderer as getMDXRenderer } from "@astrojs/mdx";
 import rss, { type RSSFeedItem } from "@astrojs/rss";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
@@ -8,8 +5,6 @@ import { getSortedPosts } from "@utils/content-utils";
 import { formatDateI18nWithTime } from "@utils/date-utils";
 import { url } from "@utils/url-utils";
 import type { APIContext } from "astro";
-import { experimental_AstroContainer as AstroContainer } from "astro/container";
-import sanitizeHtml from "sanitize-html";
 import { siteConfig } from "@/config";
 import pkg from "../../package.json";
 
@@ -23,31 +18,25 @@ function stripInvalidXmlChars(str: string): string {
 
 export async function GET(context: APIContext): Promise<Response> {
 	const blog = await getSortedPosts();
-	const renderers = await loadRenderers([getMDXRenderer()]);
-	const container = await AstroContainer.create({ renderers });
 	const feedItems: RSSFeedItem[] = [];
 	for (const post of blog) {
+		const description = stripInvalidXmlChars(post.data.description || "");
 		if (post.data.password) {
 			feedItems.push({
 				title: post.data.title,
 				pubDate: post.data.published,
-				description: post.data.description || "",
+				description,
 				link: url(`/posts/${post.id}/`),
 				content: i18n(I18nKey.passwordProtectedRss),
 			});
 			continue;
 		}
-		const { Content } = await render(post);
-		const rawContent = await container.renderToString(Content);
-		const cleanedContent = stripInvalidXmlChars(rawContent);
 		feedItems.push({
 			title: post.data.title,
 			pubDate: post.data.published,
-			description: post.data.description || "",
+			description,
 			link: url(`/posts/${post.id}/`),
-			content: sanitizeHtml(cleanedContent, {
-				allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
-			}),
+			content: description,
 		});
 	}
 	return rss({

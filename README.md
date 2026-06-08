@@ -6,9 +6,9 @@
 
 > 基于 [Firefly](https://github.com/CuteLeaf/Firefly) 主题的个性化博客
 >
-> ![Node.js >= 20](https://img.shields.io/badge/node.js-%3E%3D20-brightgreen) 
+> ![Node.js >= 20](https://img.shields.io/badge/node.js-%3E%3D20-brightgreen)
 ![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9-blue)
-![Astro](https://img.shields.io/badge/Astro-5.16.6-orange)
+![Astro](https://img.shields.io/badge/Astro-6.4.4-orange)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)
 
 **✨ 主题来源**: [CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly) - 一款清新美观的 Astro 博客主题模板
@@ -18,7 +18,7 @@
 [**🌐 我的博客**](https://blog.johntime.top) &emsp;
 [**🖥️ 主题在线预览**](https://demo-firefly.netlify.app/) &emsp;
 [**📝 主题使用文档**](https://docs-firefly.cuteleaf.cn/) &emsp;
-[**⭐ Firefly 主题仓库**](https://github.com/CuteLeaf/Firefly) 
+[**⭐ Firefly 主题仓库**](https://github.com/CuteLeaf/Firefly)
 
 ⚡ 静态站点生成: 基于Astro的超快加载速度和SEO优化
 

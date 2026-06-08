@@ -5,20 +5,20 @@
 
 # Firefly
 > Свежий и красивый шаблон темы блога Astro
-> 
-> ![Node.js >= 22](https://img.shields.io/badge/node.js-%3E%3D22-brightgreen) 
+>
+> ![Node.js >= 22](https://img.shields.io/badge/node.js-%3E%3D22-brightgreen)
 ![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9-blue)
-![Astro](https://img.shields.io/badge/Astro-6.3.1-orange)
+![Astro](https://img.shields.io/badge/Astro-6.4.4-orange)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)
 >
 > [![Stars](https://img.shields.io/github/stars/CuteLeaf/Firefly?style=social)](https://github.com/CuteLeaf/Firefly/stargazers)
 [![Forks](https://img.shields.io/github/forks/CuteLeaf/Firefly?style=social)](https://github.com/CuteLeaf/Firefly/network/members)
 [![Issues](https://img.shields.io/github/issues/CuteLeaf/Firefly)](https://github.com/CuteLeaf/Firefly/issues)
-> 
+>
 > [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z41NQALY)
 >
 > **QQ交流群：[1087127207](https://qm.qq.com/q/ZGsFa8qX2G)**
-> 
+>
 > ![GitHub License](https://img.shields.io/github/license/CuteLeaf/Firefly)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/CuteLeaf/Firefly)
 [![Afdian Sponsor](https://img.shields.io/badge/Afdian-Поддержать%20автора-ff69b4.svg)](https://ifdian.net/a/cuteleaf)
@@ -28,7 +28,7 @@
 
 ---
 📖 README:
-**[简体中文](../README.md)** | **[繁體中文](README.zh-TW.md)** | **[English](../README.en.md)** | **[日本語](README.ja.md)** | **[Русский](README.ru.md)** 
+**[简体中文](../README.md)** | **[繁體中文](README.zh-TW.md)** | **[English](../README.en.md)** | **[日本語](README.ja.md)** | **[Русский](README.ru.md)**
 
 🚀 Быстрое руководство:
 [**🖥️Демо**](https://firefly.cuteleaf.cn/) /
@@ -72,7 +72,7 @@
 - [x] **Плавная анимация** - Анимация переходов между страницами Swup для шелковисто-плавного просмотра
 - [x] **Адаптивный дизайн** - Идеальная адаптация для настольных компьютеров, планшетов и мобильных устройств
 - [x] **Многоязычная поддержка** - Интернационализация i18n UI, поддержка упрощенного китайского, традиционного китайского, английского, японского, русского
-- [x] **Полнотекстовый поиск** - Клиентский поиск на основе Pagefind, поддержка индексации содержимого статей. 
+- [x] **Полнотекстовый поиск** - Клиентский поиск на основе Pagefind, поддержка индексации содержимого статей.
 
 ### Персонализация
 - [x] **Динамическая боковая панель** - Поддержка одиночной и двойной боковой панели
@@ -101,7 +101,7 @@
    git clone https://github.com/Cuteleaf/Firefly.git
    cd Firefly
    ```
-   
+
    **Сначала создайте [Fork](https://github.com/CuteLeaf/Firefly/fork) в свой репозиторий, затем клонируйте (рекомендуется). Не забудьте нажать Star перед Fork!**
 
    ```bash
@@ -112,7 +112,7 @@
    ```bash
    # Установите pnpm, если еще не установлен
    npm install -g pnpm
-   
+
    # Установить зависимости проекта
    pnpm install
    ```
@@ -242,8 +242,8 @@ comment: true    # Включить комментарии
 
 ### Технический стек
 
-- [Astro](https://astro.build) 
-- [Tailwind CSS](https://tailwindcss.com) 
+- [Astro](https://astro.build)
+- [Tailwind CSS](https://tailwindcss.com)
 - [Iconify](https://iconify.design)
 
 ### Проекты вдохновения
@@ -261,7 +261,7 @@ comment: true    # Включить комментарии
 
 Этот проект распространяется под лицензией [MIT license](https://mit-license.org/), подробности см. в файле [LICENSE](../LICENSE).
 
-Первоначально ветвлено из [saicaca/fuwari](https://github.com/saicaca/fuwari). Благодарим автора оригинального проекта за вклад. 
+Первоначально ветвлено из [saicaca/fuwari](https://github.com/saicaca/fuwari). Благодарим автора оригинального проекта за вклад.
 
 **Уведомление об авторских правах:**
 - Copyright (c) 2024 [saicaca](https://github.com/saicaca) - [fuwari](https://github.com/saicaca/fuwari)

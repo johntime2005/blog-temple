@@ -1,3 +1,4 @@
+import { setMaxListeners } from "node:events";
 import cloudflare from "@astrojs/cloudflare";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
@@ -6,7 +7,6 @@ import { pluginCollapsibleSections } from "@expressive-code/plugin-collapsible-s
 import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import swup from "@swup/astro";
 import tailwindcss from "@tailwindcss/vite";
-import { setMaxListeners } from "node:events";
 import { defineConfig } from "astro/config";
 import expressiveCode from "astro-expressive-code";
 import icon from "astro-icon";
@@ -42,6 +42,15 @@ if (process.env.NODE_ENV === "development") {
 	setMaxListeners(20);
 }
 
+const adapter = process.env.CF_WORKERS
+	? cloudflare({
+			prerenderEnvironment: "node",
+			imageService: "passthrough",
+	  })
+	: cloudflare({
+			imageService: "passthrough",
+	  });
+
 // https://astro.build/config
 export default defineConfig({
 	output: "static",
@@ -49,9 +58,8 @@ export default defineConfig({
 
 	base: "/",
 	trailingSlash: "ignore",
-	adapter: cloudflare({
-		imageService: "passthrough",
-	}),
+
+	adapter,
 	// 图像优化配置
 	image: {
 		// 全局响应式布局
@@ -105,6 +113,7 @@ export default defineConfig({
 				"fa7-solid": ["*"],
 				"simple-icons": ["*"],
 				mdi: ["*"],
+				mingcute: ["*"],
 			},
 		}),
 		expressiveCode({

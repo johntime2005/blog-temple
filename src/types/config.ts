@@ -52,6 +52,9 @@ export type SiteConfig = {
 	// bangumi配置
 	bangumi?: {
 		userId?: string; // Bangumi用户ID
+		mode?: "static" | "dynamic"; // 数据模式：static=构建时获取，dynamic=客户端实时获取
+		apiUrl?: string; // Bangumi API 地址
+		subjectBaseUrl?: string; // 条目详情页地址
 		categoryOrder?: ("anime" | "game" | "book" | "music" | "real")[]; // 条目类型排序顺序
 	};
 
@@ -124,9 +127,10 @@ export type SiteConfig = {
 		umamiAnalytics?: {
 			websiteId?: string; // Umami Website ID
 			scriptUrl?: string; // Umami JS地址，支持使用自建
+			replaysScriptUrl?: string; // Umami 会话回放脚本地址
 			trackOutboundLinks?: boolean; // 是否追踪出站链接点击事件，默认 true
 			collectWebVitals?: boolean; // 是否自动收集访客浏览器核心网页指标，默认 false
-			relpays?: {
+			replays?: {
 				enabled?: boolean; // 是否启用会话回放，默认 false
 				sampleRate?: number; // 录制会话采样率，范围 0-1，默认 0.15
 				maskLevel?: "moderate" | "strict"; // 隐私遮罩级别，默认 moderate
@@ -183,6 +187,8 @@ export enum LinkPreset {
 	Guestbook = 5,
 	Bangumi = 6,
 	Gallery = 7,
+	Tags = 8,
+	Categories = 9,
 }
 
 export type NavBarLink = {
@@ -243,6 +249,16 @@ export type CommentConfig = {
 		region?: string;
 		lang?: string;
 		visitorCount?: boolean;
+		/**
+		 * Twikoo JS 文件地址，支持 CDN 链接
+		 * 国内推荐: https://registry.npmmirror.com/twikoo/1.7.9/files/dist/twikoo.min.js
+		 * 国际推荐: https://cdn.jsdelivr.net/npm/twikoo@1.7.9/dist/twikoo.min.js
+		 */
+		jsUrl?: string;
+		/**
+		 * Twikoo 自定义 CSS 文件地址，为空则不加载
+		 */
+		cssUrl?: string;
 	};
 	waline?: {
 		serverURL: string;
@@ -437,6 +453,7 @@ export type WidgetComponentConfig = {
 	responsive?: {
 		hidden?: ("mobile" | "tablet" | "desktop")[]; // 在指定设备上隐藏
 		collapseThreshold?: number; // 折叠阈值
+		showHeatmap?: boolean; // 是否显示热力图（仅日历组件）
 	};
 	customProps?: Record<string, unknown>; // 自定义属性，用于扩展组件功能
 };
@@ -450,6 +467,7 @@ export type MobileBottomComponentConfig = {
 	responsive?: {
 		hidden?: ("mobile" | "tablet" | "desktop")[]; // 在指定设备上隐藏
 		collapseThreshold?: number; // 折叠阈值
+		showHeatmap?: boolean; // 是否显示热力图（仅日历组件）
 	};
 	customProps?: Record<string, unknown>; // 自定义属性，用于扩展组件功能
 };
@@ -538,30 +556,45 @@ export type SpineModelConfig = {
 	opacity?: number; // 透明度，0-1，默认1.0
 };
 
-// Live2D 看板娘配置
-export type Live2DModelConfig = {
+// Live2D 看板娘配置 (使用 l2d-widget)
+export type Live2DWidgetConfig = {
 	enable: boolean; // 是否启用 Live2D 看板娘
-	model: {
-		path: string; // 模型文件夹路径或model3.json文件路径
+	model:
+		| { path: string; volume?: number; scale?: number; x?: number; y?: number }
+		| {
+				path: string;
+				volume?: number;
+				scale?: number;
+				x?: number; // X轴偏移，范围 -2~2，正值向右
+				y?: number; // Y轴偏移，范围 -2~2，正值向上
+		  }[]; // 模型配置，支持单个或多个模型
+	position?: "bottom-left" | "bottom-right"; // 显示位置，默认 "bottom-left"
+	size?: number | { width: number; height: number }; // 画布尺寸（px），默认 300
+	primaryColor?: string; // 主题色，用于菜单、状态条等 UI 元素
+	transitionDuration?: number; // 入场/退场动画时长（ms），默认 1500
+	transitionType?: "slide" | "fade"; // 入场/退场动画类型，默认 "slide"
+	menus?: {
+		items?: { icon?: string; label: string; action: string }[]; // 完全替换默认菜单项
+		extraItems?: { icon?: string; label: string; action: string }[]; // 追加到默认菜单末尾
+		align?: "left" | "right"; // 菜单对齐方式，默认 "right"
 	};
-	position?: {
-		corner?: "bottom-left" | "bottom-right" | "top-left" | "top-right"; // 显示位置，默认bottom-right
-		offsetX?: number; // 水平偏移量，默认20px
-		offsetY?: number; // 垂直偏移量，默认20px
-	};
-	size?: {
-		width?: number; // 容器宽度，默认280px
-		height?: number; // 容器高度，默认250px
-	};
-	interactive?: {
-		enabled?: boolean; // 是否启用交互功能，默认true
-		// motions 和 expressions 将从模型 JSON 文件中自动读取
-		clickMessages?: string[]; // 点击时随机显示的文字消息
-		messageDisplayTime?: number; // 文字显示时间（毫秒），默认3000
+	tips?: {
+		enable?: boolean; // 气泡开关，默认 true
+		welcomeMessage?: string[]; // 欢迎语
+		messages?: string[]; // 循环提示内容
+		duration?: number; // 每条提示展示时长（ms），默认 3000
+		interval?: number; // 提示循环间隔（ms），默认 5000
+		offset?: { x?: number; y?: number }; // 位置偏移量（px）
+		typing?: {
+			param?: string; // 嘴型参数名
+			speed?: number; // 打字速度（ms/字），默认 100
+			minValue?: number; // 嘴型开合最小值（0-1），默认 0.5
+			maxValue?: number; // 嘴型开合最大值（0-1），默认 1
+		};
 	};
 	responsive?: {
-		hideOnMobile?: boolean; // 是否在移动端隐藏，默认false
-		mobileBreakpoint?: number; // 移动端断点，默认768px
+		hideOnMobile?: boolean; // 是否在移动端隐藏
+		mobileBreakpoint?: number; // 移动端断点，默认 768
 	};
 };
 
@@ -777,6 +810,7 @@ export type SponsorMethod = {
 // 赞助者列表项
 export type SponsorItem = {
 	name: string; // 赞助者名称，如果想显示匿名，可以直接设置为"匿名"或使用 i18n
+	avatar?: string; // 赞助者头像图片路径(可选,相对于 public 目录 或者 网络图片)
 	amount?: string; // 赞助金额（可选）
 	date?: string; // 赞助日期（可选，ISO 格式）
 };
@@ -808,6 +842,8 @@ export type GalleryAlbum = {
 	location?: string; // 拍摄地点
 	tags?: string[]; // 标签（用于首页筛选）
 	cover?: string; // 手动指定封面（可选，省略则自动取 cover.* 或第一张）
+	password?: string; // 加密密码（非空时启用加密）
+	passwordHint?: string; // 密码提示
 };
 
 // 相册配置

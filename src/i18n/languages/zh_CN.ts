@@ -110,6 +110,8 @@ export const zh_CN: Translation = {
 
 	[Key.tags]: "标签",
 	[Key.categories]: "分类",
+	[Key.allCategories]: "所有分类",
+	[Key.allTags]: "所有标签",
 	[Key.recentPosts]: "最新文章",
 	[Key.postList]: "文章列表",
 	[Key.tableOfContents]: "文章目录",
@@ -146,6 +148,8 @@ export const zh_CN: Translation = {
 		"您还未在配置文件中启用评论系统，启用后访客才可在此留言",
 	[Key.friends]: "友链",
 	[Key.friendsDescription]: "这里是我的朋友们，欢迎互相访问交流",
+	[Key.searchFriends]: "搜索友链...",
+	[Key.friendsEmpty]: "暂无友情链接",
 	[Key.guestbook]: "留言",
 	[Key.guestbookDescription]: "欢迎在这里留下你的足迹，分享你的想法和建议",
 	[Key.untitled]: "无标题",
@@ -212,6 +216,9 @@ export const zh_CN: Translation = {
 	[Key.bangumiNoDataDescription]: "该分类下还没有任何条目",
 	[Key.bangumiEmpty]: "暂无数据",
 	[Key.bangumiEmptyReason]: "可能的原因：用户名不存在、网络连接问题或API限制",
+	[Key.bangumiFetchError]: "Bangumi 数据拉取失败",
+	[Key.bangumiFetchErrorDesc]:
+		"构建时从 Bangumi API 获取数据失败，该页面内容暂不可用。",
 	[Key.bangumiUsername]: "用户名",
 	[Key.bangumiApi]: "API",
 	[Key.bangumiConfigTip]: "提示：请在页面配置中设置正确的Bangumi用户名",
@@ -292,6 +299,8 @@ export const zh_CN: Translation = {
 	[Key.randomPosts]: "随机文章",
 	[Key.smartRecommend]: "智能推荐",
 	[Key.randomRecommend]: "随机推荐",
+	[Key.noRelatedPosts]: "暂无相关文章",
+	[Key.noRandomPosts]: "暂无随机文章",
 
 	// 加密
 	[Key.postEncrypted]: "本文已加密",
@@ -374,6 +383,8 @@ export const zh_CN: Translation = {
 	[Key.calendarOctober]: "10月",
 	[Key.calendarNovember]: "11月",
 	[Key.calendarDecember]: "12月",
+	[Key.calendar]: "站点日历",
+	[Key.calendarHeatmapWeek]: "{month}月第{week}周，{count}篇文章",
 
 	[Key.shareArticle]: "分享",
 	[Key.generatingPoster]: "海报生成中...",
@@ -395,10 +406,11 @@ export const zh_CN: Translation = {
 	[Key.galleryAlbums]: "本相册",
 	[Key.galleryNoAlbums]: "暂无相册",
 	[Key.galleryBackToAlbums]: "返回相册列表",
+	[Key.searchAlbums]: "搜索相簿...",
 
 	// 密码保护
 	[Key.passwordProtected]: "密码保护",
-	[Key.passwordProtectedDesc]: "这篇文章已被密码保护，请输入密码查看内容。",
+	[Key.passwordProtectedDesc]: "此内容已被密码保护，请输入密码查看。",
 	[Key.passwordHint]: "提示",
 	[Key.passwordPlaceholder]: "请输入密码",
 	[Key.passwordSubmit]: "解锁",

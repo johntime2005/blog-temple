@@ -4,7 +4,6 @@ import * as fs from "node:fs";
 import type { APIContext, GetStaticPaths } from "astro";
 import type { ReactNode } from "react";
 import satori, { type SatoriOptions } from "satori";
-import sharp from "sharp";
 import { removeFileExtension } from "@/utils/url-utils";
 
 import { profileConfig } from "../../config/profileConfig";
@@ -139,7 +138,12 @@ async function fetchNotoSansSCFonts() {
 export async function GET({
 	props,
 }: APIContext<{ post: CollectionEntry<"posts"> }>): Promise<Response> {
+	if (!siteConfig.generateOgImages || !props?.post) {
+		return new Response(null, { status: 404 });
+	}
+
 	const { post } = props;
+	const { default: sharp } = await import("sharp");
 
 	// Try to fetch fonts from Google Fonts (woff2) at runtime.
 	const { regular: fontRegular, bold: fontBold } = await fetchNotoSansSCFonts();
@@ -157,7 +161,10 @@ export async function GET({
 			? `./public${profileConfig.avatar}`
 			: `./src/${profileConfig.avatar}`;
 		const avatarBuffer = fs.readFileSync(avatarPath);
-		avatarBase64 = `data:image/png;base64,${avatarBuffer.toString("base64")}`;
+		const avatarPngBuffer = await sharp(avatarBuffer, { animated: false })
+			.png()
+			.toBuffer();
+		avatarBase64 = `data:image/png;base64,${avatarPngBuffer.toString("base64")}`;
 	}
 
 	let iconPath = "./public/favicon/favicon-dark-192.png";

@@ -18,13 +18,7 @@ import {
 } from "../config";
 import { isHomePage as checkIsHomePage } from "./layout-utils";
 
-// Declare global functions
-declare global {
-	interface Window {
-		initSemifullScrollDetection?: () => void;
-		semifullScrollHandler?: () => void;
-	}
-}
+// Declare global functions moved to global.d.ts
 
 export function getDefaultHue(): number {
 	const fallback = "250";
@@ -86,7 +80,7 @@ export function setHue(hue: number): void {
 	r.style.setProperty("--hue", String(hue));
 }
 
-export function applyThemeToDocument(theme: LIGHT_DARK_MODE) {
+export function applyThemeToDocument(theme: LIGHT_DARK_MODE): void {
 	// 检查是否在浏览器环境中
 	if (typeof document === "undefined") {
 		return;
@@ -177,7 +171,7 @@ export function setTheme(theme: LIGHT_DARK_MODE): void {
 }
 
 // 设置系统主题监听器
-export function setupSystemThemeListener() {
+export function setupSystemThemeListener(): void {
 	// 先清理之前的监听器
 	cleanupSystemThemeListener();
 
@@ -260,7 +254,7 @@ export function getStoredTheme(): LIGHT_DARK_MODE {
 }
 
 // 初始化主题监听器（用于页面加载后）
-export function initThemeListener() {
+export function initThemeListener(): void {
 	if (
 		typeof localStorage === "undefined" ||
 		typeof localStorage.getItem !== "function"
@@ -280,19 +274,23 @@ export function initThemeListener() {
 export function applyWallpaperModeToDocument(
 	mode: WALLPAPER_MODE,
 	animate = true,
-) {
-	// 检查是否允许切换壁纸模式
-	const isSwitchable = backgroundWallpaper.switchable ?? true;
-	if (!isSwitchable) {
-		// 如果不允许切换，直接返回，不执行任何操作
-		return;
-	}
-
+): void {
 	// 获取当前的壁纸模式
 	const currentMode =
 		(document.documentElement.getAttribute(
 			"data-wallpaper-mode",
 		) as WALLPAPER_MODE) || backgroundWallpaper.mode;
+
+	// 检查是否允许切换壁纸模式
+	const isSwitchable = backgroundWallpaper.switchable ?? true;
+	if (!isSwitchable) {
+		// 不允许切换时，仍需初始化当前模式的UI状态（添加 wallpaper-initialized 等）
+		if (currentMode === mode) {
+			adjustMainContentPosition(mode, false);
+			ensureWallpaperState(mode);
+		}
+		return;
+	}
 
 	// 如果模式没有变化，直接返回
 	if (currentMode === mode) {

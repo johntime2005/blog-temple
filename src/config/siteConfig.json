@@ -11,8 +11,10 @@
 		"fixed": false,
 		"defaultMode": "system"
 	},
+	"pageWidth": 90,
 	"card": {
-		"border": true
+		"border": true,
+		"followTheme": false
 	},
 	"favicon": [
 		{
@@ -27,7 +29,9 @@
 		},
 		"title": "johntime 的博客",
 		"widthFull": false,
-		"followTheme": false
+		"menuAlign": "center",
+		"followTheme": false,
+		"stickyNavbar": true
 	},
 	"siteStartDate": "2025-01-01",
 	"timezone": "Asia/Shanghai",
@@ -39,24 +43,33 @@
 	"sharePoster": true,
 	"generateOgImages": false,
 	"bangumi": {
-		"userId": "1176159"
+		"userId": "1176159",
+		"mode": "dynamic",
+		"apiUrl": "https://api.bangumi.one",
+		"subjectBaseUrl": "https://bangumi.one/subject/",
+		"categoryOrder": ["anime", "book", "music", "game"]
 	},
 	"pages": {
+		"friends": true,
 		"anime": true,
 		"sponsor": false,
-		"gallery": true,
 		"guestbook": true,
 		"bangumi": true,
+		"gallery": true,
 		"projects": true,
 		"timeline": true,
 		"skills": true
 	},
+	"categoryBar": true,
 	"postListLayout": {
 		"defaultMode": "list",
+		"mobileDefaultMode": "list",
+		"showTags": true,
+		"descriptionLines": 2,
 		"allowSwitch": true,
 		"grid": {
 			"masonry": false,
-			"columns": 3
+			"columnWidth": 320
 		}
 	},
 	"pagination": {
@@ -64,7 +77,34 @@
 	},
 	"analytics": {
 		"googleAnalyticsId": "",
-		"microsoftClarityId": ""
+		"microsoftClarityId": "",
+		"umamiAnalytics": {
+			"websiteId": "",
+			"scriptUrl": "https://cloud.umami.is/script.js",
+			"replaysScriptUrl": "https://cloud.umami.is/recorder.js",
+			"trackOutboundLinks": true,
+			"collectWebVitals": false,
+			"replays": {
+				"enabled": false,
+				"sampleRate": 0.15,
+				"maskLevel": "moderate",
+				"maxDuration": 300000,
+				"blockSelector": ""
+			}
+		},
+		"la51Analytics": {
+			"Id": "",
+			"sdkUrl": "",
+			"ck": "",
+			"autoTrack": false,
+			"hashMode": false,
+			"screenRecord": true
+		}
+	},
+	"imageOptimization": {
+		"formats": "webp",
+		"quality": 85,
+		"noReferrerDomains": []
 	},
 	"toc": {
 		"enable": true,

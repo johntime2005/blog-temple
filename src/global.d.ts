@@ -7,12 +7,15 @@ declare global {
 
 	interface Window {
 		swup: any;
-		live2dModelInitialized?: boolean;
 		spineModelInitialized?: boolean;
 		floatingTOCListenersInitialized?: boolean;
 		spinePlayerInstance?: any;
 		initSemifullScrollDetection?: () => void;
 		semifullScrollHandler?: () => void;
+		iconifyLoaded?: boolean;
+		__iconifyLoader?: {
+			load: () => Promise<void>;
+		};
 		pagefind: {
 			search: (query: string) => Promise<{
 				results: Array<{

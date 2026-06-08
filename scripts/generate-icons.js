@@ -27,6 +27,7 @@ const ICON_SETS = {
 	mingcute: "@iconify-json/mingcute",
 	mdi: "@iconify-json/mdi",
 	"simple-icons": "@iconify-json/simple-icons",
+	mingcute: "@iconify-json/mingcute",
 	"svg-spinners": "@iconify-json/svg-spinners",
 };
 
