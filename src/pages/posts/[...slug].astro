@@ -56,19 +56,38 @@ const isEncrypted = entry.data.encrypted && entry.data.encryptionId;
 const isMembersOnly = entry.data.accessLevel === "members-only";
 
 if (isEncrypted || isMembersOnly) {
+	// ⚠️ 这里绝不能再退回到硬编码的默认密钥。
+	// 密文会原样嵌进公开可访问的 HTML，一旦用众所周知的常量派生密钥，
+	// 任何人都能直接解出私密日记正文（等同于明文发布）。
+	// 因此没有配置主密钥时，选择「不输出密文」而不是「用弱密钥输出密文」。
+	//
+	// 取值顺序与运行时（functions/api/verify-password.ts、functions/api/auth/key.ts）
+	// 完全一致：SITE_SECRET 优先，回退到生产环境既有的 GITHUB_CLIENT_SECRET。
 	const SITE_SECRET =
-		import.meta.env.SITE_SECRET ||
-		import.meta.env.GITHUB_CLIENT_SECRET ||
-		"default-secret-please-change";
+		import.meta.env.SITE_SECRET || import.meta.env.GITHUB_CLIENT_SECRET || "";
 
-	// Derive key
-	const key = await hmacSha256(SITE_SECRET, entry.id); // entry.id is unique slug
+	if (SITE_SECRET) {
+		// 派生密钥使用 entry.id（例如 diary/2024-01-01-日记），
+		// 运行时 /api/verify-password 与 /api/auth/key 必须用同一个值派生，否则解不开。
+		const key = await hmacSha256(SITE_SECRET, entry.id);
 
-	// Render content to HTML string (Standard Markdown only)
-	const htmlContent = await marked.parse(entry.body || "");
+		// Render content to HTML string (Standard Markdown only)
+		const htmlContent = await marked.parse(entry.body || "");
 
-	// Encrypt
-	encryptedContent = encryptContent(htmlContent, key);
+		// Encrypt
+		encryptedContent = encryptContent(htmlContent, key);
+	} else {
+		const g = globalThis as { __siteSecretWarned?: boolean };
+		if (!g.__siteSecretWarned) {
+			g.__siteSecretWarned = true;
+			console.warn(
+				"\n[加密文章] 构建时读不到加密主密钥，所有加密/会员文章将不输出正文密文。\n" +
+					"  生产环境请确认 Cloudflare Pages → Settings → Variables and Secrets 中的\n" +
+					"  GITHUB_CLIENT_SECRET（或 SITE_SECRET）同时勾选了 Build 与 Runtime：\n" +
+					"  Build 用于加密正文，Runtime 用于派生解密密钥，两端必须同值。\n",
+			);
+		}
+	}
 }
 
 const bannerPostMeta = {

@@ -1,9 +1,20 @@
-# Cloudflare Workers/Pages 配置文件
+# Cloudflare Pages 配置文件
 # 用于管理 KV 命名空间绑定和其他资源
+#
+# ⚠️ 根目录只保留这一个 Wrangler 配置文件。
+# 曾经同时存在 wrangler.jsonc（Workers 格式），而 Wrangler 优先读取 JSON，
+# 造成「Pages 与适配器各读一份」的双重事实来源。
+# 适配器专用的 Workers 配置现已移到 .cloudflare/wrangler.jsonc，
+# 由 astro.config.mjs 的 configPath 显式指定。
 
 name = "blog"
 compatibility_date = "2025-11-18"
 compatibility_flags = ["nodejs_compat"]
+
+# 发布目录固定为 dist：
+# 适配器原本把静态资源输出到 dist/client，构建脚本会用
+# scripts/flatten-pages-output.js 摊平回 dist，因此这里与
+# Dashboard 的 Build output directory 都应保持 "dist"。
 pages_build_output_dir = "dist"
 
 # Pages 项目配置
@@ -27,3 +38,13 @@ GITHUB_BRANCH = "main"
 # ADMIN_PASSWORD - 管理员登录密码
 # GITHUB_PAT - GitHub Fine-grained PAT（需要 Contents: Read and Write 权限）
 # DEPLOY_HOOK_URL - Cloudflare Pages Deploy Hook URL
+# GITHUB_CLIENT_SECRET - GitHub OAuth 密钥；本站同时把它当作文章加密主密钥使用，
+#                        ⚠️ 必须同时勾选「构建时」与「运行时」：
+#                        正文在构建时用它派生密钥加密，运行时再用同一个值派生密钥解密，
+#                        两端取值不一致 → 密码正确也解不开。
+# SITE_SECRET - 可选。若设置则优先于 GITHUB_CLIENT_SECRET 作为加密主密钥
+#               （取值逻辑统一为 SITE_SECRET || GITHUB_CLIENT_SECRET）。
+#               ⚠️ 新增它等于更换主密钥，历史密文将无法解开，
+#               除非同样在「构建时 + 运行时」都配置并重新部署。
+# GITHUB_OWNER_USERNAME - 站长的 GitHub 用户名，用于 /api/auth/key 判定 owner 身份
+#                         （未设置时回退到上面的 GITHUB_OWNER）

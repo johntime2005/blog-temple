@@ -16,11 +16,7 @@
 		"border": true,
 		"followTheme": false
 	},
-	"favicon": [
-		{
-			"src": "/assets/images/favicon.ico"
-		}
-	],
+	"favicon": [],
 	"navbar": {
 		"logo": {
 			"type": "image",

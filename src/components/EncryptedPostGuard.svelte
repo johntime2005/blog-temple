@@ -18,27 +18,10 @@ let errorMessage = $state("");
 let isUnlocked = $state(false);
 let token = $state("");
 let decryptedHtml = $state("");
-let debugInfo = $state<any>(null);
 
 // 检查本地存储中是否已有有效令牌（即解密密钥）
 onMount(async () => {
-	// Debug Fetch
 	const userToken = localStorage.getItem("user-token");
-	if (userToken) {
-		try {
-			const res = await fetch("/api/debug-auth/", {
-				// Added trailing slash
-				method: "POST",
-				headers: { Authorization: `Bearer ${userToken}` },
-			});
-			debugInfo = await res.json();
-		} catch (e) {
-			console.error("Debug fetch failed", e);
-			debugInfo = { status: "Debug Fetch Failed", error: String(e) };
-		}
-	} else {
-		debugInfo = { status: "No Token Found locally" };
-	}
 
 	// 尝试获取本地存储的密钥 或 临时Token
 	const storedToken = localStorage.getItem(`post-token:${postSlug}`);
@@ -143,7 +126,11 @@ async function handleSubmit(e: Event) {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
+				// encryptionId 用于在 KV 中查密码哈希（post:<encryptionId>:password）
 				encryptionId,
+				// postSlug 就是 entry.id，构建时正是用它派生的加密密钥，
+				// 服务端必须拿它派生才能解得开，两者不可混用。
+				postSlug,
 				password,
 			}),
 		});

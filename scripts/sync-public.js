@@ -25,6 +25,9 @@ const IGNORES = new Set([
 	".env",
 	".DS_Store",
 	"dist-public",
+	// 构建产生的临时目录：编译后的 SSR 代码，不该进入公开模板仓库
+	".wrangler",
+	".astro-cloudflare-server",
 ]);
 
 // Paths to skip during the main recursive copy (handled manually)

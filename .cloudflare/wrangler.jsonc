@@ -1,0 +1,17 @@
+{
+	// Workers 专用配置，仅供 @astrojs/cloudflare 适配器读取
+	// （在 astro.config.mjs 中通过 configPath 指定）。
+	//
+	// ⚠️ 故意不放在仓库根目录：根目录的 wrangler.toml 是 Cloudflare Pages 的配置，
+	// 两者若同时出现在根目录，Wrangler 会优先读 JSON，
+	// 造成「Pages 用 toml、适配器用 jsonc」的双份事实来源——
+	// 正是这次整站资源 404 的成因。
+	"name": "firefly",
+	"compatibility_date": "2025-11-18",
+	"compatibility_flags": ["nodejs_compat"],
+	// 不要写 main：worker 入口由适配器在构建时生成到 dist/server/entry.mjs，
+	// 提前声明会让构建期的配置校验因文件尚不存在而失败。
+	"assets": {
+		"directory": "../dist/client"
+	}
+}

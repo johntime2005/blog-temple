@@ -1,4 +1,3 @@
-```html
 <script lang="ts">
 import Icon from "@iconify/svelte";
 import { onMount, type Snippet } from "svelte";

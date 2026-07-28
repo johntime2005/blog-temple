@@ -223,13 +223,9 @@ export const siteConfig: SiteConfig = {
 		defaultMode: "system",
 	},
 
-	favicon: [
-		{
-			src: "/assets/images/favicon.ico",
-			theme: "light",
-			sizes: "32x32",
-		},
-	],
+	// 留空表示使用 src/constants/icon.ts 中的 defaultFavicons
+	// （/favicon/ 下的明暗双主题图标，是仓库里实际存在的那一套）
+	favicon: [],
 
 	logoIcon: {
 		type: "image",

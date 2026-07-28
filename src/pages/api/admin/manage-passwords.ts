@@ -209,17 +209,25 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
 		}
 
 		if (action === "list") {
+			// 键格式统一为 post:<encryptionId>:password，
+			// 与 scripts/manage-password.mjs 及各 verify-password 端点保持一致
 			const list = await POST_ENCRYPTION.list({ prefix: "post:" });
-			const passwords = list.keys.map((key) => ({
-				encryptionId: key.name.replace("post:", ""),
-				createdAt: (() => {
-					const metadata = key.metadata;
-					if (!metadata || typeof metadata !== "object") return undefined;
-					if (!("createdAt" in metadata)) return undefined;
-					const value = (metadata as { createdAt?: unknown }).createdAt;
-					return typeof value === "string" ? value : undefined;
-				})(),
-			}));
+			const passwords = list.keys
+				.map((key) => ({
+					match: key.name.match(/^post:(.+):password$/),
+					key,
+				}))
+				.filter((item) => item.match !== null)
+				.map(({ match, key }) => ({
+					encryptionId: (match as RegExpMatchArray)[1],
+					createdAt: (() => {
+						const metadata = key.metadata;
+						if (!metadata || typeof metadata !== "object") return undefined;
+						if (!("createdAt" in metadata)) return undefined;
+						const value = (metadata as { createdAt?: unknown }).createdAt;
+						return typeof value === "string" ? value : undefined;
+					})(),
+				}));
 			return new Response(JSON.stringify({ success: true, passwords }), {
 				status: 200,
 				headers: { "Content-Type": "application/json" },
@@ -237,9 +245,13 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
 			const password = generateStrongPassword(passwordLength || 16);
 			const hashedPassword = await hashPassword(password);
 
-			await POST_ENCRYPTION.put(`post:${encryptionId}`, hashedPassword, {
-				metadata: { createdAt: new Date().toISOString() },
-			});
+			await POST_ENCRYPTION.put(
+				`post:${encryptionId}:password`,
+				hashedPassword,
+				{
+					metadata: { createdAt: new Date().toISOString() },
+				},
+			);
 
 			if (slug) {
 				try {
@@ -278,7 +290,7 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
 				);
 			}
 
-			await POST_ENCRYPTION.delete(`post:${encryptionId}`);
+			await POST_ENCRYPTION.delete(`post:${encryptionId}:password`);
 
 			if (slug) {
 				try {

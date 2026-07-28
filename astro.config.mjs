@@ -42,13 +42,20 @@ if (process.env.NODE_ENV === "development") {
 	setMaxListeners(20);
 }
 
+// Workers 专用的 Wrangler 配置。
+// 必须显式指定：仓库根目录的 wrangler.toml 是 Cloudflare Pages 配置
+// （含 pages_build_output_dir），适配器若读到它会因 ASSETS 为 Pages 保留名而构建失败。
+const cloudflareConfigPath = "./.cloudflare/wrangler.jsonc";
+
 const adapter = process.env.CF_WORKERS
 	? cloudflare({
 			prerenderEnvironment: "node",
 			imageService: "passthrough",
+			configPath: cloudflareConfigPath,
 	  })
 	: cloudflare({
 			imageService: "passthrough",
+			configPath: cloudflareConfigPath,
 	  });
 
 // https://astro.build/config
