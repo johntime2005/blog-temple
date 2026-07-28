@@ -11,7 +11,7 @@ export const friendsPageConfig: FriendsPageConfig = {
 	// 页面描述文本，如果留空则使用 i18n 中的翻译
 	description: "",
 
-	// 是否显示底部自定义内容（friends.mdx 中的内容）
+	// 是否显示底部自定义内容（friends.md 中的内容）
 	showCustomContent: true,
 
 	// 是否显示评论区，需要先在commentConfig.ts启用评论系统

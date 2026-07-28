@@ -89,9 +89,6 @@ const getCategoryText = (category: string) => {
 
 const title = i18n(I18nKey.skills);
 const subtitle = i18n(I18nKey.skillsSubtitle);
-
-// 收集所有技能图标用于预加载
-const allIcons = skillsData.map((skill) => skill.icon).filter(Boolean);
 ---
 
 <MainGridLayout title={title} description={subtitle}>

@@ -38,10 +38,22 @@ interface Props {
 	lang?: string;
 	setOGTypeArticle?: boolean;
 	postSlug?: string;
+	ogImage?: string;
+	noIndex?: boolean;
+	noFollow?: boolean;
 }
 
-let { title, banner, description, lang, setOGTypeArticle, postSlug } =
-	Astro.props;
+let {
+	title,
+	banner,
+	description,
+	lang,
+	setOGTypeArticle,
+	postSlug,
+	ogImage,
+	noIndex,
+	noFollow,
+} = Astro.props;
 
 // apply a class to the body element to decide the height of the banner, only used for initial page load
 // Swup can update the body for each page visit, but it's after the page transition, causing a delay for banner height change
@@ -80,6 +92,9 @@ if (title) {
 let ogImageUrl: string | undefined;
 if (siteConfig.generateOgImages && postSlug) {
 	ogImageUrl = new URL(`/og/${postSlug}.png`, Astro.site).toString();
+} else if (ogImage && !ogImage.startsWith("data:")) {
+	// 未启用 OG 图片生成时，退回使用文章封面，避免社交分享没有任何预览图
+	ogImageUrl = new URL(ogImage, Astro.site ?? Astro.url.origin).toString();
 }
 
 const favicons: Favicon[] =
@@ -90,6 +105,23 @@ if (!lang) {
 	lang = `${siteConfig.lang}`;
 }
 const siteLang = lang.replace("_", "-");
+
+// 规范链接：始终基于配置的站点地址与当前路径生成，
+// 避免 trailingSlash: "ignore" 与查询参数造成的重复内容
+const canonicalURL = new URL(
+	Astro.url.pathname,
+	Astro.site ?? Astro.url.origin,
+).toString();
+
+// 搜索引擎索引指令。是否 noindex / nofollow 由调用方决定
+// （文章页见 src/pages/posts/[...slug].astro），此处只负责输出 meta 标签；
+// 未传入时不输出，保持默认可索引。
+const robotsDirectives =
+	noIndex || noFollow
+		? [noIndex ? "noindex" : "index", noFollow ? "nofollow" : "follow"].join(
+				", ",
+			)
+		: null;
 
 // 使用固定的banner偏移量，position配置用于图片定位
 ---
@@ -136,9 +168,12 @@ const siteLang = lang.replace("_", "-");
       )
     }
     <meta name="author" content={profileConfig.name} />
+    <link rel="canonical" href={canonicalURL} />
+    {robotsDirectives && <meta name="robots" content={robotsDirectives} />}
 
     <meta property="og:site_name" content={siteConfig.title} />
-    <meta property="og:url" content={Astro.url} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:locale" content={lang.replace("-", "_")} />
     <meta property="og:title" content={pageTitle} />
     <meta
       property="og:description"
@@ -153,15 +188,16 @@ const siteLang = lang.replace("_", "-");
       )
     }
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content={Astro.url} />
+    <meta name="twitter:card" content={ogImageUrl ? "summary_large_image" : "summary"} />
+    <meta property="twitter:url" content={canonicalURL} />
     <meta name="twitter:title" content={pageTitle} />
     <meta
       name="twitter:description"
       content={description || siteConfig.description || pageTitle}
     />
+    {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
 
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     {
       favicons.map((favicon) => (

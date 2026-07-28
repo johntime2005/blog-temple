@@ -3,7 +3,6 @@ import { render } from "astro:content";
 import * as path from "node:path";
 import Comment from "@components/comment/index.astro";
 import Markdown from "@components/common/Markdown.astro";
-import EncryptedPost from "@components/features/EncryptedPost.astro";
 import KatexManager from "@components/features/KatexManager.astro";
 import License from "@components/misc/License.astro";
 import I18nKey from "@i18n/i18nKey";
@@ -153,6 +152,17 @@ const jsonLd = {
 };
 
 const relatedPosts = await getRelatedPosts(entry, 5);
+
+// 搜索引擎索引控制：
+// 除了 frontmatter 中显式声明的 seoNoIndex / seoNoFollow，
+// 非公开（private / unlisted）、受限访问以及加密文章同样不应被索引，
+// 因为它们要么刻意不对外暴露，要么爬虫只能取到一个空壳页面。
+const noIndex =
+	entry.data.seoNoIndex === true ||
+	entry.data.visibility !== "public" ||
+	entry.data.accessLevel !== "public" ||
+	entry.data.encrypted === true;
+const noFollow = entry.data.seoNoFollow === true;
 ---
 
 <MainGridLayout
@@ -163,6 +173,9 @@ const relatedPosts = await getRelatedPosts(entry, 5);
   setOGTypeArticle={true}
   postSlug={entry.id}
   postCategory={entry.data.category || undefined}
+  ogImage={posterCoverUrl || undefined}
+  noIndex={noIndex}
+  noFollow={noFollow}
   headings={headings}
   bannerPostMeta={bannerPostMeta}
 >

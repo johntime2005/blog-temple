@@ -2,7 +2,6 @@ import type { CollectionEntry } from "astro:content";
 import { getCollection } from "astro:content";
 import * as fs from "node:fs";
 import type { APIContext, GetStaticPaths } from "astro";
-import type { ReactNode } from "react";
 import satori, { type SatoriOptions } from "satori";
 import { removeFileExtension } from "@/utils/url-utils";
 
@@ -10,6 +9,24 @@ import { profileConfig } from "../../config/profileConfig";
 import { siteConfig } from "../../config/siteConfig";
 
 export const prerender = true;
+
+/**
+ * Satori 接受的节点结构。
+ * 这里自行声明而不是从 react 引入 ReactNode，
+ * 因为本项目使用 Svelte，并未安装 react 及其类型。
+ */
+type SatoriNode =
+	| string
+	| number
+	| boolean
+	| null
+	| undefined
+	| SatoriNode[]
+	| {
+			type: string;
+			key: string | null;
+			props: Record<string, unknown>;
+	  };
 
 type SatoriLikeElement = {
 	type: string;
@@ -27,7 +44,7 @@ function isSatoriLikeElement(value: unknown): value is SatoriLikeElement {
 	);
 }
 
-function toReactNode(value: unknown): ReactNode {
+function toSatoriNode(value: unknown): SatoriNode {
 	if (
 		value === null ||
 		value === undefined ||
@@ -39,14 +56,14 @@ function toReactNode(value: unknown): ReactNode {
 	}
 
 	if (Array.isArray(value)) {
-		return value.map(toReactNode);
+		return value.map(toSatoriNode);
 	}
 
 	if (isSatoriLikeElement(value)) {
 		const rawChildren = value.props.children;
 		const nextProps: Record<string, unknown> = { ...value.props };
 		if (rawChildren !== undefined) {
-			nextProps.children = toReactNode(rawChildren);
+			nextProps.children = toSatoriNode(rawChildren);
 		}
 		return {
 			type: value.type,
@@ -385,7 +402,7 @@ export async function GET({
 		});
 	}
 
-	const svg = await satori(toReactNode(template), {
+	const svg = await satori(toSatoriNode(template), {
 		width: 1200,
 		height: 630,
 		fonts,

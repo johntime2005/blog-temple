@@ -49,6 +49,9 @@ interface Props {
 	setOGTypeArticle?: boolean;
 	postSlug?: string;
 	postCategory?: string;
+	ogImage?: string;
+	noIndex?: boolean;
+	noFollow?: boolean;
 	headings?: MarkdownHeading[];
 	bannerPostMeta?: {
 		title: string;
@@ -69,6 +72,9 @@ const {
 	setOGTypeArticle,
 	postSlug,
 	postCategory,
+	ogImage,
+	noIndex,
+	noFollow,
 	headings = [],
 	bannerPostMeta,
 } = Astro.props;
@@ -266,7 +272,7 @@ const bannerCarouselInterval = Math.max(
 );
 ---
 
-<Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle} postSlug={postSlug}>
+<Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle} postSlug={postSlug} ogImage={ogImage} noIndex={noIndex} noFollow={noFollow}>
 
 
 <!-- 为全屏壁纸模式添加body类 -->

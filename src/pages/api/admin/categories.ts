@@ -47,8 +47,7 @@ function jsonResponse<T>(data: AdminAPIResponse<T>, status = 200): Response {
 export async function POST({ request, locals }: APIContext): Promise<Response> {
 	try {
 		const body = (await request.json()) as CategoryAPIRequest;
-		const { action, token, category, categoryId, categories, batchUpdate } =
-			body;
+		const { action, token, category, categoryId, categories } = body;
 
 		const ownerUsername = getEnv(locals, "GITHUB_OWNER_USERNAME");
 		const isOwner = await verifyGitHubToken(token, ownerUsername || "");

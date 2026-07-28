@@ -2,7 +2,6 @@ import rss, { type RSSFeedItem } from "@astrojs/rss";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getSortedPosts } from "@utils/content-utils";
-import { formatDateI18nWithTime } from "@utils/date-utils";
 import { url } from "@utils/url-utils";
 import type { APIContext } from "astro";
 import { siteConfig } from "@/config";
@@ -20,6 +19,16 @@ export async function GET(context: APIContext): Promise<Response> {
 	const blog = await getSortedPosts();
 	const feedItems: RSSFeedItem[] = [];
 	for (const post of blog) {
+		// 订阅源只输出公开内容：过滤 private / unlisted、加密以及受限访问的文章，
+		// 避免非公开内容通过 RSS 外泄。（password 保护的文章仍保留条目，
+		// 但正文会被替换为提示文案，见下方分支。）
+		if (
+			post.data.visibility !== "public" ||
+			post.data.accessLevel !== "public" ||
+			post.data.encrypted === true
+		) {
+			continue;
+		}
 		const description = stripInvalidXmlChars(post.data.description || "");
 		if (post.data.password) {
 			feedItems.push({
@@ -46,7 +55,7 @@ export async function GET(context: APIContext): Promise<Response> {
 		customData: `<templateTheme>Firefly</templateTheme>
 		<templateThemeVersion>${pkg.version}</templateThemeVersion>
 		<templateThemeUrl>https://github.com/CuteLeaf/Firefly</templateThemeUrl>
-		<lastBuildDate>${formatDateI18nWithTime(new Date())}</lastBuildDate>`,
+		<lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
 		items: feedItems,
 	});
 }

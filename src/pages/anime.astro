@@ -685,8 +685,8 @@ const COLLECTION_TYPES = {
           // 移动端简化版本：只显示上一页、当前页、下一页
           if (hasPrevPage) {
             html += `
-          <button class="page-btn-mobile btn-regular inline-flex items-center justify-center w-10 h-10 rounded-xl text-sm font-medium transition-all duration-150" data-page="${this.currentPage - 1}">
-            <span>‹</span>
+          <button class="page-btn-mobile btn-regular inline-flex items-center justify-center w-10 h-10 rounded-xl text-sm font-medium transition-all duration-150" data-page="${this.currentPage - 1}" aria-label="${this.config.pagination.prev}">
+            <span aria-hidden="true">‹</span>
           </button>
         `;
           }
@@ -702,8 +702,8 @@ const COLLECTION_TYPES = {
 
           if (hasNextPage) {
             html += `
-          <button class="page-btn-mobile btn-regular inline-flex items-center justify-center w-10 h-10 rounded-xl text-sm font-medium transition-all duration-150" data-page="${this.currentPage + 1}">
-            <span>›</span>
+          <button class="page-btn-mobile btn-regular inline-flex items-center justify-center w-10 h-10 rounded-xl text-sm font-medium transition-all duration-150" data-page="${this.currentPage + 1}" aria-label="${this.config.pagination.next}">
+            <span aria-hidden="true">›</span>
           </button>
         `;
           }
@@ -732,7 +732,7 @@ const COLLECTION_TYPES = {
             isActive
               ? "bg-[var(--primary)] text-white shadow-lg scale-105"
               : "btn-regular"
-          }" data-page="${page}">
+          }" data-page="${page}"${isActive ? ' aria-current="page"' : ""}>
             ${page}
           </button>
         `;

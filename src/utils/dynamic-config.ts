@@ -36,7 +36,7 @@ const CACHE_MS = 60_000; // 1 分钟客户端缓存
  */
 export async function loadDynamicConfig<T = unknown>(
 	name: ConfigName,
-	cacheTtlMs = CACHE_MS,
+	cacheTtlMs: number = CACHE_MS,
 ): Promise<T | null> {
 	// 检查内存缓存
 	const cached = cache.get(name);

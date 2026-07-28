@@ -1,4 +1,10 @@
 @import 'tailwindcss';
+
+/* dist-public 是提交进仓库的构建产物副本，未被 .gitignore 忽略，
+   会被 Tailwind 的自动内容检测扫描，既产生非法的转义类名（&#45;），
+   又让最终 CSS 混入仅被旧产物使用的工具类。此处显式排除。 */
+@source not "../../dist-public";
+
 @import './layout-styles.css';
 @import './navbar.css';
 @import './banner-title.css';
