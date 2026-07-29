@@ -3,6 +3,7 @@ import { onMount } from "svelte";
 
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+import { loadPrivateManifest } from "@/utils/private-manifest";
 import { getPostUrlBySlug } from "@/utils/url-utils";
 
 export let tags: string[] = [];
@@ -137,18 +138,10 @@ onMount(async () => {
 	const token = localStorage.getItem("user-token");
 	if (!token) return;
 
-	try {
-		const res = await fetch("/api/posts", {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
-		if (res.ok) {
-			const data = await res.json();
-			privatePosts = data.posts || [];
-		}
-	} catch (error) {
-		console.error("Failed to fetch private posts for archive", error);
+	// 站长登录后把私密文章并入归档（解密失败/无权限时静默跳过）
+	const result = await loadPrivateManifest(token);
+	if (result.status === "ok") {
+		privatePosts = result.posts;
 	}
 });
 

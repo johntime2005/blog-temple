@@ -18,7 +18,23 @@ let isAuthenticated = $state(false);
 let username = $state("");
 let showLoginPrompt = $state(false);
 let decryptedHtml = $state("");
-let debugInfo = $state<any>(null);
+
+// 非阻塞地取用户名用于展示（失败不影响解锁状态）
+async function fillUsername(token: string) {
+	try {
+		const res = await fetch("/api/auth/verify/", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ token }),
+		});
+		const data = await res.json();
+		if (data.valid && data.username) {
+			username = data.username;
+		}
+	} catch {
+		// 展示性信息，静默失败
+	}
+}
 
 onMount(async () => {
 	// 如果是public，直接显示内容
@@ -30,21 +46,6 @@ onMount(async () => {
 
 	// 检查用户登录状态
 	const token = localStorage.getItem("user-token");
-
-	// Debug Logic
-	if (token) {
-		try {
-			const res = await fetch("/api/debug-auth", {
-				method: "POST",
-				headers: { Authorization: `Bearer ${token}` },
-			});
-			debugInfo = await res.json();
-		} catch (e) {
-			console.error("Debug fetch failed", e);
-		}
-	} else {
-		debugInfo = { status: "No Token" };
-	}
 
 	if (!token) {
 		// 未登录
@@ -70,18 +71,13 @@ onMount(async () => {
 				if (content) {
 					decryptedHtml = content;
 					isAuthenticated = true;
-					// TODO: Get username separately or include in key response?
-					// assuming verify endpoint also returns user info if we want to show "Logged in as X"
-					// Modified /api/auth/key to just return key. We can fetch user info or assume validity.
-					// For display, let's just show "Member".
-					username = "Member";
+					username = "已认证用户";
+					fillUsername(token);
 				} else {
 					console.error("Decryption failed");
 					showLoginPrompt = true;
-					// localStorage.removeItem("user-token"); // DEBUG: Keep token to see why
 				}
 			} else {
-				// localStorage.removeItem("user-token"); // DEBUG: Keep token to see why
 				showLoginPrompt = true;
 			}
 		} catch (error) {
@@ -105,7 +101,6 @@ onMount(async () => {
 				isAuthenticated = true;
 				username = data.username;
 			} else {
-				// localStorage.removeItem("user-token"); // DEBUG: Keep token
 				showLoginPrompt = true;
 			}
 		} catch (error) {
@@ -150,13 +145,6 @@ async function logout() {
 	<div class="access-guard checking">
 		<Icon icon="mdi:loading" class="spinning" />
 		<p>正在验证访问权限...</p>
-        {#if debugInfo}
-            <div class="mt-4 p-4 border rounded bg-gray-100 text-xs text-left">
-                <p>Status: {debugInfo.status}</p>
-                <p>Login: {debugInfo.youAre}</p>
-                <p>Owner: {debugInfo.systemOwnerIs}</p>
-            </div>
-        {/if}
 	</div>
 {:else if showLoginPrompt}
 	<!-- 需要登录 -->
@@ -165,15 +153,6 @@ async function logout() {
 			<Icon icon="mdi:lock" class="lock-icon" />
 			<h2>需要登录</h2>
 			<p>这篇文章需要登录后才能查看</p>
-
-            {#if debugInfo}
-                <div class="mb-4 p-2 bg-red-50 text-red-600 text-xs rounded border border-red-200">
-                    <p class="font-bold">DEBUG:</p>
-                    <p>Login: {debugInfo.youAre || 'None'}</p>
-                    <p>Owner: {debugInfo.systemOwnerIs}</p>
-                    <p>Match: {debugInfo.match ? 'YES' : 'NO'}</p>
-                </div>
-            {/if}
 
 			<div class="actions">
 				<button class="login-btn" onclick={goToLogin}>
@@ -200,16 +179,10 @@ async function logout() {
 		</button>
 	</div>
     {#if decryptedHtml}
-        <div class="mb-4 p-2 bg-green-50 text-green-600 text-xs rounded border border-green-200">
-            ✅ CONTENT UNLOCKED
-        </div>
         <div class="markdown-content onload-animation mb-6">
             {@html decryptedHtml}
         </div>
     {:else if children}
-        <div class="mb-4 p-2 bg-green-50 text-green-600 text-xs rounded border border-green-200">
-            ✅ CONTENT UNLOCKED
-        </div>
         {@render children()}
     {/if}
 {/if}

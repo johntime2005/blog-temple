@@ -39,17 +39,20 @@ interface UserData {
 async function hashPassword(password: string): Promise<string> {
 	const encoder = new TextEncoder();
 	const data = encoder.encode(password);
-	const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
 	const hashArray = Array.from(new Uint8Array(hashBuffer));
-	return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+	return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
-	if (context.request.method !== 'POST') {
-		return new Response(JSON.stringify({ success: false, message: 'Method not allowed' }), {
-			status: 405,
-			headers: { 'Content-Type': 'application/json' },
-		});
+	if (context.request.method !== "POST") {
+		return new Response(
+			JSON.stringify({ success: false, message: "Method not allowed" }),
+			{
+				status: 405,
+				headers: { "Content-Type": "application/json" },
+			},
+		);
 	}
 
 	try {
@@ -59,24 +62,26 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 		// 验证必填字段
 		if (!username || !password) {
 			return new Response(
-				JSON.stringify({ success: false, message: '用户名和密码不能为空' }),
+				JSON.stringify({ success: false, message: "用户名和密码不能为空" }),
 				{
 					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				}
+					headers: { "Content-Type": "application/json" },
+				},
 			);
 		}
 
 		// 从 KV 获取用户数据
-		const userDataStr = await context.env.POST_ENCRYPTION.get(`user:${username}`);
+		const userDataStr = await context.env.POST_ENCRYPTION.get(
+			`user:${username}`,
+		);
 
 		if (!userDataStr) {
 			return new Response(
-				JSON.stringify({ success: false, message: '用户名或密码错误' }),
+				JSON.stringify({ success: false, message: "用户名或密码错误" }),
 				{
 					status: 401,
-					headers: { 'Content-Type': 'application/json' },
-				}
+					headers: { "Content-Type": "application/json" },
+				},
 			);
 		}
 
@@ -86,11 +91,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 		const passwordHash = await hashPassword(password);
 		if (passwordHash !== userData.passwordHash) {
 			return new Response(
-				JSON.stringify({ success: false, message: '用户名或密码错误' }),
+				JSON.stringify({ success: false, message: "用户名或密码错误" }),
 				{
 					status: 401,
-					headers: { 'Content-Type': 'application/json' },
-				}
+					headers: { "Content-Type": "application/json" },
+				},
 			);
 		}
 
@@ -108,7 +113,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 		await context.env.POST_ENCRYPTION.put(
 			`session:${token}`,
 			JSON.stringify(sessionData),
-			{ expirationTtl: 604800 } // 7 days = 7 * 24 * 60 * 60 seconds
+			{ expirationTtl: 604800 }, // 7 days = 7 * 24 * 60 * 60 seconds
 		);
 
 		return new Response(
@@ -117,24 +122,24 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 				token,
 				username: userData.username,
 				role: userData.role,
-				message: '登录成功',
+				message: "登录成功",
 			}),
 			{
 				status: 200,
 				headers: {
-					'Content-Type': 'application/json',
-					'Cache-Control': 'no-store',
+					"Content-Type": "application/json",
+					"Cache-Control": "no-store",
 				},
-			}
+			},
 		);
 	} catch (error) {
-		console.error('User login error:', error);
+		console.error("User login error:", error);
 		return new Response(
-			JSON.stringify({ success: false, message: '服务器内部错误' }),
+			JSON.stringify({ success: false, message: "服务器内部错误" }),
 			{
 				status: 500,
-				headers: { 'Content-Type': 'application/json' },
-			}
+				headers: { "Content-Type": "application/json" },
+			},
 		);
 	}
 };

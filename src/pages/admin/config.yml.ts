@@ -1,6 +1,10 @@
 import type { APIContext } from "astro";
+import { siteConfig } from "@/config";
 
-export const prerender = false;
+// 必须预渲染为静态文件：本站是纯静态部署（functions 模式），
+// prerender=false 的路由不会部署，CMS 将拿不到配置文件（404）。
+// 目录列表由 import.meta.glob 在构建期解析，静态化没有信息损失。
+export const prerender = true;
 
 const postModules = import.meta.glob("/src/content/posts/**/*.{md,mdx}", {
 	eager: false,
@@ -52,8 +56,9 @@ function toCollectionName(dir: string): string {
 	return dir.replace(/\//g, "-");
 }
 
-export async function GET({ url }: APIContext): Promise<Response> {
-	const origin = url.origin;
+export async function GET(_context: APIContext): Promise<Response> {
+	// 预渲染时请求 origin 不可靠，使用站点配置的正式域名
+	const origin = siteConfig.site_url.replace(/\/$/, "");
 	const subdirs = discoverSubdirs();
 
 	const postFields = `    fields:

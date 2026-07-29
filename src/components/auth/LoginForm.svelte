@@ -23,13 +23,16 @@ function handleMessage(e: MessageEvent) {
 		try {
 			const json = e.data.replace("authorization:github:success:", "");
 			const data = JSON.parse(json);
-			if (data.token) {
-				localStorage.setItem("user-token", data.token);
+			// 优先使用博客自身的 session token；token 字段在站长场景下
+			// 是给 CMS 用的 GitHub token，不作为博客登录凭证
+			const token = data.sessionToken || data.token;
+			if (token) {
+				localStorage.setItem("user-token", token);
 				window.location.href = redirectUrl;
 			}
 		} catch {}
-	} else if (e.data?.token) {
-		localStorage.setItem("user-token", e.data.token);
+	} else if (e.data?.sessionToken || e.data?.token) {
+		localStorage.setItem("user-token", e.data.sessionToken || e.data.token);
 		window.location.href = redirectUrl;
 	}
 }
@@ -61,10 +64,11 @@ async function verifyExistingToken(token: string) {
 		if (data.valid) {
 			window.location.href = redirectUrl;
 		} else {
+			// 仅在服务端明确判定无效时清除；网络/服务异常不能误删登录态
 			localStorage.removeItem("user-token");
 		}
-	} catch {
-		localStorage.removeItem("user-token");
+	} catch (err) {
+		console.error("登录态校验失败（保留本地凭证）:", err);
 	}
 }
 

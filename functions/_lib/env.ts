@@ -26,6 +26,18 @@ export interface Env {
 	GITHUB_REPO: string;
 	/** GitHub 分支名（默认 main） */
 	GITHUB_BRANCH: string;
+
+	// ── GitHub OAuth 登录（Dashboard 设置，Runtime） ──────
+	/** GitHub OAuth App 的 Client ID */
+	GITHUB_CLIENT_ID?: string;
+	/** GitHub OAuth App 的 Client Secret；同时兼作文章加密主密钥（Build + Runtime） */
+	GITHUB_CLIENT_SECRET?: string;
+	/** 可选：显式指定加密主密钥，优先于 GITHUB_CLIENT_SECRET */
+	SITE_SECRET?: string;
+	/** 站长的 GitHub 用户名（管理员判定）；未设置时回退 GITHUB_OWNER */
+	GITHUB_OWNER_USERNAME?: string;
+	/** 可选：显式指定 OAuth 回调地址，默认 origin + /auth/callback/ */
+	GITHUB_REDIRECT_URI?: string;
 }
 
 /**

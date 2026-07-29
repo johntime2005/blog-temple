@@ -1,22 +1,12 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
 import { onMount } from "svelte";
+import {
+	loadPrivateManifest,
+	type PrivatePostMeta,
+} from "@/utils/private-manifest";
 
-interface Post {
-	id: string;
-	data: {
-		title: string;
-		published: string;
-		description: string;
-		tags: string[];
-		category?: string;
-		image?: string;
-		visibility: string;
-	};
-	slug: string;
-}
-
-let posts: Post[] = [];
+let posts: PrivatePostMeta[] = [];
 let isLoading = true;
 let errorMessage = "";
 let hasToken = false;
@@ -30,54 +20,23 @@ function formatDate(dateStr: string) {
 	return `${year}-${month}-${day}`;
 }
 
-let debugInfo: any = null;
-
 onMount(async () => {
-	// 优先从 localStorage 获取 token
-	let token = localStorage.getItem("user-token");
-
-	// 如果 localStorage 没有，尝试从 Cookie 获取（支持 Keystatic 登录）
-	if (!token) {
-		const cookieMatch = document.cookie.match(
-			/keystatic-gh-access-token=([^;]+)/,
-		);
-		if (cookieMatch) {
-			token = decodeURIComponent(cookieMatch[1]);
-			// 同步到 localStorage 以便后续使用
-			if (token) {
-				localStorage.setItem("user-token", token);
-			}
-		}
-	}
+	const token = localStorage.getItem("user-token");
 	if (!token) {
 		isLoading = false;
 		return;
 	}
-	hasToken = true;
 
-	try {
-		const res = await fetch("/api/posts/", {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
-		if (res.ok) {
-			const data = await res.json();
-			posts = data.posts || [];
-		} else {
-			try {
-				const errData = await res.json();
-				errorMessage = `Failed to load posts: ${res.status} ${errData.error || res.statusText}`;
-			} catch (e) {
-				errorMessage = `Failed to load posts: ${res.status} ${res.statusText}`;
-			}
-		}
-	} catch (e) {
-		console.error("Failed to fetch private posts", e);
-		errorMessage = `Network error: ${e instanceof Error ? e.message : String(e)}`;
-	} finally {
-		isLoading = false;
+	const result = await loadPrivateManifest(token);
+	if (result.status === "ok") {
+		hasToken = true;
+		posts = result.posts;
+	} else if (result.status === "error") {
+		hasToken = true;
+		errorMessage = result.message;
 	}
+	// unauthorized：普通用户 / 会话过期，不显示该区块
+	isLoading = false;
 });
 </script>
 

@@ -1,132 +1,57 @@
 /**
- * 获取当前用户信息 API
+ * GET /api/auth/current-user — 获取当前登录用户
  *
- * API 端点：GET /api/auth/current-user
+ * 凭证来源：Authorization: Bearer <session token> 或 blog_session cookie。
+ * 响应：{ "authenticated": true, "user": { "username", "role", "createdAt" } }
  *
- * Headers:
- * Authorization: Bearer {token}
- *
- * 响应：
- * {
- *   "authenticated": true/false,
- *   "user": {
- *     "username": "用户名",
- *     "email": "邮箱",
- *     "role": "角色",
- *     "createdAt": "创建时间"
- *   }
- * }
+ * 直接以 KV session 为准；不再要求存在 user:<username> 记录
+ * （GitHub OAuth 用户没有该记录，那是遗留用户名密码系统的存储）。
  */
 
-interface Env {
-	POST_ENCRYPTION: KVNamespace;
+import type { Env } from "../../_lib/env";
+import { extractSessionToken, getSession } from "../../_lib/session";
+
+function json(body: unknown, status = 200): Response {
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: {
+			"Content-Type": "application/json",
+			"Cache-Control": "no-store",
+		},
+	});
 }
 
-interface SessionData {
-	username: string;
-	role: string;
-	createdAt: string;
-}
-
-interface UserData {
-	username: string;
-	passwordHash: string;
-	email: string;
-	role: string;
-	createdAt: string;
-}
-
-export const onRequest: PagesFunction<Env> = async (context) => {
-	if (context.request.method !== 'GET') {
-		return new Response(JSON.stringify({ authenticated: false }), {
-			status: 405,
-			headers: { 'Content-Type': 'application/json' },
-		});
-	}
+export const onRequestGet: PagesFunction<Env> = async (context) => {
+	const { env, request } = context;
 
 	try {
-		// 从 Authorization header 获取 token
-		const authHeader = context.request.headers.get('Authorization');
-		if (!authHeader || !authHeader.startsWith('Bearer ')) {
-			return new Response(
-				JSON.stringify({ authenticated: false }),
-				{
-					status: 200,
-					headers: {
-						'Content-Type': 'application/json',
-						'Cache-Control': 'no-store',
-					},
-				}
-			);
+		const token = extractSessionToken(request);
+		if (!token || !env.POST_ENCRYPTION) {
+			return json({ authenticated: false });
 		}
 
-		const token = authHeader.substring(7); // 移除 "Bearer " 前缀
-
-		// 验证 session
-		const sessionDataStr = await context.env.POST_ENCRYPTION.get(`session:${token}`);
-
-		if (!sessionDataStr) {
-			return new Response(
-				JSON.stringify({ authenticated: false }),
-				{
-					status: 200,
-					headers: {
-						'Content-Type': 'application/json',
-						'Cache-Control': 'no-store',
-					},
-				}
-			);
+		const session = await getSession(env.POST_ENCRYPTION, token);
+		if (!session) {
+			return json({ authenticated: false });
 		}
 
-		const sessionData: SessionData = JSON.parse(sessionDataStr);
-
-		// 获取用户详细信息
-		const userDataStr = await context.env.POST_ENCRYPTION.get(`user:${sessionData.username}`);
-
-		if (!userDataStr) {
-			// Session存在但用户不存在（异常情况）
-			await context.env.POST_ENCRYPTION.delete(`session:${token}`);
-			return new Response(
-				JSON.stringify({ authenticated: false }),
-				{
-					status: 200,
-					headers: {
-						'Content-Type': 'application/json',
-						'Cache-Control': 'no-store',
-					},
-				}
-			);
-		}
-
-		const userData: UserData = JSON.parse(userDataStr);
-
-		// 返回用户信息（不包含密码哈希）
-		return new Response(
-			JSON.stringify({
-				authenticated: true,
-				user: {
-					username: userData.username,
-					email: userData.email,
-					role: userData.role,
-					createdAt: userData.createdAt,
-				},
-			}),
-			{
-				status: 200,
-				headers: {
-					'Content-Type': 'application/json',
-					'Cache-Control': 'no-store',
-				},
-			}
-		);
-	} catch (error) {
-		console.error('Get current user error:', error);
-		return new Response(
-			JSON.stringify({ authenticated: false }),
-			{
-				status: 500,
-				headers: { 'Content-Type': 'application/json' },
-			}
-		);
+		return json({
+			authenticated: true,
+			user: {
+				username: session.username,
+				role: session.role || "user",
+				createdAt: session.createdAt,
+			},
+		});
+	} catch (err) {
+		console.error("Get current user error:", err);
+		return json({ authenticated: false }, 500);
 	}
+};
+
+export const onRequest: PagesFunction<Env> = async (context) => {
+	if (context.request.method === "GET") {
+		return context.next();
+	}
+	return json({ authenticated: false }, 405);
 };

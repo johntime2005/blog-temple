@@ -1,74 +1,44 @@
 /**
- * 用户登出 API
+ * POST /api/auth/logout — 退出登录
  *
- * API 端点：POST /api/auth/logout
- *
- * 请求体：
- * {
- *   "token": "session-token-xxx"
- * }
- *
- * 响应：
- * {
- *   "success": true,
- *   "message": "登出成功"
- * }
+ * 删除 KV 中的 session 记录并清除 session cookie。
+ * 幂等：token 不存在也返回成功。
  */
 
-interface Env {
-	POST_ENCRYPTION: KVNamespace;
-}
+import type { Env } from "../../_lib/env";
+import {
+	clearCookie,
+	deleteSession,
+	extractSessionToken,
+	SESSION_COOKIE,
+} from "../../_lib/session";
 
-interface LogoutRequest {
-	token: string;
-}
-
-export const onRequest: PagesFunction<Env> = async (context) => {
-	if (context.request.method !== 'POST') {
-		return new Response(JSON.stringify({ success: false, message: 'Method not allowed' }), {
-			status: 405,
-			headers: { 'Content-Type': 'application/json' },
-		});
-	}
+export const onRequestPost: PagesFunction<Env> = async (context) => {
+	const { env, request } = context;
 
 	try {
-		const body = (await context.request.json()) as LogoutRequest;
-		const { token } = body;
-
-		if (!token) {
-			return new Response(
-				JSON.stringify({ success: false, message: 'Token不能为空' }),
-				{
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				}
-			);
+		let bodyToken = "";
+		try {
+			const body = (await request.json()) as { token?: string };
+			bodyToken = body.token || "";
+		} catch {
+			// body 为空：继续从 header / cookie 取
 		}
 
-		// 从 KV 删除 session
-		await context.env.POST_ENCRYPTION.delete(`session:${token}`);
-
-		return new Response(
-			JSON.stringify({
-				success: true,
-				message: '登出成功',
-			}),
-			{
-				status: 200,
-				headers: {
-					'Content-Type': 'application/json',
-					'Cache-Control': 'no-store',
-				},
-			}
-		);
-	} catch (error) {
-		console.error('User logout error:', error);
-		return new Response(
-			JSON.stringify({ success: false, message: '服务器内部错误' }),
-			{
-				status: 500,
-				headers: { 'Content-Type': 'application/json' },
-			}
-		);
+		const token = extractSessionToken(request, bodyToken);
+		if (token && env.POST_ENCRYPTION) {
+			await deleteSession(env.POST_ENCRYPTION, token);
+		}
+	} catch (err) {
+		console.error("Logout error:", err);
 	}
+
+	return new Response(JSON.stringify({ success: true }), {
+		status: 200,
+		headers: {
+			"Content-Type": "application/json",
+			"Cache-Control": "no-store",
+			"Set-Cookie": clearCookie(SESSION_COOKIE),
+		},
+	});
 };

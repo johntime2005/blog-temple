@@ -46,3 +46,5 @@ diary-temp/
 
 # @astrojs/cloudflare SSR 产物（构建后从 dist 移出，Pages 不发布）
 .astro-cloudflare-server/
+.backups/
+tests/.wrangler-state/
