@@ -54,7 +54,9 @@ const adapter = process.env.CF_WORKERS
 			configPath: cloudflareConfigPath,
 	  })
 	: cloudflare({
-			imageService: "passthrough",
+			// Pages 纯静态部署没有 /_image 运行时端点，passthrough 会让全站图片 404，
+			// 必须用 compile 在构建时由 sharp 直接生成静态图片文件
+			imageService: "compile",
 			configPath: cloudflareConfigPath,
 	  });
 
