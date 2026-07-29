@@ -1,6 +1,12 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
 import { onMount, type Snippet } from "svelte";
+import {
+	logout as authLogout,
+	getToken,
+	gotoLogin,
+	verifyAuth,
+} from "@/utils/auth-client";
 import { decryptContent } from "@/utils/security";
 
 interface Props {
@@ -21,18 +27,9 @@ let decryptedHtml = $state("");
 
 // 非阻塞地取用户名用于展示（失败不影响解锁状态）
 async function fillUsername(token: string) {
-	try {
-		const res = await fetch("/api/auth/verify/", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ token }),
-		});
-		const data = await res.json();
-		if (data.valid && data.username) {
-			username = data.username;
-		}
-	} catch {
-		// 展示性信息，静默失败
+	const auth = await verifyAuth(token);
+	if (auth?.valid && auth.username) {
+		username = auth.username;
 	}
 }
 
@@ -45,7 +42,7 @@ onMount(async () => {
 	}
 
 	// 检查用户登录状态
-	const token = localStorage.getItem("user-token");
+	const token = getToken();
 
 	if (!token) {
 		// 未登录
@@ -88,54 +85,20 @@ onMount(async () => {
 		}
 	} else {
 		// Legacy flow (no encryption, just gating)
-		try {
-			const response = await fetch("/api/auth/verify/", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ token }),
-			});
-
-			const data = await response.json();
-
-			if (data.valid) {
-				isAuthenticated = true;
-				username = data.username;
-			} else {
-				showLoginPrompt = true;
-			}
-		} catch (error) {
-			console.error("Auth verification failed:", error);
+		const auth = await verifyAuth(token);
+		if (auth?.valid) {
+			isAuthenticated = true;
+			username = auth.username || "";
+		} else {
 			showLoginPrompt = true;
-		} finally {
-			isChecking = false;
 		}
+		isChecking = false;
 	}
 });
 
-// 跳转到登录页面
-function goToLogin() {
-	let currentPath = window.location.pathname;
-	if (currentPath !== "/" && !currentPath.endsWith("/")) {
-		currentPath += "/";
-	}
-	window.location.href = `/login/?redirect=${encodeURIComponent(currentPath)}`;
-}
-
 // 登出
 async function logout() {
-	const token = localStorage.getItem("user-token");
-	if (token) {
-		try {
-			await fetch("/api/auth/logout/", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ token }),
-			});
-		} catch (error) {
-			console.error("Logout failed:", error);
-		}
-	}
-	localStorage.removeItem("user-token");
+	await authLogout();
 	window.location.reload();
 }
 </script>
@@ -155,7 +118,7 @@ async function logout() {
 			<p>这篇文章需要登录后才能查看</p>
 
 			<div class="actions">
-				<button class="login-btn" onclick={goToLogin}>
+				<button class="login-btn" onclick={gotoLogin}>
 					<Icon icon="mdi:login" />
 					<span>立即登录</span>
 				</button>

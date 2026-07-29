@@ -9,9 +9,9 @@
  * 响应：  { "valid": true, "key": "解密密钥" }
  *
  * 凭证按顺序识别：
- * 1. share:<密码>       — 分享令牌，KV 校验 slug 匹配与有效期
- * 2. KV session token   — GitHub OAuth 登录发放的不透明 token，仅 admin 放行
- * 3. GitHub access token — 兼容旧版前端，直连 GitHub 校验，仅站长本人放行
+ * 1. share:<密码> — 分享令牌，KV 校验 slug 匹配与有效期
+ * 2. 统一身份鉴权（_lib/session.authenticate）：OAuth session /
+ *    ADMIN_PASSWORD 管理 token / 遗留 GitHub token，仅 admin 放行
  *
  * Pages Function 读不到 Astro 内容集合，无法按文章的 visibility / accessLevel
  * 分级放行，因此身份路径统一收紧为「仅站长（admin）」，宁可更严也不放宽。
@@ -20,11 +20,9 @@
 
 import type { Env } from "../../_lib/env";
 import {
+	authenticate,
 	extractSessionToken,
-	getSession,
 	hmacSha256Hex,
-	isOwner,
-	resolveOwnerUsername,
 } from "../../_lib/session";
 
 interface KeyRequest {
@@ -103,38 +101,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 			return json({ valid: true, key: await deriveKey() }, 200);
 		}
 
-		// ── 路径二：服务端 session（GitHub OAuth 登录） ────
-		if (kv) {
-			const session = await getSession(kv, token);
-			if (session) {
-				if (session.role !== "admin") {
-					return json({ valid: false, message: "仅站长本人可查看该内容" }, 403);
-				}
-				return json({ valid: true, key: await deriveKey() }, 200);
-			}
-		}
-
-		// ── 路径三：GitHub access token（兼容旧版前端） ────
-		const ownerUsername = resolveOwnerUsername(context.env);
-		if (!ownerUsername) {
-			console.error("GITHUB_OWNER_USERNAME / GITHUB_OWNER not configured");
-			return json({ valid: false, message: "服务端配置异常" }, 500);
-		}
-
-		const response = await fetch("https://api.github.com/user", {
-			headers: {
-				Authorization: `token ${token}`,
-				"User-Agent": "Firefly-Blog-Auth",
-				Accept: "application/vnd.github+json",
-			},
-		});
-
-		if (!response.ok) {
+		// ── 路径二：统一身份鉴权（session / 管理 token / 遗留 GitHub token） ──
+		const auth = await authenticate(context.request, context.env, token);
+		if (!auth) {
 			return json({ valid: false, message: "身份校验失败，请重新登录" }, 401);
 		}
-
-		const user = (await response.json()) as { login?: string };
-		if (!isOwner(user.login || "", ownerUsername)) {
+		if (auth.role !== "admin") {
 			return json({ valid: false, message: "仅站长本人可查看该内容" }, 403);
 		}
 

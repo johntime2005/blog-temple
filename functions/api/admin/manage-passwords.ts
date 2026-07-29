@@ -1,39 +1,122 @@
 /**
- * 密码管理 API（需要管理员权限）
+ * POST /api/admin/manage-passwords — 文章密码管理（列表 / 生成 / 删除）
  *
- * API 端点：POST /api/admin/manage-passwords
+ * 鉴权由 /api/admin/_middleware.ts 统一处理（管理员）。
  *
- * 支持的操作：
- * - generate: 生成新密码
- * - list: 列出所有加密文章
- * - delete: 删除密码
+ * KV 约定（与 verify-password、scripts/manage-password.mjs 一致）：
+ *   post:<encryptionId>:password   — SHA-256 哈希（校验用）
+ *   admin:password:<encryptionId>  — 明文（仅站长经 get-password 查看）
+ *
+ * generate/delete 时若带 slug，会尝试通过 GITHUB_PAT 同步文章 frontmatter
+ * 的 encrypted/encryptionId 字段；Git 更新失败不影响密码操作本身。
  */
 
-interface Env {
-	POST_ENCRYPTION: KVNamespace;
-}
+import type { Env } from "../../_lib/env";
+import { getGitHubConfig, readFile, upsertFile } from "../../_lib/github";
+import { error, methodNotAllowed, serverError } from "../../_lib/response";
 
 interface ManagePasswordRequest {
 	action: "generate" | "list" | "delete";
-	token: string; // 管理员 token
-	encryptionId?: string; // 用于 generate 和 delete
-	passwordLength?: number; // 用于 generate，默认 16
+	token?: string;
+	encryptionId?: string;
+	passwordLength?: number;
+	slug?: string;
 }
 
-/**
- * 验证管理员 token
- */
-async function verifyAdminToken(kv: KVNamespace, token: string): Promise<boolean> {
-	if (!token) return false;
-	const tokenValue = await kv.get(`admin:token:${token}`);
-	return tokenValue === "valid";
+// Git submodule 目录无法通过主仓库的 GitHub API 写入（与 admin/config.yml.ts 一致）
+const SUBMODULE_DIRS = ["diary"];
+
+function json(body: unknown, status = 200): Response {
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: {
+			"Content-Type": "application/json",
+			"Cache-Control": "no-store",
+		},
+	});
 }
 
-/**
- * 生成强密码
- */
-function generateStrongPassword(length: number = 16): string {
-	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+function updateFrontmatter(
+	content: string,
+	isEncrypted: boolean,
+	encryptionId?: string,
+): string {
+	const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
+	const match = content.match(frontmatterRegex);
+	if (!match) return content;
+
+	let frontmatter = match[1];
+
+	if (isEncrypted) {
+		if (!frontmatter.includes("encrypted:")) {
+			frontmatter += "\nencrypted: true";
+		} else {
+			frontmatter = frontmatter.replace(
+				/encrypted:\s*(true|false)/,
+				"encrypted: true",
+			);
+		}
+
+		if (encryptionId) {
+			if (!frontmatter.includes("encryptionId:")) {
+				frontmatter += `\nencryptionId: "${encryptionId}"`;
+			} else {
+				frontmatter = frontmatter.replace(
+					/encryptionId:\s*['"]?[^'"\n]*['"]?/,
+					`encryptionId: "${encryptionId}"`,
+				);
+			}
+		}
+	} else if (frontmatter.includes("encrypted:")) {
+		frontmatter = frontmatter.replace(
+			/encrypted:\s*(true|false)/,
+			"encrypted: false",
+		);
+	} else {
+		frontmatter += "\nencrypted: false";
+	}
+
+	return content.replace(frontmatterRegex, `---\n${frontmatter}\n---`);
+}
+
+/** 同步文章 frontmatter；返回 null 表示成功，否则为需要提示用户的原因 */
+async function syncFrontmatter(
+	env: Env,
+	slug: string,
+	isEncrypted: boolean,
+	encryptionId?: string,
+): Promise<string | null> {
+	if (SUBMODULE_DIRS.some((d) => slug === d || slug.startsWith(`${d}/`))) {
+		return "该文章位于子模块仓库，请手动修改 frontmatter";
+	}
+
+	const config = getGitHubConfig(env);
+	if (!config) {
+		return "未配置 GITHUB_PAT，请手动修改 frontmatter";
+	}
+
+	const path = `src/content/posts/${
+		/\.(md|mdx)$/i.test(slug) ? slug : `${slug}.md`
+	}`;
+
+	const content = await readFile(config, path);
+	if (content === null) {
+		return `未找到文章文件 ${path}，请手动修改 frontmatter`;
+	}
+
+	const updated = updateFrontmatter(content, isEncrypted, encryptionId);
+	await upsertFile(
+		config,
+		path,
+		updated,
+		`chore: ${isEncrypted ? "启用" : "关闭"}文章加密 (${slug})`,
+	);
+	return null;
+}
+
+function generateStrongPassword(length = 16): string {
+	const charset =
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
 	const array = new Uint8Array(length);
 	crypto.getRandomValues(array);
 
@@ -42,207 +125,124 @@ function generateStrongPassword(length: number = 16): string {
 		password += charset[array[i] % charset.length];
 	}
 
-	// 确保密码包含至少一个大写字母、小写字母、数字和特殊字符
 	const hasUpper = /[A-Z]/.test(password);
 	const hasLower = /[a-z]/.test(password);
 	const hasDigit = /[0-9]/.test(password);
 	const hasSpecial = /[!@#$%^&*]/.test(password);
 
 	if (!hasUpper || !hasLower || !hasDigit || !hasSpecial) {
-		// 递归生成直到满足条件
 		return generateStrongPassword(length);
 	}
 
 	return password;
 }
 
-/**
- * 计算密码的 SHA-256 哈希
- */
 async function hashPassword(password: string): Promise<string> {
 	const encoder = new TextEncoder();
 	const data = encoder.encode(password);
 	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-	const hashArray = Array.from(new Uint8Array(hashBuffer));
-	return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+	return Array.from(new Uint8Array(hashBuffer))
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("");
 }
 
-export const onRequest: PagesFunction<Env> = async (context) => {
-	if (context.request.method !== "POST") {
-		return new Response(JSON.stringify({ success: false, message: "Method not allowed" }), {
-			status: 405,
-			headers: { "Content-Type": "application/json" },
+export const onRequestPost: PagesFunction<Env> = async (context) => {
+	const { env } = context;
+	const body = (await context.request.json()) as ManagePasswordRequest;
+	const { action, encryptionId, passwordLength, slug } = body;
+
+	const kv = env.POST_ENCRYPTION;
+	if (!kv) {
+		if (action === "list") return json({ success: true, passwords: [] });
+		return serverError("KV 存储不可用");
+	}
+
+	if (action === "list") {
+		const list = await kv.list({ prefix: "post:" });
+		const passwords = list.keys
+			.map((key) => ({
+				match: key.name.match(/^post:(.+):password$/),
+				key,
+			}))
+			.filter((item) => item.match !== null)
+			.map(({ match, key }) => ({
+				encryptionId: (match as RegExpMatchArray)[1],
+				createdAt: (() => {
+					const metadata = key.metadata;
+					if (!metadata || typeof metadata !== "object") return undefined;
+					if (!("createdAt" in metadata)) return undefined;
+					const value = (metadata as { createdAt?: unknown }).createdAt;
+					return typeof value === "string" ? value : undefined;
+				})(),
+			}));
+		return json({ success: true, passwords });
+	}
+
+	if (action === "generate") {
+		if (!encryptionId) return error("缺少 encryptionId");
+
+		const password = generateStrongPassword(passwordLength || 16);
+		const hashedPassword = await hashPassword(password);
+
+		await kv.put(`post:${encryptionId}:password`, hashedPassword, {
+			metadata: { createdAt: new Date().toISOString() },
 		});
-	}
+		// 明文另存一份供站长找回（get-password），仅统一鉴权后的管理员可读
+		await kv.put(`admin:password:${encryptionId}`, password);
 
-	try {
-		const body = (await context.request.json()) as ManagePasswordRequest;
-		const { action, token, encryptionId, passwordLength } = body;
-
-		// 验证管理员权限
-		const isAdmin = await verifyAdminToken(context.env.POST_ENCRYPTION, token);
-		if (!isAdmin) {
-			return new Response(
-				JSON.stringify({ success: false, message: "未授权：无效的管理员 token" }),
-				{
-					status: 401,
-					headers: { "Content-Type": "application/json" },
+		if (slug) {
+			try {
+				const warn = await syncFrontmatter(env, slug, true, encryptionId);
+				if (warn) {
+					return json({
+						success: true,
+						password,
+						message: `密码已生成，但 ${warn}`,
+					});
 				}
-			);
-		}
-
-		// 处理不同的操作
-		switch (action) {
-			case "generate": {
-				if (!encryptionId) {
-					return new Response(
-						JSON.stringify({ success: false, message: "缺少 encryptionId" }),
-						{
-							status: 400,
-							headers: { "Content-Type": "application/json" },
-						}
-					);
-				}
-
-				// 生成强密码
-				const password = generateStrongPassword(passwordLength || 16);
-				const passwordHash = await hashPassword(password);
-
-				// 存储密码哈希到 KV
-				await context.env.POST_ENCRYPTION.put(
-					`post:${encryptionId}:password`,
-					passwordHash,
-					{
-						metadata: {
-							encryptionId,
-							createdAt: new Date().toISOString(),
-							createdBy: "admin",
-						},
-					}
-				);
-
-				// 存储明文密码到 KV（✅ 永久保存，仅管理员可见）
-				await context.env.POST_ENCRYPTION.put(
-					`admin:password:${encryptionId}`,
+			} catch (ghError) {
+				console.error("GitHub update file error on generate:", ghError);
+				return json({
+					success: true,
 					password,
-					{
-						metadata: {
-							encryptionId,
-							createdAt: new Date().toISOString(),
-							note: "管理员专用：可随时查看，密码遗失可在后台恢复",
-						},
-					}
-					// 注意：移除 expirationTtl，永久保存，密码不会丢失
-				);
-
-				return new Response(
-					JSON.stringify({
-						success: true,
-						password, // 返回明文密码
-						encryptionId,
-						message: "密码生成成功（已永久保存到后台，可随时查看）",
-					}),
-					{
-						status: 200,
-						headers: {
-							"Content-Type": "application/json",
-							"Cache-Control": "no-store",
-						},
-					}
-				);
-			}
-
-			case "list": {
-				// 获取所有密码
-				const result = await context.env.POST_ENCRYPTION.list({ prefix: "post:" });
-
-				const passwords: Array<{
-					encryptionId: string;
-					createdAt?: string;
-					hasPlaintext?: boolean;
-				}> = [];
-
-				for (const item of result.keys) {
-					const match = item.name.match(/^post:(.+):password$/);
-					if (match) {
-						const id = match[1];
-
-						// 检查是否有明文密码（永久保存）
-						const plaintext = await context.env.POST_ENCRYPTION.get(`admin:password:${id}`);
-
-						passwords.push({
-							encryptionId: id,
-							createdAt: (item.metadata as any)?.createdAt,
-							hasPlaintext: !!plaintext,
-						});
-					}
-				}
-
-				return new Response(
-					JSON.stringify({
-						success: true,
-						passwords,
-					}),
-					{
-						status: 200,
-						headers: {
-							"Content-Type": "application/json",
-							"Cache-Control": "no-store",
-						},
-					}
-				);
-			}
-
-			case "delete": {
-				if (!encryptionId) {
-					return new Response(
-						JSON.stringify({ success: false, message: "缺少 encryptionId" }),
-						{
-							status: 400,
-							headers: { "Content-Type": "application/json" },
-						}
-					);
-				}
-
-				// 删除密码哈希
-				await context.env.POST_ENCRYPTION.delete(`post:${encryptionId}:password`);
-
-				// 删除明文密码（如果存在）
-				await context.env.POST_ENCRYPTION.delete(`admin:password:${encryptionId}`);
-
-				return new Response(
-					JSON.stringify({
-						success: true,
-						message: "密码已删除",
-					}),
-					{
-						status: 200,
-						headers: {
-							"Content-Type": "application/json",
-							"Cache-Control": "no-store",
-						},
-					}
-				);
-			}
-
-			default: {
-				return new Response(
-					JSON.stringify({ success: false, message: "未知的操作" }),
-					{
-						status: 400,
-						headers: { "Content-Type": "application/json" },
-					}
-				);
+					message: "密码已生成，但更新 Git 失败，请手动修改 frontmatter",
+				});
 			}
 		}
-	} catch (error) {
-		console.error("Password management error:", error);
-		return new Response(
-			JSON.stringify({ success: false, message: "服务器内部错误" }),
-			{
-				status: 500,
-				headers: { "Content-Type": "application/json" },
-			}
-		);
+
+		return json({ success: true, password });
 	}
+
+	if (action === "delete") {
+		if (!encryptionId) return error("缺少 encryptionId");
+
+		await kv.delete(`post:${encryptionId}:password`);
+		await kv.delete(`admin:password:${encryptionId}`);
+
+		if (slug) {
+			try {
+				const warn = await syncFrontmatter(env, slug, false);
+				if (warn) {
+					return json({ success: true, message: `密码已删除，但 ${warn}` });
+				}
+			} catch (ghError) {
+				console.error("GitHub update file error on delete:", ghError);
+				return json({
+					success: true,
+					message: "密码已删除，但更新 Git 失败，请手动修改 frontmatter",
+				});
+			}
+		}
+
+		return json({ success: true });
+	}
+
+	return error("未知操作");
+};
+
+export const onRequest: PagesFunction<Env> = async (context) => {
+	if (context.request.method === "POST") {
+		return context.next();
+	}
+	return methodNotAllowed();
 };

@@ -136,6 +136,8 @@ const wrangler = spawn(
 		"GITHUB_CLIENT_ID=test-client-id",
 		"--binding",
 		`GITHUB_OWNER_USERNAME=${OWNER}`,
+		"--binding",
+		"ADMIN_PASSWORD=test-admin-pass",
 		"--compatibility-date",
 		"2025-11-18",
 	],
@@ -435,6 +437,208 @@ try {
 		assert.equal(res.status, 403);
 		const data = await res.json();
 		assert.equal(data.valid, false);
+	});
+
+	// ══ 5.5 统一管理员鉴权（/api/admin/* 中间件） ═════════
+	console.log("\n── 统一管理员鉴权 ──");
+
+	await test("admin API：无凭证 → 401（中间件拒绝）", async () => {
+		const res = await fetch(`${BASE}/api/admin/categories`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ action: "list" }),
+		});
+		assert.equal(res.status, 401);
+	});
+
+	await test("admin API：普通用户 session → 401", async () => {
+		const res = await fetch(`${BASE}/api/admin/categories`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ action: "list", token: USER_TOKEN }),
+		});
+		assert.equal(res.status, 401);
+	});
+
+	await test("admin API：OAuth admin session（body token）→ 200", async () => {
+		const res = await fetch(`${BASE}/api/admin/categories`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ action: "list", token: ADMIN_TOKEN }),
+		});
+		assert.equal(res.status, 200);
+		const data = await res.json();
+		assert.equal(data.success, true);
+	});
+
+	await test("admin API：OAuth admin session（Bearer）→ 200", async () => {
+		const res = await fetch(`${BASE}/api/admin/categories`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${ADMIN_TOKEN}`,
+			},
+			body: JSON.stringify({ action: "list" }),
+		});
+		assert.equal(res.status, 200);
+	});
+
+	let passwordAdminToken = "";
+	await test("ADMIN_PASSWORD 登录 → 发放管理 token", async () => {
+		const res = await fetch(`${BASE}/api/admin/login`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ password: "test-admin-pass" }),
+		});
+		assert.equal(res.status, 200);
+		const data = await res.json();
+		assert.ok(data.data.token);
+		passwordAdminToken = data.data.token;
+	});
+
+	await test("管理 token 调 admin API → 200（统一层识别）", async () => {
+		const res = await fetch(`${BASE}/api/admin/categories`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ action: "list", token: passwordAdminToken }),
+		});
+		assert.equal(res.status, 200);
+	});
+
+	await test("verify 也认管理 token → valid + role=admin", async () => {
+		const res = await fetch(`${BASE}/api/auth/verify/`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ token: passwordAdminToken }),
+		});
+		const data = await res.json();
+		assert.equal(data.valid, true);
+		assert.equal(data.role, "admin");
+	});
+
+	await test("ADMIN_PASSWORD 错误密码 → 401", async () => {
+		const res = await fetch(`${BASE}/api/admin/login`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ password: "wrong-pass" }),
+		});
+		assert.equal(res.status, 401);
+	});
+
+	// ── 密码管理与分享链路（KV 全真） ──
+	let generatedPassword = "";
+	await test("manage-passwords generate → 返回强密码", async () => {
+		const res = await fetch(`${BASE}/api/admin/manage-passwords`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				action: "generate",
+				token: ADMIN_TOKEN,
+				encryptionId: "test-enc-id",
+			}),
+		});
+		assert.equal(res.status, 200);
+		const data = await res.json();
+		assert.equal(data.success, true);
+		assert.ok(data.password?.length >= 16);
+		generatedPassword = data.password;
+	});
+
+	await test("get-password → 取回同一明文", async () => {
+		const res = await fetch(`${BASE}/api/admin/get-password`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ token: ADMIN_TOKEN, encryptionId: "test-enc-id" }),
+		});
+		assert.equal(res.status, 200);
+		const data = await res.json();
+		assert.equal(data.password, generatedPassword);
+	});
+
+	await test("verify-password 用生成的密码换密钥（密码解锁链路）", async () => {
+		const res = await fetch(`${BASE}/api/verify-password`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				encryptionId: "test-enc-id",
+				postSlug: "diary/test-post",
+				password: generatedPassword,
+			}),
+		});
+		const data = await res.json();
+		assert.equal(data.success, true);
+		assert.equal(
+			data.token,
+			await hmacSha256Hex(TEST_SECRET, "diary/test-post"),
+		);
+	});
+
+	await test("manage-passwords list 包含刚生成的条目", async () => {
+		const res = await fetch(`${BASE}/api/admin/manage-passwords`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ action: "list", token: ADMIN_TOKEN }),
+		});
+		const data = await res.json();
+		assert.ok(data.passwords.some((x) => x.encryptionId === "test-enc-id"));
+	});
+
+	await test("manage-passwords delete → 密码与明文一并清除", async () => {
+		const res = await fetch(`${BASE}/api/admin/manage-passwords`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				action: "delete",
+				token: ADMIN_TOKEN,
+				encryptionId: "test-enc-id",
+			}),
+		});
+		assert.equal((await res.json()).success, true);
+		const check = await fetch(`${BASE}/api/admin/get-password`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ token: ADMIN_TOKEN, encryptionId: "test-enc-id" }),
+		});
+		assert.equal(check.status, 404);
+	});
+
+	await test("share/create（admin）→ 分享 token 可经 key 换取解密密钥", async () => {
+		const res = await fetch(`${BASE}/api/share/create`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				token: ADMIN_TOKEN,
+				slug: "diary/shared-post",
+				expiresInMinutes: 5,
+			}),
+		});
+		assert.equal(res.status, 200);
+		const data = await res.json();
+		assert.ok(data.password);
+
+		const keyRes = await fetch(`${BASE}/api/auth/key/`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				token: `share:${data.password}`,
+				slug: "diary/shared-post",
+			}),
+		});
+		const keyData = await keyRes.json();
+		assert.equal(keyData.valid, true);
+		assert.equal(
+			keyData.key,
+			await hmacSha256Hex(TEST_SECRET, "diary/shared-post"),
+		);
+	});
+
+	await test("share/create：普通用户 → 401", async () => {
+		const res = await fetch(`${BASE}/api/share/create`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ token: USER_TOKEN, slug: "diary/x" }),
+		});
+		assert.equal(res.status, 401);
 	});
 
 	// ══ 6. 登出与 session 失效 ════════════════════════════

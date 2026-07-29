@@ -90,8 +90,6 @@ export function getImageFormats(): ImageFormat[] {
 	}
 }
 
-
-
 /**
  * 获取图片优化质量配置
  */

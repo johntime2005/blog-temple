@@ -6,10 +6,9 @@
  * 操作: get / update / reset
  */
 
-import { extractToken, verifyAdminToken } from "../../_lib/auth";
 import type { Env } from "../../_lib/env";
 import { KV_KEYS } from "../../_lib/env";
-import { error, ok, unauthorized } from "../../_lib/response";
+import { error, ok } from "../../_lib/response";
 
 interface ProfileConfig {
 	avatar?: string;
@@ -29,11 +28,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 		action: string;
 		config?: ProfileConfig;
 	};
-
-	const token = extractToken(context.request, body);
-	if (!(await verifyAdminToken(env.POST_ENCRYPTION, token))) {
-		return unauthorized();
-	}
 
 	switch (body.action) {
 		case "get": {

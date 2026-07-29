@@ -1,15 +1,14 @@
 /**
  * GET /api/auth/current-user — 获取当前登录用户
  *
- * 凭证来源：Authorization: Bearer <session token> 或 blog_session cookie。
- * 响应：{ "authenticated": true, "user": { "username", "role", "createdAt" } }
+ * 凭证来源：Authorization: Bearer <token> 或 blog_session cookie。
+ * 响应：{ "authenticated": true, "user": { "username", "role", "provider" } }
  *
- * 直接以 KV session 为准；不再要求存在 user:<username> 记录
- * （GitHub OAuth 用户没有该记录，那是遗留用户名密码系统的存储）。
+ * 鉴权统一走 _lib/session.authenticate()。
  */
 
 import type { Env } from "../../_lib/env";
-import { extractSessionToken, getSession } from "../../_lib/session";
+import { authenticate } from "../../_lib/session";
 
 function json(body: unknown, status = 200): Response {
 	return new Response(JSON.stringify(body), {
@@ -22,25 +21,18 @@ function json(body: unknown, status = 200): Response {
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-	const { env, request } = context;
-
 	try {
-		const token = extractSessionToken(request);
-		if (!token || !env.POST_ENCRYPTION) {
-			return json({ authenticated: false });
-		}
-
-		const session = await getSession(env.POST_ENCRYPTION, token);
-		if (!session) {
+		const auth = await authenticate(context.request, context.env);
+		if (!auth) {
 			return json({ authenticated: false });
 		}
 
 		return json({
 			authenticated: true,
 			user: {
-				username: session.username,
-				role: session.role || "user",
-				createdAt: session.createdAt,
+				username: auth.username,
+				role: auth.role,
+				provider: auth.provider,
 			},
 		});
 	} catch (err) {

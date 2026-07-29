@@ -1,6 +1,7 @@
 ---
 import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
+import UserPanel from "@/components/widget/UserPanel.svelte";
 import { profileConfig } from "@/config/profileConfig";
 import { url } from "@/utils/url-utils";
 ---
@@ -106,5 +107,6 @@ import { url } from "@/utils/url-utils";
                     }
             })(profileConfig.links[0])}
         </div>
+        <UserPanel client:load />
   </div>
 </div>

@@ -15,19 +15,15 @@
  * 关键改进：不再返回"修改建议"，而是通过 GitHub API 真正修改文件。
  */
 
-import { extractToken, verifyAdminToken } from "../../_lib/auth";
 import type { Env } from "../../_lib/env";
 import {
 	deleteFile,
-	fromBase64,
-	type GitHubConfig,
 	getGitHubConfig,
-	listDirectory,
 	readFile,
 	triggerDeploy,
 	upsertFile,
 } from "../../_lib/github";
-import { error, ok, serverError, unauthorized } from "../../_lib/response";
+import { error, ok } from "../../_lib/response";
 
 // ── 类型定义 ──────────────────────────────────────────────
 
@@ -228,12 +224,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 	const { env } = context;
 
 	const body = (await context.request.json()) as PostAPIRequest;
-	const token = extractToken(context.request, body);
-
-	if (!(await verifyAdminToken(env.POST_ENCRYPTION, token))) {
-		return unauthorized();
-	}
-
 	const ghConfig = getGitHubConfig(env);
 	const { action } = body;
 
@@ -321,7 +311,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
 			return ok(
 				{ slug: body.slug, commitSha: result.commitSha },
-				"文章创建成功" + (body.triggerDeploy ? "，部署已触发" : ""),
+				`文章创建成功${body.triggerDeploy ? "，部署已触发" : ""}`,
 			);
 		}
 
@@ -348,7 +338,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
 			return ok(
 				{ slug: body.slug, commitSha: result.commitSha },
-				"文章更新成功" + (body.triggerDeploy ? "，部署已触发" : ""),
+				`文章更新成功${body.triggerDeploy ? "，部署已触发" : ""}`,
 			);
 		}
 
@@ -370,7 +360,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
 			return ok(
 				{ slug: body.slug },
-				"文章删除成功" + (body.triggerDeploy ? "，部署已触发" : ""),
+				`文章删除成功${body.triggerDeploy ? "，部署已触发" : ""}`,
 			);
 		}
 
@@ -414,7 +404,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 					commitSha: result.commitSha,
 					updatedFields: Object.keys(body.frontmatter),
 				},
-				"Frontmatter 更新成功" + (body.triggerDeploy ? "，部署已触发" : ""),
+				`Frontmatter 更新成功${body.triggerDeploy ? "，部署已触发" : ""}`,
 			);
 		}
 

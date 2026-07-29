@@ -1,6 +1,7 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
 import { onMount } from "svelte";
+import { getToken } from "@/utils/auth-client";
 import {
 	loadPrivateManifest,
 	type PrivatePostMeta,
@@ -21,7 +22,7 @@ function formatDate(dateStr: string) {
 }
 
 onMount(async () => {
-	const token = localStorage.getItem("user-token");
+	const token = getToken();
 	if (!token) {
 		isLoading = false;
 		return;

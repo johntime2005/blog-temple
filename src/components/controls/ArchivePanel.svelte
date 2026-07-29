@@ -1,8 +1,8 @@
 <script lang="ts">
 import { onMount } from "svelte";
-
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+import { getToken } from "@/utils/auth-client";
 import { loadPrivateManifest } from "@/utils/private-manifest";
 import { getPostUrlBySlug } from "@/utils/url-utils";
 
@@ -135,7 +135,7 @@ onMount(async () => {
 	uncategorized = params.has("uncategorized");
 	updateBannerTitle();
 
-	const token = localStorage.getItem("user-token");
+	const token = getToken();
 	if (!token) return;
 
 	// 站长登录后把私密文章并入归档（解密失败/无权限时静默跳过）

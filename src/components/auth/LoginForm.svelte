@@ -1,6 +1,12 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
 import { onDestroy, onMount } from "svelte";
+import {
+	clearToken,
+	getToken,
+	setToken,
+	verifyAuth,
+} from "@/utils/auth-client";
 
 interface Props {
 	redirectUrl?: string;
@@ -27,18 +33,18 @@ function handleMessage(e: MessageEvent) {
 			// 是给 CMS 用的 GitHub token，不作为博客登录凭证
 			const token = data.sessionToken || data.token;
 			if (token) {
-				localStorage.setItem("user-token", token);
+				setToken(token);
 				window.location.href = redirectUrl;
 			}
 		} catch {}
 	} else if (e.data?.sessionToken || e.data?.token) {
-		localStorage.setItem("user-token", e.data.sessionToken || e.data.token);
+		setToken(e.data.sessionToken || e.data.token);
 		window.location.href = redirectUrl;
 	}
 }
 
 onMount(() => {
-	const token = localStorage.getItem("user-token");
+	const token = getToken();
 	if (token) {
 		verifyExistingToken(token);
 	}
@@ -54,21 +60,12 @@ onDestroy(() => {
 });
 
 async function verifyExistingToken(token: string) {
-	try {
-		const response = await fetch("/api/auth/verify/", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ token }),
-		});
-		const data = await response.json();
-		if (data.valid) {
-			window.location.href = redirectUrl;
-		} else {
-			// 仅在服务端明确判定无效时清除；网络/服务异常不能误删登录态
-			localStorage.removeItem("user-token");
-		}
-	} catch (err) {
-		console.error("登录态校验失败（保留本地凭证）:", err);
+	const auth = await verifyAuth(token);
+	if (auth?.valid) {
+		window.location.href = redirectUrl;
+	} else if (auth) {
+		// 仅在服务端明确判定无效时清除；网络/服务异常（auth === null）保留凭证
+		clearToken();
 	}
 }
 

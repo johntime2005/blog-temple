@@ -1,6 +1,6 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
-import { onDestroy, onMount } from "svelte";
+import { getToken } from "@/utils/auth-client";
 
 interface CategoryInfo {
 	id: string;
@@ -23,13 +23,6 @@ interface Props {
 }
 
 let { categories }: Props = $props();
-
-// Auth state
-let isLoggedIn = $state(false);
-let isLoggingIn = $state(false);
-let loginError = $state("");
-let adminToken = $state("");
-let username = $state("");
 
 // Category state
 let localCategories = $state<CategoryInfo[]>([]);
@@ -73,84 +66,8 @@ function makeEmptyCategory(): CategoryInfo {
 	};
 }
 
-// ──────────────────────────────────
-// Auth (same pattern as AdminPanel)
-// ──────────────────────────────────
-onMount(() => {
-	const storedToken = localStorage.getItem("user-token");
-	if (storedToken) verifyStoredToken(storedToken);
-	window.addEventListener("message", handleMessage);
-});
-
-onDestroy(() => {
-	if (typeof window !== "undefined") {
-		window.removeEventListener("message", handleMessage);
-	}
-});
-
-function handleMessage(e: MessageEvent) {
-	if (
-		typeof e.data === "string" &&
-		e.data.startsWith("authorization:github:success:")
-	) {
-		try {
-			const json = e.data.replace("authorization:github:success:", "");
-			const data = JSON.parse(json);
-			if (data.token) {
-				localStorage.setItem("user-token", data.token);
-				verifyStoredToken(data.token);
-			}
-		} catch {}
-	} else if (e.data?.token) {
-		localStorage.setItem("user-token", e.data.token);
-		verifyStoredToken(e.data.token);
-	}
-}
-
-async function verifyStoredToken(token: string) {
-	isLoggingIn = true;
-	try {
-		const response = await fetch("/api/admin/verify-token/", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ token }),
-		});
-		const data = await response.json();
-		if (data.valid && data.isOwner) {
-			adminToken = token;
-			username = data.username || "";
-			isLoggedIn = true;
-		} else if (data.valid && !data.isOwner) {
-			loginError = "您不是站长，无权访问管理后台";
-			localStorage.removeItem("user-token");
-		} else {
-			localStorage.removeItem("user-token");
-		}
-	} catch {
-		localStorage.removeItem("user-token");
-	} finally {
-		isLoggingIn = false;
-	}
-}
-
-function openAuthPopup() {
-	const width = 600;
-	const height = 700;
-	const left = window.screenX + (window.outerWidth - width) / 2;
-	const top = window.screenY + (window.outerHeight - height) / 2;
-	window.open(
-		"/auth/",
-		"github-auth",
-		`width=${width},height=${height},left=${left},top=${top}`,
-	);
-}
-
-function handleLogout() {
-	localStorage.removeItem("user-token");
-	adminToken = "";
-	username = "";
-	isLoggedIn = false;
-}
+// 鉴权由父组件 UnifiedAdmin 统一处理（进入本组件即已是管理员）；
+// 服务端 /api/admin/* 由 _middleware.ts 统一校验凭证。
 
 // ──────────────────────────────────
 // Toast
@@ -174,7 +91,7 @@ async function apiCall(
 		const response = await fetch("/api/admin/categories", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ action, token: adminToken, ...payload }),
+			body: JSON.stringify({ action, token: getToken(), ...payload }),
 		});
 		return await response.json();
 	} catch {
@@ -296,42 +213,8 @@ function getIconColor(color: string) {
 }
 </script>
 
-{#if !isLoggedIn}
-	<!-- Login -->
-	<div class="login-container">
-		<div class="login-box card-base">
-			<div class="login-icon">
-				<Icon
-					icon="material-symbols:category"
-					style="font-size: 3.5rem; color: var(--primary)"
-				/>
-			</div>
-			<h1 class="login-title">内容集合管理</h1>
-			<p class="login-subtitle">使用 GitHub 账号登录以管理分类</p>
-			{#if loginError}
-				<div class="error-message">
-					<Icon icon="material-symbols:error-outline" />
-					<span>{loginError}</span>
-				</div>
-			{/if}
-			<button
-				onclick={openAuthPopup}
-				disabled={isLoggingIn}
-				class="github-login-button"
-			>
-				{#if isLoggingIn}
-					<Icon icon="svg-spinners:180-ring" />
-					<span>验证中...</span>
-				{:else}
-					<Icon icon="mdi:github" />
-					<span>使用 GitHub 登录</span>
-				{/if}
-			</button>
-		</div>
-	</div>
-{:else}
-	<!-- Manager -->
-	<div class="category-manager">
+<!-- 鉴权由父组件 UnifiedAdmin 保证，这里直接渲染管理器 -->
+<div class="category-manager">
 		<!-- Toast -->
 		{#if toastMessage}
 			<div class="toast toast-{toastType}">
@@ -361,18 +244,6 @@ function getIconColor(color: string) {
 						{totalPosts} 篇文章
 					</span>
 				</div>
-			</div>
-			<div class="header-actions">
-				{#if username}
-					<span class="username-badge">
-						<Icon icon="mdi:github" />
-						{username}
-					</span>
-				{/if}
-				<button onclick={handleLogout} class="logout-btn">
-					<Icon icon="material-symbols:logout" />
-					<span>登出</span>
-				</button>
 			</div>
 		</div>
 
@@ -756,84 +627,9 @@ function getIconColor(color: string) {
 				</button>
 			</div>
 		{/if}
-	</div>
-{/if}
+</div>
 
 <style>
-	/* ─── Login ─── */
-	.login-container {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-height: 60vh;
-		padding: 2rem 1rem;
-	}
-
-	.login-box {
-		max-width: 480px;
-		width: 100%;
-		padding: 3rem 2rem;
-		text-align: center;
-	}
-
-	.login-icon {
-		margin-bottom: 1.5rem;
-	}
-
-	.login-title {
-		font-size: 1.75rem;
-		font-weight: 700;
-		color: var(--text-color);
-		margin: 0 0 0.5rem 0;
-	}
-
-	.login-subtitle {
-		color: var(--text-secondary);
-		margin-bottom: 2rem;
-	}
-
-	.error-message {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		padding: 0.75rem 1rem;
-		margin-bottom: 1rem;
-		background: rgba(239, 68, 68, 0.1);
-		border: 1px solid rgba(239, 68, 68, 0.3);
-		border-radius: 8px;
-		color: #ef4444;
-		font-size: 0.875rem;
-	}
-
-	.github-login-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		width: 100%;
-		padding: 0.875rem 2rem;
-		background: #24292e;
-		color: white;
-		border: none;
-		border-radius: 8px;
-		font-size: 1rem;
-		font-weight: 600;
-		cursor: pointer;
-		transition: all 0.2s;
-	}
-
-	.github-login-button:hover:not(:disabled) {
-		background: #2f363d;
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-	}
-
-	.github-login-button:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
 	/* ─── Manager ─── */
 	.category-manager {
 		max-width: 1200px;
@@ -923,41 +719,6 @@ function getIconColor(color: string) {
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
-	}
-
-	.header-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-	}
-
-	.username-badge {
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
-		padding: 0.5rem 0.75rem;
-		background: var(--page-bg);
-		border-radius: 6px;
-		font-size: 0.875rem;
-		color: var(--text-secondary);
-	}
-
-	.logout-btn {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 1rem;
-		background: var(--page-bg);
-		border: 1px solid var(--line-divider);
-		border-radius: 6px;
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all 0.2s;
-	}
-
-	.logout-btn:hover {
-		border-color: #ef4444;
-		color: #ef4444;
 	}
 
 	/* ─── Grid ─── */

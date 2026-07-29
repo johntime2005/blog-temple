@@ -7,10 +7,9 @@
  * 配置存储在 KV 中作为覆盖层，前端优先读取 KV 值，fallback 到构建时静态值。
  */
 
-import { extractToken, verifyAdminToken } from "../../_lib/auth";
 import type { Env } from "../../_lib/env";
 import { KV_KEYS } from "../../_lib/env";
-import { error, ok, unauthorized } from "../../_lib/response";
+import { error, ok } from "../../_lib/response";
 
 interface SiteConfigOverride {
 	title?: string;
@@ -43,11 +42,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 		action: string;
 		config?: SiteConfigOverride;
 	};
-
-	const token = extractToken(context.request, body);
-	if (!(await verifyAdminToken(env.POST_ENCRYPTION, token))) {
-		return unauthorized();
-	}
 
 	switch (body.action) {
 		case "get": {

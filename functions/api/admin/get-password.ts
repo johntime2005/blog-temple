@@ -1,110 +1,43 @@
 /**
- * 获取指定文章的明文密码（需要管理员权限）
+ * POST /api/admin/get-password — 查看文章明文密码
  *
- * API 端点：POST /api/admin/get-password
- *
- * 请求体：
- * {
- *   "token": "admin-token-xxx",
- *   "encryptionId": "my-post"
- * }
- *
- * 响应：
- * {
- *   "success": true,
- *   "password": "明文密码"  // 永久保存，随时可查看
- * }
+ * 鉴权由 /api/admin/_middleware.ts 统一处理（管理员）。
+ * 明文由 manage-passwords 的 generate 动作写入 admin:password:<encryptionId>。
  */
 
-interface Env {
-	POST_ENCRYPTION: KVNamespace;
-}
+import type { Env } from "../../_lib/env";
+import { error, methodNotAllowed, notFound, serverError } from "../../_lib/response";
 
-interface GetPasswordRequest {
-	token: string;
-	encryptionId: string;
-}
+export const onRequestPost: PagesFunction<Env> = async (context) => {
+	const body = (await context.request.json()) as { encryptionId?: string };
+	const { encryptionId } = body;
 
-/**
- * 验证管理员 token
- */
-async function verifyAdminToken(kv: KVNamespace, token: string): Promise<boolean> {
-	if (!token) return false;
-	const tokenValue = await kv.get(`admin:token:${token}`);
-	return tokenValue === "valid";
-}
+	if (!encryptionId) {
+		return error("缺少 encryptionId");
+	}
+
+	const kv = context.env.POST_ENCRYPTION;
+	if (!kv) {
+		return serverError("KV 存储不可用");
+	}
+
+	const password = await kv.get(`admin:password:${encryptionId}`);
+	if (!password) {
+		return notFound("密码不可用（可能未生成或已被删除）");
+	}
+
+	return new Response(JSON.stringify({ success: true, password }), {
+		status: 200,
+		headers: {
+			"Content-Type": "application/json",
+			"Cache-Control": "no-store",
+		},
+	});
+};
 
 export const onRequest: PagesFunction<Env> = async (context) => {
-	if (context.request.method !== "POST") {
-		return new Response(JSON.stringify({ success: false, message: "Method not allowed" }), {
-			status: 405,
-			headers: { "Content-Type": "application/json" },
-		});
+	if (context.request.method === "POST") {
+		return context.next();
 	}
-
-	try {
-		const body = (await context.request.json()) as GetPasswordRequest;
-		const { token, encryptionId } = body;
-
-		if (!encryptionId) {
-			return new Response(
-				JSON.stringify({ success: false, message: "缺少 encryptionId" }),
-				{
-					status: 400,
-					headers: { "Content-Type": "application/json" },
-				}
-			);
-		}
-
-		// 验证管理员权限
-		const isAdmin = await verifyAdminToken(context.env.POST_ENCRYPTION, token);
-		if (!isAdmin) {
-			return new Response(
-				JSON.stringify({ success: false, message: "未授权：无效的管理员 token" }),
-				{
-					status: 401,
-					headers: { "Content-Type": "application/json" },
-				}
-			);
-		}
-
-		// 获取明文密码
-		const password = await context.env.POST_ENCRYPTION.get(`admin:password:${encryptionId}`);
-
-		if (!password) {
-			return new Response(
-				JSON.stringify({
-					success: false,
-					message: "密码不可用（可能未生成或已被删除）",
-				}),
-				{
-					status: 404,
-					headers: { "Content-Type": "application/json" },
-				}
-			);
-		}
-
-		return new Response(
-			JSON.stringify({
-				success: true,
-				password,
-			}),
-			{
-				status: 200,
-				headers: {
-					"Content-Type": "application/json",
-					"Cache-Control": "no-store",
-				},
-			}
-		);
-	} catch (error) {
-		console.error("Get password error:", error);
-		return new Response(
-			JSON.stringify({ success: false, message: "服务器内部错误" }),
-			{
-				status: 500,
-				headers: { "Content-Type": "application/json" },
-			}
-		);
-	}
+	return methodNotAllowed();
 };

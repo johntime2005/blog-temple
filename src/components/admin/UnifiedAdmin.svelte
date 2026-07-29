@@ -1,6 +1,13 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
 import { onDestroy, onMount } from "svelte";
+import {
+	logout as authLogout,
+	clearToken,
+	getToken,
+	setToken,
+	verifyAuth,
+} from "@/utils/auth-client";
 import AdminPanel from "./AdminPanel.svelte";
 // 导入现有组件
 import CategoryManager from "./CategoryManager.svelte";
@@ -41,10 +48,10 @@ interface Props {
 let { categories, posts }: Props = $props();
 
 // 导航标签
-type TabId = "posts" | "categories" | "settings" | "encryption";
+type TabId = "dashboard" | "posts" | "categories" | "settings" | "encryption";
 
 // 状态
-let activeTab = $state<TabId>("posts");
+let activeTab = $state<TabId>("dashboard");
 let isLoggedIn = $state(false);
 let isLoggingIn = $state(false);
 let loginError = $state("");
@@ -65,7 +72,7 @@ onMount(() => {
 	window.addEventListener("resize", checkMobile);
 
 	// 检查已存储的 token
-	const storedToken = localStorage.getItem("user-token");
+	const storedToken = getToken();
 	if (storedToken) {
 		verifyStoredToken(storedToken);
 	}
@@ -89,38 +96,36 @@ function handleMessage(e: MessageEvent) {
 		try {
 			const json = e.data.replace("authorization:github:success:", "");
 			const data = JSON.parse(json);
-			if (data.token) {
-				localStorage.setItem("user-token", data.token);
-				verifyStoredToken(data.token);
+			const token = data.sessionToken || data.token;
+			if (token) {
+				setToken(token);
+				verifyStoredToken(token);
 			}
 		} catch {}
-	} else if (e.data?.token) {
-		localStorage.setItem("user-token", e.data.token);
-		verifyStoredToken(e.data.token);
+	} else if (e.data?.sessionToken || e.data?.token) {
+		const token = e.data.sessionToken || e.data.token;
+		setToken(token);
+		verifyStoredToken(token);
 	}
 }
 
 async function verifyStoredToken(token: string) {
 	isLoggingIn = true;
 	try {
-		const response = await fetch("/api/admin/verify-token/", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ token }),
-		});
-		const data = await response.json();
-		if (data.valid && data.isOwner) {
+		const auth = await verifyAuth(token);
+		if (auth === null) {
+			// 网络/服务异常：不误删登录态，仅提示
+			loginError = "无法连接登录服务，请稍后重试";
+		} else if (auth.valid && auth.role === "admin") {
 			adminToken = token;
-			username = data.username || "";
+			username = auth.username || "";
 			isLoggedIn = true;
-		} else if (data.valid && !data.isOwner) {
+		} else if (auth.valid) {
 			loginError = "您不是站长，无权访问管理后台";
-			localStorage.removeItem("user-token");
+			clearToken();
 		} else {
-			localStorage.removeItem("user-token");
+			clearToken();
 		}
-	} catch {
-		localStorage.removeItem("user-token");
 	} finally {
 		isLoggingIn = false;
 	}
@@ -138,8 +143,8 @@ function openAuthPopup() {
 	);
 }
 
-function handleLogout() {
-	localStorage.removeItem("user-token");
+async function handleLogout() {
+	await authLogout();
 	adminToken = "";
 	username = "";
 	isLoggedIn = false;
@@ -152,10 +157,71 @@ function switchTab(tab: TabId) {
 
 // 导航配置
 const navItems: { id: TabId; label: string; icon: string }[] = [
+	{ id: "dashboard", label: "仪表盘", icon: "material-symbols:dashboard" },
 	{ id: "posts", label: "文章", icon: "material-symbols:article" },
 	{ id: "categories", label: "分类", icon: "material-symbols:folder" },
 	{ id: "settings", label: "设置", icon: "material-symbols:settings" },
 	{ id: "encryption", label: "加密", icon: "material-symbols:lock" },
+];
+
+// 仪表盘数据（WordPress 风格概览，全部由构建期传入的 props 计算，无需请求）
+const recentPosts = $derived(() =>
+	[...posts]
+		.sort(
+			(a, b) =>
+				new Date(b.published).getTime() - new Date(a.published).getTime(),
+		)
+		.slice(0, 5),
+);
+
+const dashboardStats = $derived(() => [
+	{
+		label: "文章总数",
+		value: posts.length,
+		icon: "material-symbols:article",
+		tab: "posts" as TabId,
+	},
+	{
+		label: "分类总数",
+		value: categories.length,
+		icon: "material-symbols:folder",
+		tab: "categories" as TabId,
+	},
+	{
+		label: "加密文章",
+		value: posts.filter((p) => p.encrypted).length,
+		icon: "material-symbols:lock",
+		tab: "encryption" as TabId,
+	},
+]);
+
+const quickActions = [
+	{
+		label: "写新文章",
+		description: "打开 Sveltia CMS 编辑器",
+		icon: "material-symbols:edit-square",
+		href: "/admin/cms/",
+		external: true,
+	},
+	{
+		label: "管理分类",
+		description: "增删改内容分类",
+		icon: "material-symbols:category",
+		tab: "categories" as TabId,
+	},
+	{
+		label: "加密管理",
+		description: "文章密码与分享链接",
+		icon: "material-symbols:key",
+		tab: "encryption" as TabId,
+	},
+	{
+		label: "查看站点",
+		description: "回到博客首页",
+		icon: "material-symbols:home",
+		href: "/",
+		external: false,
+	},
 ];
 
 // 过滤后的文章列表
@@ -283,7 +349,97 @@ const categoryList = $derived(() => {
 			
 			<!-- 内容面板 -->
 			<div class="content-panel">
-				{#if activeTab === "posts"}
+				{#if activeTab === "dashboard"}
+					<!-- 仪表盘（WordPress 风格概览） -->
+					<div class="dashboard-panel">
+						<div class="panel-header">
+							<h2>
+								<Icon icon="material-symbols:dashboard" />
+								仪表盘
+							</h2>
+						</div>
+
+						<p class="dashboard-welcome">
+							欢迎回来{username ? `，${username}` : ""}！这里是站点概况。
+						</p>
+
+						<!-- 概览统计 -->
+						<div class="dashboard-stats">
+							{#each dashboardStats() as stat}
+								<button
+									class="dash-stat-card"
+									onclick={() => switchTab(stat.tab)}
+								>
+									<Icon icon={stat.icon} class="dash-stat-icon" />
+									<span class="dash-stat-value">{stat.value}</span>
+									<span class="dash-stat-label">{stat.label}</span>
+								</button>
+							{/each}
+						</div>
+
+						<div class="dashboard-columns">
+							<!-- 快捷操作 -->
+							<section class="dash-section">
+								<h3 class="dash-section-title">
+									<Icon icon="material-symbols:bolt" />
+									快捷操作
+								</h3>
+								<div class="quick-actions">
+									{#each quickActions as action}
+										{#if action.href}
+											<a
+												href={action.href}
+												target={action.external ? "_blank" : undefined}
+												class="quick-action"
+											>
+												<Icon icon={action.icon} />
+												<span class="qa-label">{action.label}</span>
+												<span class="qa-desc">{action.description}</span>
+											</a>
+										{:else if action.tab}
+											<button
+												class="quick-action"
+												onclick={() => switchTab(action.tab)}
+											>
+												<Icon icon={action.icon} />
+												<span class="qa-label">{action.label}</span>
+												<span class="qa-desc">{action.description}</span>
+											</button>
+										{/if}
+									{/each}
+								</div>
+							</section>
+
+							<!-- 最近文章 -->
+							<section class="dash-section">
+								<h3 class="dash-section-title">
+									<Icon icon="material-symbols:history">
+									</Icon>
+									最近文章
+								</h3>
+								<ul class="recent-posts">
+									{#each recentPosts() as post}
+										<li class="recent-post">
+											<a href="/posts/{post.slug}/" target="_blank" class="rp-title">
+												{#if post.encrypted}
+													<Icon icon="material-symbols:lock" class="rp-lock" />
+												{/if}
+												{post.title}
+											</a>
+											<span class="rp-date">
+												{new Date(post.published).toLocaleDateString()}
+											</span>
+										</li>
+									{/each}
+									{#if recentPosts().length === 0}
+										<li class="recent-post empty">还没有文章</li>
+									{/if}
+								</ul>
+							</section>
+						</div>
+					</div>
+
+				{:else if activeTab === "posts"}
 					<!-- 文章管理 -->
 					<div class="posts-manager">
 						<div class="panel-header">
@@ -391,29 +547,9 @@ const categoryList = $derived(() => {
 									</div>
 								</div>
 							</div>
-							<div class="settings-section">
-								<h3>数据统计</h3>
-								<div class="stats-grid">
-									<div class="stat-card">
-										<Icon icon="material-symbols:article" style="font-size: 1.5rem; color: var(--primary)" />
-										<span class="stat-value">{posts.length}</span>
-										<span class="stat-label">文章总数</span>
-									</div>
-									<div class="stat-card">
-										<Icon icon="material-symbols:folder" style="font-size: 1.5rem; color: var(--primary)" />
-										<span class="stat-value">{categories.length}</span>
-										<span class="stat-label">分类总数</span>
-									</div>
-									<div class="stat-card">
-										<Icon icon="material-symbols:lock" style="font-size: 1.5rem; color: var(--primary)" />
-										<span class="stat-value">{posts.filter(p => p.encrypted).length}</span>
-										<span class="stat-label">加密文章</span>
-									</div>
-								</div>
-							</div>
 						</div>
 					</div>
-					
+
 				{:else if activeTab === "encryption"}
 					<!-- 加密管理 -->
 					<div class="encryption-panel">
@@ -1029,5 +1165,182 @@ const categoryList = $derived(() => {
 			width: 100%;
 			justify-content: center;
 		}
+	}
+
+	/* ─── 仪表盘 ─── */
+	.dashboard-welcome {
+		color: var(--text-secondary);
+		margin: 0 0 1.25rem 0;
+	}
+
+	.dashboard-stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 0.75rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.dash-stat-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 1.25rem 1rem;
+		background: var(--page-bg);
+		border: 1px solid var(--line-divider);
+		border-radius: 10px;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.dash-stat-card:hover {
+		border-color: var(--primary);
+		transform: translateY(-2px);
+	}
+
+	.dash-stat-card :global(.dash-stat-icon) {
+		font-size: 1.5rem;
+		color: var(--primary);
+	}
+
+	.dash-stat-value {
+		font-size: 1.75rem;
+		font-weight: 700;
+		color: var(--text-color);
+	}
+
+	.dash-stat-label {
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+	}
+
+	.dashboard-columns {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+
+	@media (max-width: 768px) {
+		.dashboard-columns {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.dash-section {
+		background: var(--page-bg);
+		border: 1px solid var(--line-divider);
+		border-radius: 10px;
+		padding: 1rem 1.25rem;
+	}
+
+	.dash-section-title {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: var(--text-color);
+		margin: 0 0 0.875rem 0;
+	}
+
+	.dash-section-title :global(svg) {
+		color: var(--primary);
+	}
+
+	.quick-actions {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.5rem;
+	}
+
+	.quick-action {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		grid-template-rows: auto auto;
+		column-gap: 0.5rem;
+		align-items: center;
+		text-align: left;
+		padding: 0.75rem;
+		background: var(--card-bg);
+		border: 1px solid var(--line-divider);
+		border-radius: 8px;
+		text-decoration: none;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.quick-action:hover {
+		border-color: var(--primary);
+	}
+
+	.quick-action :global(svg) {
+		grid-row: span 2;
+		font-size: 1.25rem;
+		color: var(--primary);
+	}
+
+	.qa-label {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--text-color);
+	}
+
+	.qa-desc {
+		font-size: 0.75rem;
+		color: var(--text-secondary);
+	}
+
+	.recent-posts {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.recent-post {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.5rem 0;
+		border-bottom: 1px dashed var(--line-divider);
+	}
+
+	.recent-post:last-child {
+		border-bottom: none;
+	}
+
+	.recent-post.empty {
+		color: var(--text-secondary);
+		font-size: 0.875rem;
+		justify-content: center;
+	}
+
+	.rp-title {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		color: var(--text-color);
+		text-decoration: none;
+		font-size: 0.875rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.rp-title:hover {
+		color: var(--primary);
+	}
+
+	.rp-title :global(.rp-lock) {
+		color: var(--primary);
+		flex-shrink: 0;
+	}
+
+	.rp-date {
+		flex-shrink: 0;
+		font-size: 0.75rem;
+		color: var(--text-secondary);
 	}
 </style>

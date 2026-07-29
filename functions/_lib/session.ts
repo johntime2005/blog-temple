@@ -191,3 +191,83 @@ export function isOwner(username: string, ownerUsername: string): boolean {
 		username.toLowerCase() === ownerUsername.toLowerCase()
 	);
 }
+
+// ── 统一鉴权入口 ──────────────────────────────────────────
+
+export interface AuthInfo {
+	username: string;
+	role: "admin" | "user" | string;
+	/** 凭证来源：KV session / ADMIN_PASSWORD 管理 token / 遗留 GitHub token */
+	provider: "session" | "admin-password" | "github-token";
+}
+
+interface AuthEnv {
+	POST_ENCRYPTION?: KVNamespace;
+	GITHUB_OWNER_USERNAME?: string;
+	GITHUB_OWNER?: string;
+}
+
+/**
+ * 全站唯一的身份校验函数。任何需要判断「是谁、是不是管理员」的地方
+ * （/api/auth/*、/api/admin/* 中间件）都必须走这里，不要各写各的。
+ *
+ * 凭证识别顺序：
+ * 1. KV `session:<token>`     — GitHub OAuth 登录 / 遗留用户名密码登录的会话
+ * 2. KV `admin:token:<token>` — ADMIN_PASSWORD 登录发放的管理 token（视为 admin）
+ * 3. GitHub access token      — 兼容旧版前端，直连 GitHub 校验，站长即 admin
+ *
+ * 返回 null 表示未认证。
+ */
+export async function authenticate(
+	request: Request,
+	env: AuthEnv,
+	bodyToken?: string,
+): Promise<AuthInfo | null> {
+	const token = extractSessionToken(request, bodyToken);
+	if (!token) return null;
+
+	const kv = env.POST_ENCRYPTION;
+	if (kv) {
+		const session = await getSession(kv, token);
+		if (session) {
+			return {
+				username: session.username,
+				role: session.role || "user",
+				provider: "session",
+			};
+		}
+
+		const adminFlag = await kv.get(`admin:token:${token}`);
+		if (adminFlag === "valid") {
+			return {
+				username: resolveOwnerUsername(env) || "admin",
+				role: "admin",
+				provider: "admin-password",
+			};
+		}
+	}
+
+	// 遗留路径：token 可能是旧版前端存下的 GitHub access token
+	try {
+		const response = await fetch("https://api.github.com/user", {
+			headers: {
+				Authorization: `token ${token}`,
+				"User-Agent": "Firefly-Blog-Auth",
+				Accept: "application/vnd.github+json",
+			},
+		});
+		if (!response.ok) return null;
+
+		const user = (await response.json()) as { login?: string };
+		if (!user.login) return null;
+
+		return {
+			username: user.login,
+			role: isOwner(user.login, resolveOwnerUsername(env)) ? "admin" : "user",
+			provider: "github-token",
+		};
+	} catch (err) {
+		console.error("GitHub token validation failed:", err);
+		return null;
+	}
+}

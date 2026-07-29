@@ -7,22 +7,12 @@
  * 用于文章/配置文件通过 GitHub API 修改后触发更新。
  */
 
-import { extractToken, verifyAdminToken } from "../../_lib/auth";
 import type { Env } from "../../_lib/env";
 import { triggerDeploy } from "../../_lib/github";
-import { error, ok, unauthorized } from "../../_lib/response";
+import { error, ok } from "../../_lib/response";
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
 	const { env } = context;
-
-	const body = (await context.request.json().catch(() => ({}))) as {
-		token?: string;
-	};
-	const token = extractToken(context.request, body);
-
-	if (!(await verifyAdminToken(env.POST_ENCRYPTION, token))) {
-		return unauthorized();
-	}
 
 	if (!env.DEPLOY_HOOK_URL) {
 		return error(

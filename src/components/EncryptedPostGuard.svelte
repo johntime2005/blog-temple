@@ -1,6 +1,7 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
 import { onMount, type Snippet } from "svelte";
+import { getToken } from "@/utils/auth-client";
 import { decryptContent } from "@/utils/security";
 
 interface Props {
@@ -21,7 +22,7 @@ let decryptedHtml = $state("");
 
 // 检查本地存储中是否已有有效令牌（即解密密钥）
 onMount(async () => {
-	const userToken = localStorage.getItem("user-token");
+	const userToken = getToken();
 
 	// 尝试获取本地存储的密钥 或 临时Token
 	const storedToken = localStorage.getItem(`post-token:${postSlug}`);
