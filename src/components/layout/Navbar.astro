@@ -138,6 +138,14 @@ if (isLocalSrcLogo) {
                 <Search
                     client:load
                 />
+                <a
+                    href={url('/auth/')}
+                    class="btn-regular rounded-lg h-9 px-3 flex items-center gap-1.5 text-sm font-bold active:scale-95"
+                    aria-label="登录"
+                >
+                    <Icon name="fa6-brands:github" is:inline class="text-base" />
+                    <span>登录</span>
+                </a>
                 {musicPlayerConfig.showInNavbar && (
                     <button aria-label={i18n(I18nKey.music)} class="btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="music-player-switch">
                         <Icon name="material-symbols:music-note-rounded" is:inline class="text-[1.25rem]"></Icon>
