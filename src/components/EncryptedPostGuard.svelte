@@ -315,7 +315,7 @@ async function handleSubmit(e: Event) {
 	.password-input:focus {
 		outline: none;
 		border-color: var(--primary);
-		box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 	}
 
 	.password-input:disabled {
@@ -358,7 +358,7 @@ async function handleSubmit(e: Event) {
 
 	.submit-button:hover:not(:disabled) {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+		box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent);
 	}
 
 	.submit-button:active:not(:disabled) {

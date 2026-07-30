@@ -247,7 +247,7 @@ async function logout() {
 
 	.login-btn:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4);
+		box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent);
 	}
 
 	.back-btn {

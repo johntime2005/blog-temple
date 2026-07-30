@@ -745,7 +745,7 @@ function getIconColor(color: string) {
 
 	.category-card.editing {
 		border: 2px solid var(--primary);
-		box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 59, 130, 246), 0.15);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
 	}
 
 	.card-header {

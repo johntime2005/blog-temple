@@ -448,7 +448,7 @@ const filteredPosts = $derived(() => {
 	.password-input:focus {
 		outline: none;
 		border-color: var(--primary);
-		box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 	}
 
 	.password-input:disabled {
@@ -636,8 +636,8 @@ const filteredPosts = $derived(() => {
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.5rem 1rem;
-		background: rgba(var(--primary-rgb), 0.1);
-		border: 1px solid rgba(var(--primary-rgb), 0.3);
+		background: color-mix(in srgb, var(--primary) 10%, transparent);
+		border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
 		border-radius: var(--radius-medium);
 		color: var(--primary);
 		font-size: 0.875rem;
@@ -665,7 +665,7 @@ const filteredPosts = $derived(() => {
 
 	.primary-button:hover:not(:disabled) {
 		transform: translateY(-2px);
-		box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.3);
+		box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent);
 	}
 
 	.view-button {

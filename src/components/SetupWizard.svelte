@@ -517,7 +517,7 @@ $: themeColorStyle = `hsl(${themeConfig.themeHue}, 60%, 60%)`;
 	.input-field:focus {
 		outline: none;
 		border-color: var(--primary);
-		box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 	}
 
 	.input-field.error {

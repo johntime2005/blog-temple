@@ -329,7 +329,7 @@ function generatePassword() {
 	.form-group input:focus {
 		outline: none;
 		border-color: var(--primary);
-		box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 	}
 
 	.form-group input:disabled {
@@ -417,7 +417,7 @@ function generatePassword() {
 
 	.submit-btn:hover:not(:disabled) {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4);
+		box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent);
 	}
 
 	.submit-btn:active:not(:disabled) {

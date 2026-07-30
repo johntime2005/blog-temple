@@ -327,3 +327,24 @@
     --container-width: var(--container-lg)
     --widget-gap: var(--widget-gap-desktop)
     --sidebar-width: var(--sidebar-width-desktop)
+
+/* ===== 管理后台 / 登录组件变量 =====
+ * admin、auth 系列 Svelte 组件写作时引用了这批语义变量，
+ * 此前主题从未定义过它们：文字色全部落空，深色背景下继承黑字，
+ * 后台整片发黑不可读。这里映射到主题体系，亮暗两套并跟随主题色相。 */
+:root
+  --text-color: var(--deep-text)
+  --text-primary: var(--deep-text)
+  --text-secondary: rgba(0, 0, 0, 0.65)
+  --text-tertiary: rgba(0, 0, 0, 0.45)
+  --hover-bg: var(--btn-plain-bg-hover)
+  --accent: oklch(0.65 0.14 calc(var(--hue) + 40))
+  --radius-medium: var(--radius-lg)
+  --radius-small: var(--radius-sm)
+
+:root.dark
+  --text-color: rgba(255, 255, 255, 0.92)
+  --text-primary: rgba(255, 255, 255, 0.92)
+  --text-secondary: rgba(255, 255, 255, 0.65)
+  --text-tertiary: rgba(255, 255, 255, 0.45)
+  --accent: oklch(0.70 0.14 calc(var(--hue) + 40))
