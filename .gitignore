@@ -48,3 +48,4 @@ diary-temp/
 .astro-cloudflare-server/
 .backups/
 tests/.wrangler-state/
+.playwright-mcp/
