@@ -47,23 +47,21 @@ if (process.env.NODE_ENV === "development") {
 // （含 pages_build_output_dir），适配器若读到它会因 ASSETS 为 Pages 保留名而构建失败。
 const cloudflareConfigPath = "./.cloudflare/wrangler.jsonc";
 
+// Pages 部署（默认分支）不挂适配器：本站纯静态输出，运行时逻辑全在 functions/，
+// 适配器的 server 产物历来被 flatten-pages-output.js 丢弃，它实际只贡献图片服务，
+// 而该服务两种配置都会弄崩 CI 构建：
+//  - 默认 workerd 预渲染在 Pages 构建容器里禁止动态 WebAssembly 编译，
+//    报 "Wasm code generation disallowed by embedder" 后中断；
+//  - compile + node 预渲染则把原图发射到 dist/client/_astro/，generate 阶段
+//    却从 dist/_astro/ 读取，无残留产物的干净环境（CI）必然 ENOENT 失败。
+// 无适配器时用 Astro 内置 sharp 服务在构建时生成静态优化图片，产物直接在 dist/。
 const adapter = process.env.CF_WORKERS
 	? cloudflare({
 			prerenderEnvironment: "node",
 			imageService: "passthrough",
 			configPath: cloudflareConfigPath,
-	  })
-	: cloudflare({
-			// Pages 纯静态部署没有 /_image 运行时端点，passthrough 会让全站图片 404，
-			// 必须用 compile 在构建时由 sharp 直接生成静态图片文件
-			imageService: "compile",
-			// 适配器 v13 默认在 workerd 里执行预渲染，而 Pages 构建容器里 workerd
-			// 禁止动态 WebAssembly 编译，server bundle 一加载 wasm 依赖就报
-			// "Wasm code generation disallowed by embedder" 并中断构建。
-			// 本站为纯静态输出、运行时逻辑全在 functions/，预渲染放回 Node 无副作用。
-			prerenderEnvironment: "node",
-			configPath: cloudflareConfigPath,
-	  });
+		})
+	: undefined;
 
 // https://astro.build/config
 export default defineConfig({
