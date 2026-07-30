@@ -146,7 +146,7 @@ $: if (initialized && (keywordMobile || keywordMobile === "")) {
     <input placeholder="{i18n(I18nKey.search)}" bind:value={keywordDesktop}
            on:focus={() => search(keywordDesktop, true)}
            class="transition-all pl-10 text-sm bg-transparent outline-0
-         h-full w-40 active:w-60 focus:w-60 text-black/50 dark:text-white/50"
+         h-full w-40 active:w-48 focus:w-48 text-black/50 dark:text-white/50"
     >
 </div>
 

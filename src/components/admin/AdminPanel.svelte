@@ -93,18 +93,26 @@ async function enableEncryption(slug: string) {
 		const data = await response.json();
 
 		if (data.success) {
-			successMessage = `密码生成成功！密码：${data.password}（已永久保存，可随时在后台查看）`;
+			// 服务端可能带回警告（如子模块文章无法自动改 frontmatter、Git 写入失败），
+			// 必须如实展示，否则用户会以为站点会自动更新
+			const warn = data.message as string | undefined;
+			successMessage = warn
+				? `⚠️ ${warn}（密码：${data.password}）`
+				: `密码生成成功！密码：${data.password}（已永久保存，可随时在后台查看）`;
 			encryptedPasswords.set(encryptionId, {
 				password: data.password,
 				createdAt: new Date().toISOString(),
 			});
 
 			alert(
-				"✅ 密码已生成并保存在系统！\n\n" +
-					"📝 系统正自动将您的配置推送到 Git 仓库...\n" +
-					"等待几分钟的重新编译后，您的文章加密即将在前台生效。\n" +
-					`🔑 生成密码：${data.password}\n\n` +
-					"💡 密码已保存到后台，遗失时可随时查看",
+				warn
+					? `⚠️ ${warn}\n\n密码已保存到后台：${data.password}\n\n` +
+							"注意：文章 frontmatter 未能自动更新，站点不会自动重新构建。"
+					: "✅ 密码已生成并保存在系统！\n\n" +
+							"📝 系统正自动将您的配置推送到 Git 仓库...\n" +
+							"等待几分钟的重新编译后，您的文章加密即将在前台生效。\n" +
+							`🔑 生成密码：${data.password}\n\n` +
+							"💡 密码已保存到后台，遗失时可随时查看",
 			);
 		} else {
 			errorMessage = data.message || "生成密码失败";
@@ -146,10 +154,13 @@ async function disableEncryption(encryptionId: string, slug: string) {
 		const data = await response.json();
 
 		if (data.success) {
-			successMessage = "密码已删除，Git 已更新";
+			const warn = data.message as string | undefined;
+			successMessage = warn ? `⚠️ ${warn}` : "密码已删除，Git 已更新";
 			encryptedPasswords.delete(encryptionId);
 			alert(
-				"密码已删除！系统正自动撤销文章的 Git 加密标签，请等待几分钟以重新编译前台页面。",
+				warn
+					? `⚠️ ${warn}\n\n注意：文章 frontmatter 未能自动更新，站点不会自动重新构建。`
+					: "密码已删除！系统正自动撤销文章的 Git 加密标签，请等待几分钟以重新编译前台页面。",
 			);
 		} else {
 			errorMessage = data.message || "删除失败";

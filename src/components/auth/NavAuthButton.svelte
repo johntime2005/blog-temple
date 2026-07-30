@@ -48,19 +48,22 @@ onDestroy(() => {
 {#if view === "admin"}
 	<a
 		href="/admin/"
-		class="btn-regular rounded-lg h-9 px-3 flex items-center gap-1.5 text-sm font-bold active:scale-95"
+		class="btn-regular rounded-lg h-9 px-2.5 xl:px-3 flex items-center gap-1.5 text-sm font-bold active:scale-95"
 		aria-label="仪表盘"
+		title="仪表盘"
 	>
 		<Icon icon="material-symbols:dashboard" class="text-base" />
-		<span>仪表盘</span>
+		<!-- lg~xl 区间导航栏最挤（搜索框聚焦还会展开），只留图标防重叠 -->
+		<span class="hidden xl:inline">仪表盘</span>
 	</a>
 {:else if view === "anon"}
 	<a
 		href="/login/"
-		class="btn-regular rounded-lg h-9 px-3 flex items-center gap-1.5 text-sm font-bold active:scale-95"
+		class="btn-regular rounded-lg h-9 px-2.5 xl:px-3 flex items-center gap-1.5 text-sm font-bold active:scale-95"
 		aria-label="登录"
+		title="登录"
 	>
 		<Icon icon="fa6-brands:github" class="text-base" />
-		<span>登录</span>
+		<span class="hidden xl:inline">登录</span>
 	</a>
 {/if}

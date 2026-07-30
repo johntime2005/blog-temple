@@ -126,7 +126,7 @@ async function saveCategory() {
 	if (result.success) {
 		const idx = localCategories.findIndex((c) => c.id === editDraft?.id);
 		if (idx !== -1) localCategories[idx] = { ...editDraft };
-		showToast("分类已更新");
+		showToast(result.message || "分类已更新");
 		cancelEditing();
 	} else {
 		showToast(result.message || "保存失败，请尝试在 CMS 中编辑", "error");
@@ -157,7 +157,7 @@ async function createCategory() {
 	const result = await apiCall("create", { category });
 	if (result.success) {
 		localCategories = [...localCategories, category];
-		showToast("分类已创建");
+		showToast(result.message || "分类已创建");
 		cancelCreating();
 	} else {
 		showToast(result.message || "创建失败", "error");
@@ -167,10 +167,12 @@ async function createCategory() {
 
 async function deleteCategory(id: string) {
 	isProcessing = true;
-	const result = await apiCall("delete", { categoryId: id });
+	// 分类文件按 slug 定位（src/content/categories/<slug>.md），一并传给服务端
+	const target = localCategories.find((c) => c.id === id);
+	const result = await apiCall("delete", { categoryId: id, slug: target?.slug });
 	if (result.success) {
 		localCategories = localCategories.filter((c) => c.id !== id);
-		showToast("分类已删除");
+		showToast(result.message || "分类已删除");
 	} else {
 		showToast(result.message || "删除失败", "error");
 	}

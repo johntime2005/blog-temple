@@ -125,7 +125,9 @@ if (isLocalSrcLogo) {
                 </div>
             </a>
             <div class:list={[
-                "hidden lg:flex items-center space-x-1 col-start-2",
+                // xl 才展开横向菜单：菜单项较多时 lg~xl 宽度放不下，
+                // 会被右侧按钮区挤到竖排折行/重叠，该区间改用菜单按钮+下拉面板
+                "hidden xl:flex items-center space-x-1 col-start-2",
                 isNavbarMenuCentered
                     ? "justify-center"
                     : "justify-start pl-2"
@@ -152,7 +154,7 @@ if (isLocalSrcLogo) {
                 )}
                 {/* @ts-ignore */}
                 <LightDarkSwitch client:load></LightDarkSwitch>
-                <button aria-label="Menu" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90 lg:hidden!" id="nav-menu-switch">
+                <button aria-label="Menu" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90 xl:hidden!" id="nav-menu-switch">
                     <Icon name="material-symbols:menu-rounded" is:inline class="text-[1.25rem]"></Icon>
                 </button>
             </div>
