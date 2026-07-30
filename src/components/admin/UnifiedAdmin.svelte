@@ -540,6 +540,11 @@ const categoryList = $derived(() => {
 										<span>Sveltia CMS 编辑器</span>
 										<Icon icon="material-symbols:open-in-new" class="external-icon" />
 									</a>
+									<a href="/admin/users/" class="settings-link">
+										<Icon icon="material-symbols:group" />
+										<span>用户管理</span>
+										<Icon icon="material-symbols:chevron-right" class="external-icon" />
+									</a>
 									<div class="settings-link current">
 										<Icon icon="material-symbols:admin-panel-settings" />
 										<span>统一管理后台</span>
@@ -801,6 +806,8 @@ const categoryList = $derived(() => {
 	.main-content.mobile {
 		margin-left: 0;
 		padding: 0;
+		/* 给固定的底部导航让位，避免列表末尾被遮挡 */
+		padding-bottom: calc(5rem + env(safe-area-inset-bottom));
 	}
 
 	/* 移动端顶部栏 */
@@ -904,7 +911,8 @@ const categoryList = $derived(() => {
 		border-radius: 8px;
 		background: var(--card-bg);
 		color: var(--text-color);
-		font-size: 0.9375rem;
+		/* 16px 起步：小于 16px 时 iOS Safari 聚焦会强制放大页面 */
+		font-size: 1rem;
 	}
 
 	.search-input:focus {
@@ -918,7 +926,7 @@ const categoryList = $derived(() => {
 		border-radius: 8px;
 		background: var(--card-bg);
 		color: var(--text-color);
-		font-size: 0.875rem;
+		font-size: 1rem;
 		cursor: pointer;
 	}
 
@@ -1115,7 +1123,7 @@ const categoryList = $derived(() => {
 		right: 0;
 		display: flex;
 		justify-content: space-around;
-		padding: 0.5rem;
+		padding: 0.375rem 0.25rem calc(0.375rem + env(safe-area-inset-bottom));
 		background: var(--card-bg);
 		border-top: 1px solid var(--line-divider);
 		z-index: 100;
@@ -1126,7 +1134,9 @@ const categoryList = $derived(() => {
 		flex-direction: column;
 		align-items: center;
 		gap: 0.25rem;
-		padding: 0.5rem 1rem;
+		flex: 1;
+		min-width: 0;
+		padding: 0.5rem 0.25rem;
 		background: transparent;
 		border: none;
 		color: var(--text-tertiary);
@@ -1251,6 +1261,12 @@ const categoryList = $derived(() => {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 0.5rem;
+	}
+
+	@media (max-width: 480px) {
+		.quick-actions {
+			grid-template-columns: 1fr;
+		}
 	}
 
 	.quick-action {

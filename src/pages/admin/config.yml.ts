@@ -68,7 +68,7 @@ export async function GET(_context: APIContext): Promise<Response> {
       - { label: "更新日期", name: "updated", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: false }
       - { label: "简介", name: "description", widget: "text", required: false, default: "" }
       - { label: "封面图", name: "image", widget: "image", required: false, hint: "可选：文章封面图片" }
-      - { label: "正文", name: "body", widget: "markdown", required: true, modes: [raw, rich_text], editor_components: [code-block, image] }
+      - { label: "正文", name: "body", widget: "markdown", required: true, modes: [rich_text, raw], editor_components: [code-block, image] }
 
       # === 分类与标签 ===
       - { label: "分类", name: "category", widget: "relation", collection: "categories", value_field: "title", search_fields: ["title"], display_fields: ["title"], required: false }
@@ -241,7 +241,7 @@ ${rootCollection}
         fields:
           - { label: "标题", name: "title", widget: "string", default: "友情链接" }
           - { label: "描述", name: "description", widget: "string", default: "与优秀的朋友们一起成长" }
-          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑友链页面的 Markdown 内容", modes: [raw, rich_text] }
+          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑友链页面的 Markdown 内容", modes: [rich_text, raw] }
       - label: "友链配置"
         name: "friends_config"
         file: "src/data/friends.json"
@@ -275,7 +275,7 @@ ${rootCollection}
         name: "about"
         file: "src/content/spec/about.md"
         fields:
-          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑关于页面的 Markdown 内容", modes: [raw, rich_text] }
+          - { label: "页面内容", name: "body", widget: "markdown", hint: "编辑关于页面的 Markdown 内容", modes: [rich_text, raw] }
 
   # 类别管理
   - name: "categories"

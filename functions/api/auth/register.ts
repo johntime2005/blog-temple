@@ -19,6 +19,8 @@
  * }
  */
 
+import { authenticate } from "../../_lib/session";
+
 interface Env {
 	POST_ENCRYPTION: KVNamespace;
 	ADMIN_PASSWORD: string;
@@ -28,7 +30,7 @@ interface RegisterRequest {
 	username: string;
 	password: string;
 	email?: string;
-	adminToken: string; // 需要管理员token才能注册新用户
+	adminToken?: string; // 管理员登录凭证；也可通过 Cookie/Authorization 头携带
 }
 
 // 密码加密函数（使用 Web Crypto API）
@@ -38,12 +40,6 @@ async function hashPassword(password: string): Promise<string> {
 	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
 	const hashArray = Array.from(new Uint8Array(hashBuffer));
 	return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-// 验证管理员token
-async function verifyAdminToken(env: Env, token: string): Promise<boolean> {
-	const tokenValue = await env.POST_ENCRYPTION.get(`admin:token:${token}`);
-	return tokenValue === "valid";
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -62,11 +58,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 		const { username, password, email, adminToken } = body;
 
 		// 验证必填字段
-		if (!username || !password || !adminToken) {
+		if (!username || !password) {
 			return new Response(
 				JSON.stringify({
 					success: false,
-					message: "用户名、密码和管理员token不能为空",
+					message: "用户名和密码不能为空",
 				}),
 				{
 					status: 400,
@@ -75,13 +71,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 			);
 		}
 
-		// 验证管理员token
-		const isAdmin = await verifyAdminToken(context.env, adminToken);
-		if (!isAdmin) {
+		// 统一走 _lib/session 的 authenticate 校验管理员身份
+		// （兼容 session token 与旧版 admin:token，不再自行读 KV）
+		const auth = await authenticate(context.request, context.env, adminToken);
+		if (!auth || auth.role !== "admin") {
 			return new Response(
 				JSON.stringify({
 					success: false,
-					message: "无效的管理员token，只有管理员可以创建用户",
+					message: "无权操作：请以站长身份登录后再创建用户",
 				}),
 				{
 					status: 403,

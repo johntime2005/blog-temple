@@ -548,6 +548,7 @@ const filteredPosts = $derived(() => {
 
 	.filter-tabs {
 		display: flex;
+		flex-wrap: wrap;
 		gap: 0.5rem;
 	}
 
@@ -607,6 +608,7 @@ const filteredPosts = $derived(() => {
 	.post-meta {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
 		gap: 0.75rem;
 		font-size: 0.875rem;
 		color: var(--text-tertiary);
@@ -736,5 +738,33 @@ const filteredPosts = $derived(() => {
 		font-size: 4rem;
 		margin-bottom: 1rem;
 		opacity: 0.5;
+	}
+
+	/* 移动端：条目改纵向排列，收窄留白，按钮组占满整行便于点按 */
+	@media (max-width: 640px) {
+		.post-item {
+			flex-direction: column;
+			align-items: stretch;
+			padding: 1rem;
+			gap: 0.75rem;
+		}
+
+		.filters {
+			padding: 1rem;
+		}
+
+		.admin-header {
+			padding: 1rem;
+		}
+
+		.post-actions {
+			gap: 0.5rem;
+		}
+
+		.action-button {
+			flex: 1;
+			justify-content: center;
+			min-height: 44px;
+		}
 	}
 </style>

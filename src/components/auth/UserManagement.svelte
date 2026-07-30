@@ -1,9 +1,10 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
 import { onMount } from "svelte";
+import { getToken } from "@/utils/auth-client";
 
 interface Props {
-	adminToken?: string; // 管理员token（可选，会从localStorage读取）
+	adminToken?: string; // 管理员token（可选，默认读全站统一登录态）
 }
 
 let { adminToken: initialAdminToken = "" }: Props = $props();
@@ -11,13 +12,10 @@ let { adminToken: initialAdminToken = "" }: Props = $props();
 // 状态管理 - adminToken
 let adminToken = $state(initialAdminToken);
 
-// 组件挂载时从localStorage读取token
+// 组件挂载时读取全站统一凭证（user-token），兼容旧版 admin-token
 onMount(() => {
 	if (!adminToken) {
-		const storedToken = localStorage.getItem("admin-token");
-		if (storedToken) {
-			adminToken = storedToken;
-		}
+		adminToken = getToken() || localStorage.getItem("admin-token") || "";
 	}
 });
 

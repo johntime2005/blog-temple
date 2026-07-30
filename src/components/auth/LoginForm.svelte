@@ -4,6 +4,7 @@ import { onDestroy, onMount } from "svelte";
 import {
 	clearToken,
 	getToken,
+	logout,
 	setToken,
 	verifyAuth,
 } from "@/utils/auth-client";
@@ -14,6 +15,13 @@ interface Props {
 
 let { redirectUrl = "/" }: Props = $props();
 let authWindow: Window | null = null;
+
+// 已登录身份；null 表示未登录（或校验中）
+let user = $state<{ username?: string; role?: string } | null>(null);
+
+// 从受保护页面跳转来的登录（带具体 redirect）保持"登录完成即送回原页"；
+// 直接访问登录页（redirect 为默认首页）则登录后停留，展示仪表盘入口
+const hasExplicitRedirect = redirectUrl !== "/";
 
 function handleStorageChange(e: StorageEvent) {
 	if (e.key === "user-token" && e.newValue) {
@@ -34,12 +42,13 @@ function handleMessage(e: MessageEvent) {
 			const token = data.sessionToken || data.token;
 			if (token) {
 				setToken(token);
-				window.location.href = redirectUrl;
+				verifyExistingToken(token);
 			}
 		} catch {}
 	} else if (e.data?.sessionToken || e.data?.token) {
-		setToken(e.data.sessionToken || e.data.token);
-		window.location.href = redirectUrl;
+		const token = e.data.sessionToken || e.data.token;
+		setToken(token);
+		verifyExistingToken(token);
 	}
 }
 
@@ -62,10 +71,15 @@ onDestroy(() => {
 async function verifyExistingToken(token: string) {
 	const auth = await verifyAuth(token);
 	if (auth?.valid) {
-		window.location.href = redirectUrl;
+		if (hasExplicitRedirect) {
+			window.location.href = redirectUrl;
+			return;
+		}
+		user = { username: auth.username, role: auth.role };
 	} else if (auth) {
 		// 仅在服务端明确判定无效时清除；网络/服务异常（auth === null）保留凭证
 		clearToken();
+		user = null;
 	}
 }
 
@@ -82,22 +96,55 @@ function openAuthPopup(e: MouseEvent) {
 		`width=${width},height=${height},left=${left},top=${top}`,
 	);
 }
+
+async function handleLogout() {
+	await logout();
+	user = null;
+}
 </script>
 
 <div class="login-container">
 	<div class="login-card">
-		<div class="login-header">
-			<Icon icon="mdi:account-circle" class="login-icon" />
-			<h1>用户登录</h1>
-			<p>请使用 GitHub 账号登录以访问受保护的内容</p>
-		</div>
+		{#if user}
+			<div class="login-header">
+				<Icon icon="mdi:account-check" class="login-icon" />
+				<h1>已登录</h1>
+				<p>
+					{user.username ? `${user.username}，` : ""}欢迎回来
+				</p>
+			</div>
 
-		<div class="login-actions">
-            <button onclick={openAuthPopup} class="github-login-button">
-                <Icon icon="fa6-brands:github" />
-                <span>使用 GitHub 登录</span>
-            </button>
-		</div>
+			<div class="login-actions">
+				{#if user.role === "admin"}
+					<a href="/admin/" class="primary-button">
+						<Icon icon="mdi:view-dashboard" />
+						<span>进入仪表盘</span>
+					</a>
+				{:else}
+					<a href="/" class="primary-button">
+						<Icon icon="mdi:home" />
+						<span>返回首页</span>
+					</a>
+				{/if}
+				<button onclick={handleLogout} class="secondary-button">
+					<Icon icon="mdi:logout" />
+					<span>退出登录</span>
+				</button>
+			</div>
+		{:else}
+			<div class="login-header">
+				<Icon icon="mdi:account-circle" class="login-icon" />
+				<h1>用户登录</h1>
+				<p>请使用 GitHub 账号登录以访问受保护的内容</p>
+			</div>
+
+			<div class="login-actions">
+				<button onclick={openAuthPopup} class="github-login-button">
+					<Icon icon="fa6-brands:github" />
+					<span>使用 GitHub 登录</span>
+				</button>
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -158,29 +205,59 @@ function openAuthPopup(e: MouseEvent) {
 
 	.login-actions {
 		padding: 2rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
 	}
 
-    .github-login-button {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.875rem 1.5rem;
-        background: #24292e;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-    }
+	.github-login-button,
+	.primary-button,
+	.secondary-button {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.875rem 1.5rem;
+		border: none;
+		border-radius: 8px;
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		text-decoration: none;
+	}
 
-    .github-login-button:hover {
-        background: #2f363d;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
+	.github-login-button {
+		background: #24292e;
+		color: white;
+	}
+
+	.github-login-button:hover {
+		background: #2f363d;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+
+	.primary-button {
+		background: var(--primary);
+		color: white;
+	}
+
+	.primary-button:hover {
+		opacity: 0.9;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+
+	.secondary-button {
+		background: transparent;
+		color: var(--text-secondary, #666);
+		border: 1px solid var(--line-divider, #ddd);
+	}
+
+	.secondary-button:hover {
+		color: var(--text-color, #333);
+		border-color: var(--text-secondary, #999);
+	}
 </style>
