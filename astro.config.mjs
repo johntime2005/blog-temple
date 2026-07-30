@@ -57,6 +57,11 @@ const adapter = process.env.CF_WORKERS
 			// Pages 纯静态部署没有 /_image 运行时端点，passthrough 会让全站图片 404，
 			// 必须用 compile 在构建时由 sharp 直接生成静态图片文件
 			imageService: "compile",
+			// 适配器 v13 默认在 workerd 里执行预渲染，而 Pages 构建容器里 workerd
+			// 禁止动态 WebAssembly 编译，server bundle 一加载 wasm 依赖就报
+			// "Wasm code generation disallowed by embedder" 并中断构建。
+			// 本站为纯静态输出、运行时逻辑全在 functions/，预渲染放回 Node 无副作用。
+			prerenderEnvironment: "node",
 			configPath: cloudflareConfigPath,
 	  });
 
