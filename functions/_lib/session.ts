@@ -71,33 +71,68 @@ export function timingSafeEqual(a: string, b: string): boolean {
 
 const STATE_TTL_MS = 10 * 60 * 1000; // 10 分钟
 
-/** 生成签名 state：timestamp.random.hmac(secret, timestamp.random) */
-export async function createSignedState(secret: string): Promise<string> {
-	const payload = `${Date.now()}.${generateSecureToken(32)}`;
+/** state 随签携带的数据（登录发起域与回跳路径） */
+export interface StateData {
+	/** 登录发起页的 origin，写入前必须经白名单校验 */
+	o?: string;
+	/** 登录完成后的站内相对路径 */
+	r?: string;
+}
+
+function base64UrlEncode(s: string): string {
+	return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function base64UrlDecode(s: string): string {
+	const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+	return atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4));
+}
+
+/** 生成签名 state：timestamp.random[.base64url(data)].hmac */
+export async function createSignedState(
+	secret: string,
+	data?: StateData,
+): Promise<string> {
+	let payload = `${Date.now()}.${generateSecureToken(32)}`;
+	if (data && Object.keys(data).length > 0) {
+		payload += `.${base64UrlEncode(JSON.stringify(data))}`;
+	}
 	const signature = await hmacSha256Hex(secret, payload);
 	return `${payload}.${signature}`;
 }
 
-/** 校验 state 的签名与时效 */
+/** 校验 state 的签名与时效，并取出随签数据（兼容不带数据的旧 3 段格式） */
 export async function verifySignedState(
 	secret: string,
 	state: string,
-): Promise<{ valid: boolean; reason?: string }> {
+): Promise<{ valid: boolean; reason?: string; data?: StateData }> {
 	const parts = state.split(".");
-	if (parts.length !== 3) return { valid: false, reason: "格式不正确" };
+	if (parts.length !== 3 && parts.length !== 4) {
+		return { valid: false, reason: "格式不正确" };
+	}
 
-	const [timestamp, random, signature] = parts;
-	const expected = await hmacSha256Hex(secret, `${timestamp}.${random}`);
+	const signature = parts[parts.length - 1];
+	const payload = parts.slice(0, -1).join(".");
+	const expected = await hmacSha256Hex(secret, payload);
 	if (!timingSafeEqual(signature, expected)) {
 		return { valid: false, reason: "签名不匹配" };
 	}
 
-	const stateTime = Number.parseInt(timestamp, 10);
+	const stateTime = Number.parseInt(parts[0], 10);
 	if (Number.isNaN(stateTime) || Date.now() - stateTime > STATE_TTL_MS) {
 		return { valid: false, reason: "已过期" };
 	}
 
-	return { valid: true };
+	let data: StateData | undefined;
+	if (parts.length === 4) {
+		try {
+			data = JSON.parse(base64UrlDecode(parts[2])) as StateData;
+		} catch {
+			return { valid: false, reason: "数据解析失败" };
+		}
+	}
+
+	return { valid: true, data };
 }
 
 // ── Cookie 读写 ───────────────────────────────────────────
@@ -190,6 +225,57 @@ export function isOwner(username: string, ownerUsername: string): boolean {
 		!!ownerUsername &&
 		username.toLowerCase() === ownerUsername.toLowerCase()
 	);
+}
+
+// ── 多域名（原站 + 国内加速站）──────────────────────────────
+
+/**
+ * 允许发起登录并在登录完成后回跳的站点 origin 白名单。
+ * 可用环境变量 ALLOWED_ORIGINS（逗号分隔）覆盖。
+ */
+const DEFAULT_ALLOWED_ORIGINS = [
+	"https://blog.johntime.top",
+	"https://blog-cn.johntime.top",
+];
+
+export function resolveAllowedOrigins(env: {
+	ALLOWED_ORIGINS?: string;
+}): string[] {
+	const raw = env.ALLOWED_ORIGINS;
+	if (!raw) return DEFAULT_ALLOWED_ORIGINS;
+	return raw
+		.split(",")
+		.map((s) => s.trim().replace(/\/$/, ""))
+		.filter(Boolean);
+}
+
+/** 仅接受白名单内的 origin，其余返回 null（防开放重定向） */
+export function sanitizeReturnOrigin(
+	raw: string | null | undefined,
+	env: { ALLOWED_ORIGINS?: string },
+): string | null {
+	if (!raw) return null;
+	const normalized = raw.trim().replace(/\/$/, "");
+	return resolveAllowedOrigins(env).includes(normalized) ? normalized : null;
+}
+
+/**
+ * 从请求推导发起域：反代改写 Host 时优先取 X-Forwarded-Host，
+ * 其次请求自身 origin；两者都必须命中白名单，否则返回 null。
+ */
+export function resolveRequestOrigin(
+	request: Request,
+	env: { ALLOWED_ORIGINS?: string },
+): string | null {
+	const forwardedHost = request.headers.get("X-Forwarded-Host");
+	if (forwardedHost) {
+		const candidate = sanitizeReturnOrigin(
+			`https://${forwardedHost.split(",")[0].trim()}`,
+			env,
+		);
+		if (candidate) return candidate;
+	}
+	return sanitizeReturnOrigin(new URL(request.url).origin, env);
 }
 
 // ── 统一鉴权入口 ──────────────────────────────────────────

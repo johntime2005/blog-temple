@@ -3,6 +3,7 @@ import Icon from "@iconify/svelte";
 import { onDestroy, onMount } from "svelte";
 import {
 	logout as authLogout,
+	buildAuthUrl,
 	clearToken,
 	getToken,
 	setToken,
@@ -149,7 +150,7 @@ function openAuthPopup() {
 	const left = window.screenX + (window.outerWidth - width) / 2;
 	const top = window.screenY + (window.outerHeight - height) / 2;
 	const popup = window.open(
-		"/auth/",
+		buildAuthUrl("/admin/"),
 		"github-auth",
 		`width=${width},height=${height},left=${left},top=${top}`,
 	);

@@ -28,6 +28,7 @@ import {
 	SESSION_COOKIE,
 	SESSION_TTL_SECONDS,
 	STATE_COOKIE,
+	sanitizeReturnOrigin,
 	serializeCookie,
 	timingSafeEqual,
 	verifySignedState,
@@ -101,25 +102,22 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 	}
 
 	const savedState = getCookie(request, STATE_COOKIE);
-	if (!callbackState || !savedState) {
-		console.error(
-			"[OAuth] state 缺失:",
-			JSON.stringify({ hasParam: !!callbackState, hasCookie: !!savedState }),
-		);
-		return errorResponse(
-			"安全校验失败",
-			"登录会话已失效或浏览器未携带 Cookie，请重新登录。",
-			403,
-			["请确认浏览器允许 Cookie 后重试"],
-		);
+	if (!callbackState) {
+		console.error("[OAuth] 回调缺少 state 参数");
+		return errorResponse("安全校验失败", "登录会话已失效，请重新登录。", 403);
 	}
 
-	if (!timingSafeEqual(callbackState, savedState)) {
+	// cookie 双提交：同域发起时严格比对；跨域发起（如国内加速站，Cookie
+	// 存在发起域、回调域拿不到）时退化为仅依赖 state 的 HMAC 签名 + 时效
+	if (savedState && !timingSafeEqual(callbackState, savedState)) {
 		console.error("[OAuth] state 不匹配（可能的 CSRF）");
 		return errorResponse("安全校验失败", "登录状态不匹配，请重新登录。", 403);
 	}
+	if (!savedState) {
+		console.warn("[OAuth] state cookie 缺失（跨域发起），仅依赖签名校验");
+	}
 
-	const stateCheck = await verifySignedState(clientSecret, savedState);
+	const stateCheck = await verifySignedState(clientSecret, callbackState);
 	if (!stateCheck.valid) {
 		console.error("[OAuth] state 校验未通过:", stateCheck.reason);
 		return errorResponse(
@@ -224,9 +222,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 		});
 		console.log(`[OAuth] 登录成功: ${username} (role=${role})`);
 
-		const redirectUrl = sanitizeRedirect(
-			getCookie(request, REDIRECT_COOKIE) || "/",
+		// 回跳目标：路径与发起域均来自签名 state（跨域发起时回调域读不到
+		// 发起域的 Cookie）；REDIRECT_COOKIE 兜底同域旧流程。发起域再过一次
+		// 白名单，白名单外一律回落到回调域自身，杜绝开放重定向
+		const redirectPath = sanitizeRedirect(
+			stateCheck.data?.r || getCookie(request, REDIRECT_COOKIE) || "/",
 		);
+		const returnOrigin =
+			sanitizeReturnOrigin(stateCheck.data?.o, env) || url.origin;
+		const redirectUrl = `${returnOrigin}${redirectPath}`;
 
 		const headers = new Headers();
 		headers.append("Set-Cookie", clearCookie(STATE_COOKIE));

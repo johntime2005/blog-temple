@@ -38,6 +38,8 @@ export interface Env {
 	GITHUB_OWNER_USERNAME?: string;
 	/** 可选：显式指定 OAuth 回调地址，默认 origin + /auth/callback/ */
 	GITHUB_REDIRECT_URI?: string;
+	/** 可选：登录回跳域名白名单（逗号分隔），默认主站 + 国内加速站 */
+	ALLOWED_ORIGINS?: string;
 }
 
 /**

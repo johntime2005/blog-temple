@@ -2,6 +2,7 @@
 import Icon from "@iconify/svelte";
 import { onDestroy, onMount } from "svelte";
 import {
+	buildAuthUrl,
 	clearToken,
 	getToken,
 	logout,
@@ -97,7 +98,7 @@ async function verifyExistingToken(token: string) {
 
 function openAuthPopup(e: MouseEvent) {
 	e.preventDefault();
-	const url = `/auth/?redirect=${encodeURIComponent(redirectUrl)}`;
+	const url = buildAuthUrl(redirectUrl);
 	const width = 600;
 	const height = 700;
 	const left = window.screenX + (window.outerWidth - width) / 2;

@@ -11,7 +11,9 @@ import type { Env } from "../_lib/env";
 import {
 	createSignedState,
 	REDIRECT_COOKIE,
+	resolveRequestOrigin,
 	STATE_COOKIE,
+	sanitizeReturnOrigin,
 	serializeCookie,
 } from "../_lib/session";
 
@@ -47,8 +49,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 	}
 
 	const url = new URL(request.url);
-	const state = await createSignedState(clientSecret);
 	const redirectTarget = sanitizeRedirect(url.searchParams.get("redirect"));
+	// 登录发起域：跨域发起（如国内加速站，其 /auth/* 不经反代）由前端用
+	// ?from= 显式传入；同域/反代场景从请求头推导。全部经白名单校验，
+	// 并随 HMAC 签名写入 state——回调域拿不到发起域 Cookie，回跳信息只能随 state 走
+	const returnOrigin =
+		sanitizeReturnOrigin(url.searchParams.get("from"), env) ||
+		resolveRequestOrigin(request, env) ||
+		url.origin;
+	const state = await createSignedState(clientSecret, {
+		o: returnOrigin,
+		r: redirectTarget,
+	});
 
 	const redirectUri = env.GITHUB_REDIRECT_URI || `${url.origin}/auth/callback/`;
 

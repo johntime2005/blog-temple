@@ -48,3 +48,8 @@ GITHUB_BRANCH = "main"
 #               除非同样在「构建时 + 运行时」都配置并重新部署。
 # GITHUB_OWNER_USERNAME - 站长的 GitHub 用户名，用于 /api/auth/key 判定 owner 身份
 #                         （未设置时回退到上面的 GITHUB_OWNER）
+# ALLOWED_ORIGINS - 可选。允许发起登录并回跳的站点 origin 白名单（逗号分隔），
+#                   默认 https://blog.johntime.top,https://blog-cn.johntime.top。
+#                   OAuth 授权统一走主站回调（GitHub OAuth App 仅注册主站
+#                   /auth/callback/），发起域经白名单校验后随签名 state 传递，
+#                   登录完成后回跳发起域；白名单外的 from/origin 一律忽略。

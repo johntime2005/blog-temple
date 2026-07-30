@@ -8,6 +8,8 @@
  * 服务端对应的唯一鉴权入口是 functions/_lib/session.ts 的 authenticate()。
  */
 
+import { siteConfig } from "@/config";
+
 export const TOKEN_KEY = "user-token";
 /** 登录态变化时派发的事件名，同页各 Svelte 岛监听它刷新自身 */
 export const AUTH_CHANGED_EVENT = "blog-auth-changed";
@@ -78,4 +80,20 @@ export function gotoLogin(): void {
 		currentPath += "/";
 	}
 	window.location.href = `/login/?redirect=${encodeURIComponent(currentPath)}`;
+}
+
+/**
+ * 构造 OAuth 登录弹窗地址。
+ *
+ * 认证流程统一走主站（GitHub OAuth App 只注册主站回调，且加速站的
+ * /auth/* 不经反代）；从加速站等其他域发起时带上本页 origin（?from=），
+ * 服务端经白名单校验后随签名 state 传递，登录完成后回跳发起域。
+ */
+export function buildAuthUrl(redirect = "/"): string {
+	const authBase = siteConfig.site_url.replace(/\/$/, "");
+	const params = new URLSearchParams({ redirect });
+	if (window.location.origin !== authBase) {
+		params.set("from", window.location.origin);
+	}
+	return `${authBase}/auth/?${params.toString()}`;
 }
