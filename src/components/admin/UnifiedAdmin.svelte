@@ -72,21 +72,33 @@ onMount(() => {
 	window.addEventListener("resize", checkMobile);
 
 	// 检查已存储的 token
-	const storedToken = getToken();
-	if (storedToken) {
-		verifyStoredToken(storedToken);
-	}
+	recheckAuth();
 
 	// 监听跨窗口消息
 	window.addEventListener("message", handleMessage);
+	// 手机上 popup/新标签页完成授权时本页可能在后台挂起而错过消息，
+	// 回到前台时兜底重查登录态
+	document.addEventListener("visibilitychange", recheckAuth);
+	window.addEventListener("focus", recheckAuth);
 });
 
 onDestroy(() => {
 	if (typeof window !== "undefined") {
 		window.removeEventListener("resize", checkMobile);
 		window.removeEventListener("message", handleMessage);
+		document.removeEventListener("visibilitychange", recheckAuth);
+		window.removeEventListener("focus", recheckAuth);
 	}
 });
+
+function recheckAuth() {
+	if (isLoggedIn) return;
+	if (typeof document !== "undefined" && document.hidden) return;
+	const storedToken = getToken();
+	if (storedToken) {
+		verifyStoredToken(storedToken);
+	}
+}
 
 function handleMessage(e: MessageEvent) {
 	if (
@@ -136,11 +148,18 @@ function openAuthPopup() {
 	const height = 700;
 	const left = window.screenX + (window.outerWidth - width) / 2;
 	const top = window.screenY + (window.outerHeight - height) / 2;
-	window.open(
+	const popup = window.open(
 		"/auth/",
 		"github-auth",
 		`width=${width},height=${height},left=${left},top=${top}`,
 	);
+	// popup 关闭后兜底重查登录态（postMessage 因任何原因丢失时的恢复路径）
+	const timer = setInterval(() => {
+		if (!popup || popup.closed) {
+			clearInterval(timer);
+			recheckAuth();
+		}
+	}, 800);
 }
 
 async function handleLogout() {

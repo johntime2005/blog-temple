@@ -1,0 +1,5 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - heading "用户登录" [level=1] [ref=e6]
+    - paragraph [ref=e7]: 请使用 GitHub 账号登录以访问受保护的内容
+  - button "使用 GitHub 登录" [ref=e9] [cursor=pointer]

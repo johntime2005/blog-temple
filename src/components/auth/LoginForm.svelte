@@ -53,20 +53,32 @@ function handleMessage(e: MessageEvent) {
 }
 
 onMount(() => {
-	const token = getToken();
-	if (token) {
-		verifyExistingToken(token);
-	}
+	recheckAuth();
 	window.addEventListener("storage", handleStorageChange);
 	window.addEventListener("message", handleMessage);
+	// 手机上 popup/新标签页完成授权时，本页往往在后台被挂起，
+	// postMessage 与 storage 事件都可能错过；回到前台时兜底重查登录态
+	document.addEventListener("visibilitychange", recheckAuth);
+	window.addEventListener("focus", recheckAuth);
 });
 
 onDestroy(() => {
 	if (typeof window !== "undefined") {
 		window.removeEventListener("storage", handleStorageChange);
 		window.removeEventListener("message", handleMessage);
+		document.removeEventListener("visibilitychange", recheckAuth);
+		window.removeEventListener("focus", recheckAuth);
 	}
 });
+
+function recheckAuth() {
+	if (user) return;
+	if (typeof document !== "undefined" && document.hidden) return;
+	const token = getToken();
+	if (token) {
+		verifyExistingToken(token);
+	}
+}
 
 async function verifyExistingToken(token: string) {
 	const auth = await verifyAuth(token);
@@ -95,6 +107,13 @@ function openAuthPopup(e: MouseEvent) {
 		"github-auth",
 		`width=${width},height=${height},left=${left},top=${top}`,
 	);
+	// popup 关闭后兜底重查登录态（postMessage 因任何原因丢失时的恢复路径）
+	const timer = setInterval(() => {
+		if (!authWindow || authWindow.closed) {
+			clearInterval(timer);
+			recheckAuth();
+		}
+	}, 800);
 }
 
 async function handleLogout() {
