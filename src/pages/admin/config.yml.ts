@@ -61,8 +61,7 @@ export async function GET(_context: APIContext): Promise<Response> {
 	const origin = siteConfig.site_url.replace(/\/$/, "");
 	const subdirs = discoverSubdirs();
 
-	const postFields = `    fields:
-      # === 基础信息 ===
+	const postFieldsBody = `      # === 基础信息 ===
       - { label: "标题", name: "title", widget: "string", required: true }
       - { label: "发布日期", name: "published", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: true }
       - { label: "更新日期", name: "updated", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false, format: "YYYY-MM-DD", required: false }
@@ -130,6 +129,9 @@ export async function GET(_context: APIContext): Promise<Response> {
       - { label: "许可证名称", name: "licenseName", widget: "string", required: false, default: "" }
       - { label: "许可证链接", name: "licenseUrl", widget: "string", required: false, default: "" }`;
 
+	const postFields = `    fields:
+${postFieldsBody}`;
+
 	const viewConfig = `    view_groups:
       - label: "按分类"
         field: "category"
@@ -185,6 +187,23 @@ ${postFields}
 
 ${viewConfig}`;
 
+	// Sveltia 没有目录管理 UI（嵌套集合官方推迟到 2.0），
+	// 借 path 模板让首篇文章落到新目录，Git 提交时目录随之创建
+	const newFolderCollection = `  - name: "new-folder"
+    label: "📂 新建文件夹"
+    label_singular: "新文件夹文章"
+    folder: "src/content/posts"
+    create: true
+    slug: "{{slug}}"
+    path: "{{fields.dir}}/{{slug}}"
+    preview_path: "posts/{{slug}}"
+    summary: "{{title}} ({{published}})"
+    fields:
+      - { label: "文件夹名", name: "dir", widget: "string", required: true, hint: "输入新文件夹名（建议英文小写加连字符，如 life-notes），保存后文章会创建在 posts/该文件夹/ 下，下次部署后左侧会出现对应的文件夹列表。此入口仅用于新建，编辑已有文章请到对应文件夹列表操作。" }
+${postFieldsBody}
+
+${viewConfig}`;
+
 	const configTemplate = `# Sveltia CMS 配置文件
 # 文档: https://sveltiacms.app/en/docs/config-basics
 
@@ -216,6 +235,8 @@ collections:
 ${dirCollections}
 
 ${rootCollection}
+
+${newFolderCollection}
 
   # 全局设置
   - name: "settings"
