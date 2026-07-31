@@ -78,12 +78,12 @@ export default defineConfig({
 		layout: "constrained",
 	},
 
-	experimental: {
-		// Rust 编译器以提升构建性能（实验性），部分平台可能会导致构建失败，可以根据需要启用或禁用
-		rustCompiler: false,
-		// 队列渲染以优化性能（实验性）
-		queuedRendering: { enabled: true },
-	},
+	// Astro 7 起 compressHTML 默认改为 "jsx"（按 JSX 规则剥掉行内元素间空白），
+	// 这会改变主题大量行内元素的渲染间距；显式保持 v6 的 HTML 感知压缩行为。
+	compressHTML: true,
+
+	// Astro 7 已移除 rustCompiler / queuedRendering 实验标志：
+	// Rust 编译器成为唯一编译器，队列渲染成为默认行为。
 	integrations: [
 		swup({
 			theme: false,
