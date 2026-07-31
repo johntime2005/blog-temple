@@ -82,6 +82,12 @@ export default defineConfig({
 	// 这会改变主题大量行内元素的渲染间距；显式保持 v6 的 HTML 感知压缩行为。
 	compressHTML: true,
 
+	// 并行渲染页面：128 页实测把渲染段从 ~33s 压到 ~27s（本站页面渲染
+	// 含 KaTeX/加密等 CPU 任务，收益有限但稳定）。过高会增大内存峰值。
+	build: {
+		concurrency: 4,
+	},
+
 	// Astro 7 已移除 rustCompiler / queuedRendering 实验标志：
 	// Rust 编译器成为唯一编译器，队列渲染成为默认行为。
 	integrations: [
