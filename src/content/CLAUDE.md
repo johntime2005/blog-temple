@@ -332,6 +332,22 @@ console.log(x);
 ```
 ````
 
+#### 6. Obsidian 图片嵌入（`remark-obsidian-image`）
+
+使用 Obsidian 编辑文章时可以直接粘贴截图，无需转换为标准 Markdown 语法：
+
+```markdown
+![[Pasted image 20260906.png]]
+```
+
+图片路径按以下顺序自动解析（相对于文章所在目录）：
+
+1. `./images/`（文章目录下的 images 子目录，推荐约定）
+2. 文章同目录
+3. 仓库根目录（Obsidian 默认粘贴位置）
+
+支持 `![[image.png|300]]` 尺寸后缀（后缀被忽略），非图片嵌入（如 `![[笔记]]`）不受影响。
+
 ---
 
 ## 测试与质量

@@ -286,6 +286,7 @@ const tutorialPosts = posts.filter(p => p.data.category === 'tutorials');
 - **`remark-excerpt.js`**：提取摘要
 - **`remark-mermaid.js`**：预处理 Mermaid 图表
 - **`remark-directive-rehype.js`**：处理自定义指令（如 `:::note`）
+- **`remark-obsidian-image.js`**：支持 Obsidian 图片嵌入语法（如 `![[image.png]]`）
 
 ### Rehype 插件（处理 HTML AST）
 
