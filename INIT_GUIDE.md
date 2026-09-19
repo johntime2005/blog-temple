@@ -109,7 +109,7 @@ export const siteConfig: SiteConfig = {
 
   // Bangumi 配置（如果使用追番页）
   bangumi: {
-    userId: "你的BangumiID",
+    userId: "BangumiID",
   },
   // ...
 };
