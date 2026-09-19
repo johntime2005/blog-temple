@@ -39,7 +39,7 @@
 	"sharePoster": true,
 	"generateOgImages": false,
 	"bangumi": {
-		"userId": "1176159",
+		"userId": "johntime",
 		"mode": "dynamic",
 		"apiUrl": "https://api.bangumi.one",
 		"subjectBaseUrl": "https://bangumi.one/subject/",
